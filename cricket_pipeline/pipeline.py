@@ -18,11 +18,14 @@ import argparse
 
 from .db import connect, install_views
 from .ingest import (
+    cricbuzz,
     cricinfo_profiles,
     cricsheet,
     fixtures,
     news,
+    newsapi,
     openweather,
+    partnerships,
     people,
     rankings,
     statsguru,
@@ -119,6 +122,21 @@ def cmd_datasets(args):
         print(f"  {k:<35} {v}")
 
 
+def cmd_partnerships(args):
+    n = partnerships.derive(replace=not args.append)
+    print(f"derived {n} partnerships")
+
+
+def cmd_cricbuzz(args):
+    n = cricbuzz.snapshot_many(args.match_ids)
+    print(f"captured {n} live snapshots")
+
+
+def cmd_newsapi(args):
+    n = newsapi.fetch(query=args.query, days=args.days)
+    print(f"stored {n} NewsAPI articles")
+
+
 def cmd_stats(args):
     con = connect()
     queries = [
@@ -136,6 +154,8 @@ def cmd_stats(args):
         ("fixtures",           "SELECT COUNT(*) FROM fixtures"),
         ("umpires",            "SELECT COUNT(*) FROM umpires"),
         ("match_officials",    "SELECT COUNT(*) FROM match_officials"),
+        ("partnerships",       "SELECT COUNT(*) FROM partnerships"),
+        ("live_state",         "SELECT COUNT(*) FROM live_state"),
         ("distinct_venues",    "SELECT COUNT(DISTINCT venue) FROM matches"),
     ]
     for label, q in queries:
@@ -213,6 +233,20 @@ def main():
 
     ds = sub.add_parser("datasets", help="List available CricSheet zip datasets")
     ds.set_defaults(func=cmd_datasets)
+
+    pt = sub.add_parser("partnerships", help="Derive partnerships from balls")
+    pt.add_argument("--append", action="store_true",
+                    help="Don't wipe partnerships table first")
+    pt.set_defaults(func=cmd_partnerships)
+
+    cb = sub.add_parser("cricbuzz", help="Snapshot live match state from Cricbuzz")
+    cb.add_argument("match_ids", nargs="+", help="Cricbuzz match IDs")
+    cb.set_defaults(func=cmd_cricbuzz)
+
+    na = sub.add_parser("newsapi", help="Fetch broader cricket news via NewsAPI")
+    na.add_argument("--query", default="cricket")
+    na.add_argument("--days", type=int, default=7)
+    na.set_defaults(func=cmd_newsapi)
 
     st = sub.add_parser("stats", help="Show row counts")
     st.set_defaults(func=cmd_stats)

@@ -177,6 +177,36 @@ CREATE TABLE IF NOT EXISTS match_officials (
     PRIMARY KEY (match_id, role, name)
 );
 
+CREATE TABLE IF NOT EXISTS partnerships (
+    match_id      VARCHAR,
+    innings_no    INTEGER,
+    wicket_no     INTEGER,                -- 1 = opening, 2 = second wicket partnership, ...
+    batter1       VARCHAR,
+    batter2       VARCHAR,
+    runs          INTEGER,
+    balls         INTEGER,                -- legal balls only
+    start_over    DOUBLE,
+    end_over      DOUBLE,
+    unbeaten      BOOLEAN,
+    PRIMARY KEY (match_id, innings_no, wicket_no)
+);
+
+CREATE TABLE IF NOT EXISTS live_state (
+    match_id        VARCHAR,
+    fetched_at      TIMESTAMP,
+    status          VARCHAR,
+    score           VARCHAR,
+    overs           VARCHAR,
+    striker         VARCHAR,
+    striker_runs    INTEGER,
+    striker_balls   INTEGER,
+    non_striker     VARCHAR,
+    bowler          VARCHAR,
+    last_ball       VARCHAR,
+    raw_json        VARCHAR,
+    PRIMARY KEY (match_id, fetched_at)
+);
+
 -- Indexes to make the common filters cheap
 CREATE INDEX IF NOT EXISTS idx_balls_match     ON balls(match_id);
 CREATE INDEX IF NOT EXISTS idx_balls_batter    ON balls(batter);

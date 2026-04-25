@@ -15,18 +15,21 @@ cricket_pipeline/
 │   ├── views.sql          # derived analytical views (venue profile, phase metrics, ...)
 │   └── connection.py      # DuckDB connection factory + view installer
 ├── ingest/
-│   ├── cricsheet.py       # ball-by-ball zips (now 27 datasets — see `pipeline datasets`)
-│   ├── people.py          # CricSheet people.csv → cross-provider IDs
-│   ├── cricinfo_profiles.py  # Cricinfo profile pages → dob, role, batting/bowling style
-│   ├── statsguru.py       # leaderboards + groupby splits (year / opposition / ground)
-│   ├── rankings.py        # ICC men's player + team rankings
-│   ├── venues.py          # geocode venues via Nominatim
-│   ├── wikipedia.py       # venue infobox enrichment (capacity, ends, established)
-│   ├── weather.py         # Visual Crossing historical weather
-│   ├── openweather.py     # OpenWeatherMap current + 5-day forecast
-│   ├── news.py            # multi-source RSS + VADER sentiment + entity tags
-│   ├── umpires.py         # derives umpires table from matches.umpires
-│   └── fixtures.py        # CricAPI upcoming/live match list
+│   ├── cricsheet.py            # ball-by-ball zips (27 datasets — see `pipeline datasets`)
+│   ├── people.py               # CricSheet people.csv → cross-provider IDs
+│   ├── cricinfo_profiles.py    # Cricinfo profile pages → dob, role, batting/bowling style
+│   ├── statsguru.py            # leaderboards + groupby splits
+│   ├── rankings.py             # ICC men's player + team rankings
+│   ├── venues.py               # geocode venues via Nominatim
+│   ├── wikipedia.py            # venue infobox enrichment
+│   ├── weather.py              # Visual Crossing historical weather
+│   ├── openweather.py          # OpenWeatherMap current + 5-day forecast
+│   ├── news.py                 # multi-source RSS + sentiment + entity tags
+│   ├── newsapi.py              # NewsAPI (broader news, 100 req/day free)
+│   ├── umpires.py              # derives umpires from matches.umpires
+│   ├── fixtures.py             # CricAPI upcoming/live matches
+│   ├── partnerships.py         # derived partnerships from ball-by-ball
+│   └── cricbuzz.py             # best-effort live match-state snapshots
 ├── examples/
 │   └── basic_query.py     # sample analytics queries
 └── data/                  # created on first run: DuckDB file + cache/
@@ -46,6 +49,7 @@ export STATSGURU_CONTACT="you@example.com"        # identifies your scrapers (St
 export VISUAL_CROSSING_KEY="your_key_here"        # free tier at visualcrossing.com
 export OPENWEATHER_KEY="your_key_here"            # free tier at openweathermap.org
 export CRICAPI_KEY="your_key_here"                # free tier at cricapi.com (fixtures only)
+export NEWSAPI_KEY="your_key_here"                # 100 req/day free at newsapi.org
 ```
 
 ## Quick start
@@ -99,7 +103,16 @@ python -m cricket_pipeline.pipeline views
 # 15. Browse all available CricSheet datasets
 python -m cricket_pipeline.pipeline datasets
 
-# 16. Row counts + sample queries
+# 16. Derive partnerships from ball-by-ball data
+python -m cricket_pipeline.pipeline partnerships
+
+# 17. NewsAPI (100 req/day free; needs NEWSAPI_KEY)
+python -m cricket_pipeline.pipeline newsapi --query cricket --days 7
+
+# 18. Live match snapshots from Cricbuzz (unofficial, brittle)
+python -m cricket_pipeline.pipeline cricbuzz <CricbuzzMatchId> [<MatchId2> ...]
+
+# 19. Row counts + sample queries
 python -m cricket_pipeline.pipeline stats
 python -m cricket_pipeline.examples.basic_query
 ```
@@ -128,6 +141,10 @@ Run `python -m cricket_pipeline.pipeline datasets` for the URL list.
 | `v_matchup`          | bowler-vs-batter raw counts (feed into a Bayesian shrink)      |
 | `v_umpire_lbw`       | LBW propensity per umpire (real bias signal)                   |
 | `v_toss_impact`      | does winning the toss matter at this venue?                    |
+| `v_ball_state`       | one row per delivery with running totals, RR, RRR, phase       |
+| `v_batter_form`      | rolling 10-innings runs, SR, average per batter                |
+| `v_bowler_workload`  | overs bowled in last 7 / 30 / 90 days per bowler               |
+| `v_top_partnerships` | partnership leaderboard sortable by runs                       |
 
 ## Available CricSheet datasets
 
@@ -151,6 +168,8 @@ Run `python -m cricket_pipeline.pipeline datasets` for the URL list.
 | `fixtures`         | upcoming + live matches                                     |
 | `umpires`          | matches officiated, formats                                 |
 | `match_officials`  | every umpire / TV umpire / referee per match                |
+| `partnerships`     | derived from balls — wicket #, batters, runs, balls         |
+| `live_state`       | rolling Cricbuzz live snapshots                             |
 
 ## Extending
 

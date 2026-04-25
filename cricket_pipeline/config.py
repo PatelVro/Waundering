@@ -84,5 +84,11 @@ CRICAPI_BASE = "https://api.cricapi.com/v1"
 CRICINFO_PROFILE_BASE = "https://www.espncricinfo.com/cricketers"
 CRICINFO_SLEEP_SECONDS = float(os.environ.get("CRICINFO_SLEEP", "2.5"))
 
+CRICBUZZ_MATCH_API = "https://www.cricbuzz.com/api/cricket-match/commentary"
+CRICBUZZ_LIVE_LIST = "https://www.cricbuzz.com/api/html/cricket-schedule/live"
+
+NEWSAPI_KEY = os.environ.get("NEWSAPI_KEY", "")
+NEWSAPI_BASE = "https://newsapi.org/v2"
+
 for d in (DATA_DIR, CACHE_DIR):
     d.mkdir(parents=True, exist_ok=True)
