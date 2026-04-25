@@ -1,0 +1,87 @@
+{
+  "model_tag": "c3c_odi_xi",
+  "formats": [
+    "ODI"
+  ],
+  "n_train": 2222,
+  "n_calib": 296,
+  "n_test": 444,
+  "best_iter": 33,
+  "n_features": 39,
+  "test_acc_raw": 0.6621621621621622,
+  "test_acc_cal": 0.6621621621621622,
+  "test_logloss_raw": 0.5984368897461905,
+  "test_logloss_cal": 0.5892095825542025,
+  "test_brier_raw": 0.2067810312185765,
+  "test_brier_cal": 0.20472823904952162,
+  "test_auc": 0.7425824175824175,
+  "test_ece_raw": 0.09905948309157088,
+  "test_ece_cal": 0.056972414675128105,
+  "split": {
+    "train_end": "2022-04-13",
+    "test_start": "2023-10-01"
+  },
+  "baselines": {
+    "always_t1": 0.47297297297297297,
+    "always_t2": 0.527027027027027,
+    "majority": 0.527027027027027,
+    "higher_last10": 0.5630630630630631,
+    "higher_elo": 0.6576576576576577,
+    "elo_plus_form": 0.6463963963963963
+  },
+  "test_acc_high_conf": 0.797979797979798,
+  "test_n_high_conf": 198,
+  "test_high_conf_share": 0.44594594594594594,
+  "top10_features_by_gain": [
+    {
+      "feature": "t1_bat_career_avg",
+      "gain": 1707.8519763946533,
+      "split": 108
+    },
+    {
+      "feature": "diff_bat_career_sr",
+      "gain": 1602.6706902980804,
+      "split": 59
+    },
+    {
+      "feature": "t2_bat_career_avg",
+      "gain": 1579.3057489395142,
+      "split": 117
+    },
+    {
+      "feature": "elo_diff_pre",
+      "gain": 1251.9711027145386,
+      "split": 39
+    },
+    {
+      "feature": "diff_bowl_career_econ",
+      "gain": 479.70582008361816,
+      "split": 60
+    },
+    {
+      "feature": "t2_elo_pre",
+      "gain": 370.50207328796387,
+      "split": 32
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 305.73078870773315,
+      "split": 37
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 267.86596632003784,
+      "split": 25
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 252.84779930114746,
+      "split": 28
+    },
+    {
+      "feature": "diff_bat_form_sr",
+      "gain": 230.45011806488037,
+      "split": 28
+    }
+  ]
+}

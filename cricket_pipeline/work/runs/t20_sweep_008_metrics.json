@@ -1,0 +1,88 @@
+{
+  "model_tag": "t20_sweep_008",
+  "formats": [
+    "T20",
+    "IT20"
+  ],
+  "n_train": 6926,
+  "n_calib": 923,
+  "n_test": 1385,
+  "best_iter": 69,
+  "n_features": 26,
+  "test_acc_raw": 0.6787003610108303,
+  "test_acc_cal": 0.6765342960288808,
+  "test_logloss_raw": 0.600872868990284,
+  "test_logloss_cal": 0.6047080492477555,
+  "test_brier_raw": 0.20658653800326254,
+  "test_brier_cal": 0.20553458025982654,
+  "test_auc": 0.7445009448405034,
+  "test_ece_raw": 0.050626656213543265,
+  "test_ece_cal": 0.03209547163585933,
+  "split": {
+    "train_end": "2024-07-09",
+    "test_start": "2025-04-24"
+  },
+  "baselines": {
+    "always_t1": 0.5075812274368231,
+    "always_t2": 0.4924187725631769,
+    "majority": 0.5075812274368231,
+    "higher_last10": 0.6137184115523465,
+    "higher_elo": 0.6563176895306859,
+    "elo_plus_form": 0.6527075812274368
+  },
+  "test_acc_high_conf": 0.8138297872340425,
+  "test_n_high_conf": 564,
+  "test_high_conf_share": 0.4072202166064982,
+  "top10_features_by_gain": [
+    {
+      "feature": "elo_diff_pre",
+      "gain": 2347.9057953357697,
+      "split": 82
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 1225.9695239067078,
+      "split": 69
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 1142.5821628570557,
+      "split": 121
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 1062.8562898635864,
+      "split": 105
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 836.4185328483582,
+      "split": 86
+    },
+    {
+      "feature": "t1_elo_pre",
+      "gain": 507.5352392196655,
+      "split": 34
+    },
+    {
+      "feature": "t1_last20",
+      "gain": 490.8242516517639,
+      "split": 50
+    },
+    {
+      "feature": "form_diff_10",
+      "gain": 465.15448904037476,
+      "split": 41
+    },
+    {
+      "feature": "t2_last20",
+      "gain": 358.4524998664856,
+      "split": 34
+    },
+    {
+      "feature": "t2_elo_pre",
+      "gain": 358.0518035888672,
+      "split": 35
+    }
+  ]
+}

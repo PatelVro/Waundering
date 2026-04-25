@@ -1,0 +1,88 @@
+{
+  "model_tag": "t20_sweep_017",
+  "formats": [
+    "T20",
+    "IT20"
+  ],
+  "n_train": 6926,
+  "n_calib": 923,
+  "n_test": 1385,
+  "best_iter": 115,
+  "n_features": 26,
+  "test_acc_raw": 0.6635379061371841,
+  "test_acc_cal": 0.6707581227436823,
+  "test_logloss_raw": 0.599934567543881,
+  "test_logloss_cal": 0.6008703265383238,
+  "test_brier_raw": 0.20630139207917986,
+  "test_brier_cal": 0.2036524113528404,
+  "test_auc": 0.7453613128485794,
+  "test_ece_raw": 0.04179543297391764,
+  "test_ece_cal": 0.03094817239900987,
+  "split": {
+    "train_end": "2024-07-09",
+    "test_start": "2025-04-24"
+  },
+  "baselines": {
+    "always_t1": 0.5075812274368231,
+    "always_t2": 0.4924187725631769,
+    "majority": 0.5075812274368231,
+    "higher_last10": 0.6137184115523465,
+    "higher_elo": 0.6563176895306859,
+    "elo_plus_form": 0.6527075812274368
+  },
+  "test_acc_high_conf": 0.8265682656826568,
+  "test_n_high_conf": 542,
+  "test_high_conf_share": 0.3913357400722022,
+  "top10_features_by_gain": [
+    {
+      "feature": "elo_diff_pre",
+      "gain": 4616.41396355629,
+      "split": 157
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 2250.040132522583,
+      "split": 147
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 1872.1924138069153,
+      "split": 190
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 1790.7842166423798,
+      "split": 181
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 1515.4057550430298,
+      "split": 156
+    },
+    {
+      "feature": "t1_elo_pre",
+      "gain": 638.4123613834381,
+      "split": 64
+    },
+    {
+      "feature": "venue_bat_first_pct",
+      "gain": 616.9126381874084,
+      "split": 80
+    },
+    {
+      "feature": "t1_last20",
+      "gain": 571.5418684482574,
+      "split": 60
+    },
+    {
+      "feature": "form_diff_10",
+      "gain": 524.3393852710724,
+      "split": 46
+    },
+    {
+      "feature": "t2_last20",
+      "gain": 520.8495380878448,
+      "split": 62
+    }
+  ]
+}

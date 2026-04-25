@@ -1,0 +1,88 @@
+{
+  "model_tag": "t20_sweep_011",
+  "formats": [
+    "T20",
+    "IT20"
+  ],
+  "n_train": 6926,
+  "n_calib": 923,
+  "n_test": 1385,
+  "best_iter": 103,
+  "n_features": 26,
+  "test_acc_raw": 0.672202166064982,
+  "test_acc_cal": 0.6613718411552346,
+  "test_logloss_raw": 0.5948735227961763,
+  "test_logloss_cal": 0.6020014333181146,
+  "test_brier_raw": 0.20426252245970056,
+  "test_brier_cal": 0.2039730321392866,
+  "test_auc": 0.7460423071628505,
+  "test_ece_raw": 0.0374175795047329,
+  "test_ece_cal": 0.03350393289482994,
+  "split": {
+    "train_end": "2024-07-09",
+    "test_start": "2025-04-24"
+  },
+  "baselines": {
+    "always_t1": 0.5075812274368231,
+    "always_t2": 0.4924187725631769,
+    "majority": 0.5075812274368231,
+    "higher_last10": 0.6137184115523465,
+    "higher_elo": 0.6563176895306859,
+    "elo_plus_form": 0.6527075812274368
+  },
+  "test_acc_high_conf": 0.8209982788296041,
+  "test_n_high_conf": 581,
+  "test_high_conf_share": 0.41949458483754515,
+  "top10_features_by_gain": [
+    {
+      "feature": "elo_diff_pre",
+      "gain": 2771.176758289337,
+      "split": 109
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 1435.4576721191406,
+      "split": 164
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 1393.6622142791748,
+      "split": 99
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 1390.8657901287079,
+      "split": 151
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 1143.278018951416,
+      "split": 128
+    },
+    {
+      "feature": "t1_last20",
+      "gain": 554.9063096046448,
+      "split": 67
+    },
+    {
+      "feature": "venue_bat1_winrate",
+      "gain": 501.6933808326721,
+      "split": 77
+    },
+    {
+      "feature": "venue_n_prior",
+      "gain": 477.32453083992004,
+      "split": 68
+    },
+    {
+      "feature": "t1_elo_pre",
+      "gain": 471.27648401260376,
+      "split": 50
+    },
+    {
+      "feature": "form_diff_10",
+      "gain": 459.70304918289185,
+      "split": 59
+    }
+  ]
+}

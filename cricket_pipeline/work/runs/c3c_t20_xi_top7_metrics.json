@@ -1,0 +1,88 @@
+{
+  "model_tag": "c3c_t20_xi_top7",
+  "formats": [
+    "T20",
+    "IT20"
+  ],
+  "n_train": 6926,
+  "n_calib": 923,
+  "n_test": 1385,
+  "best_iter": 105,
+  "n_features": 39,
+  "test_acc_raw": 0.7552346570397112,
+  "test_acc_cal": 0.7501805054151625,
+  "test_logloss_raw": 0.5123574069463497,
+  "test_logloss_cal": 0.5448940988736428,
+  "test_brier_raw": 0.17001997479929665,
+  "test_brier_cal": 0.1720195904566985,
+  "test_auc": 0.8286730935287812,
+  "test_ece_raw": 0.0461322395287741,
+  "test_ece_cal": 0.05226105143417464,
+  "split": {
+    "train_end": "2024-07-09",
+    "test_start": "2025-04-24"
+  },
+  "baselines": {
+    "always_t1": 0.5075812274368231,
+    "always_t2": 0.4924187725631769,
+    "majority": 0.5075812274368231,
+    "higher_last10": 0.6137184115523465,
+    "higher_elo": 0.6563176895306859,
+    "elo_plus_form": 0.6527075812274368
+  },
+  "test_acc_high_conf": 0.8820754716981132,
+  "test_n_high_conf": 636,
+  "test_high_conf_share": 0.4592057761732852,
+  "top10_features_by_gain": [
+    {
+      "feature": "t2_bat_career_avg",
+      "gain": 4824.8713574409485,
+      "split": 276
+    },
+    {
+      "feature": "t1_bat_career_avg",
+      "gain": 3657.2047793865204,
+      "split": 237
+    },
+    {
+      "feature": "diff_bat_form_sr",
+      "gain": 3449.274050474167,
+      "split": 111
+    },
+    {
+      "feature": "diff_bat_career_sr",
+      "gain": 3094.4257628917694,
+      "split": 169
+    },
+    {
+      "feature": "diff_bowl_career_econ",
+      "gain": 1703.925602197647,
+      "split": 171
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 1450.3609323501587,
+      "split": 125
+    },
+    {
+      "feature": "elo_diff_pre",
+      "gain": 1218.66450548172,
+      "split": 86
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 1109.0294697284698,
+      "split": 134
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 1089.5899901390076,
+      "split": 126
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 988.3333954811096,
+      "split": 109
+    }
+  ]
+}

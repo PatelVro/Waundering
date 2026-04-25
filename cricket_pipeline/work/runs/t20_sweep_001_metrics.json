@@ -1,0 +1,88 @@
+{
+  "model_tag": "t20_sweep_001",
+  "formats": [
+    "T20",
+    "IT20"
+  ],
+  "n_train": 6926,
+  "n_calib": 923,
+  "n_test": 1385,
+  "best_iter": 115,
+  "n_features": 26,
+  "test_acc_raw": 0.672202166064982,
+  "test_acc_cal": 0.6584837545126354,
+  "test_logloss_raw": 0.6000958666136627,
+  "test_logloss_cal": 0.6069398777451114,
+  "test_brier_raw": 0.2063605105705348,
+  "test_brier_cal": 0.20642467034464723,
+  "test_auc": 0.7416424373130655,
+  "test_ece_raw": 0.04551667296887187,
+  "test_ece_cal": 0.022805726865298265,
+  "split": {
+    "train_end": "2024-07-09",
+    "test_start": "2025-04-24"
+  },
+  "baselines": {
+    "always_t1": 0.5075812274368231,
+    "always_t2": 0.4924187725631769,
+    "majority": 0.5075812274368231,
+    "higher_last10": 0.6137184115523465,
+    "higher_elo": 0.6563176895306859,
+    "elo_plus_form": 0.6527075812274368
+  },
+  "test_acc_high_conf": 0.8065630397236615,
+  "test_n_high_conf": 579,
+  "test_high_conf_share": 0.4180505415162455,
+  "top10_features_by_gain": [
+    {
+      "feature": "elo_diff_pre",
+      "gain": 3992.2240419387817,
+      "split": 148
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 2163.8885867595673,
+      "split": 133
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 1881.5586886405945,
+      "split": 185
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 1836.1515316963196,
+      "split": 160
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 1455.3713150024414,
+      "split": 137
+    },
+    {
+      "feature": "form_diff_10",
+      "gain": 843.4233078956604,
+      "split": 71
+    },
+    {
+      "feature": "t1_elo_pre",
+      "gain": 831.5845394134521,
+      "split": 60
+    },
+    {
+      "feature": "t1_last20",
+      "gain": 736.0849781036377,
+      "split": 74
+    },
+    {
+      "feature": "t2_elo_pre",
+      "gain": 706.5134177207947,
+      "split": 67
+    },
+    {
+      "feature": "t2_last20",
+      "gain": 590.002269744873,
+      "split": 55
+    }
+  ]
+}

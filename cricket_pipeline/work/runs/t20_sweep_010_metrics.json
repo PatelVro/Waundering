@@ -1,0 +1,88 @@
+{
+  "model_tag": "t20_sweep_010",
+  "formats": [
+    "T20",
+    "IT20"
+  ],
+  "n_train": 6926,
+  "n_calib": 923,
+  "n_test": 1385,
+  "best_iter": 50,
+  "n_features": 26,
+  "test_acc_raw": 0.672202166064982,
+  "test_acc_cal": 0.6736462093862816,
+  "test_logloss_raw": 0.6029632137365346,
+  "test_logloss_cal": 0.5898972001407836,
+  "test_brier_raw": 0.20733839142341914,
+  "test_brier_cal": 0.20306762006761533,
+  "test_auc": 0.7505871359861174,
+  "test_ece_raw": 0.05118344843045132,
+  "test_ece_cal": 0.02762627940290588,
+  "split": {
+    "train_end": "2024-07-09",
+    "test_start": "2025-04-24"
+  },
+  "baselines": {
+    "always_t1": 0.5075812274368231,
+    "always_t2": 0.4924187725631769,
+    "majority": 0.5075812274368231,
+    "higher_last10": 0.6137184115523465,
+    "higher_elo": 0.6563176895306859,
+    "elo_plus_form": 0.6527075812274368
+  },
+  "test_acc_high_conf": 0.8333333333333334,
+  "test_n_high_conf": 444,
+  "test_high_conf_share": 0.32057761732851986,
+  "top10_features_by_gain": [
+    {
+      "feature": "elo_diff_pre",
+      "gain": 2674.310648918152,
+      "split": 87
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 1224.909954071045,
+      "split": 64
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 927.5075173377991,
+      "split": 79
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 896.783121585846,
+      "split": 71
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 885.8794407844543,
+      "split": 73
+    },
+    {
+      "feature": "t1_last20",
+      "gain": 439.4090781211853,
+      "split": 37
+    },
+    {
+      "feature": "venue_bat_first_pct",
+      "gain": 284.421329498291,
+      "split": 28
+    },
+    {
+      "feature": "form_diff_10",
+      "gain": 279.7775402069092,
+      "split": 21
+    },
+    {
+      "feature": "t1_elo_pre",
+      "gain": 254.22276163101196,
+      "split": 14
+    },
+    {
+      "feature": "t2_last20",
+      "gain": 252.16726207733154,
+      "split": 21
+    }
+  ]
+}

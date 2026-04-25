@@ -1,0 +1,88 @@
+{
+  "model_tag": "c1d_t20_margin_elo_nocat",
+  "formats": [
+    "T20",
+    "IT20"
+  ],
+  "n_train": 6926,
+  "n_calib": 923,
+  "n_test": 1385,
+  "best_iter": 47,
+  "n_features": 26,
+  "test_acc_raw": 0.6664259927797834,
+  "test_acc_cal": 0.6620938628158844,
+  "test_logloss_raw": 0.6039975379895703,
+  "test_logloss_cal": 0.6356237605184447,
+  "test_brier_raw": 0.20800559244756922,
+  "test_brier_cal": 0.20619435690315763,
+  "test_auc": 0.7413233189973426,
+  "test_ece_raw": 0.05022526772076251,
+  "test_ece_cal": 0.041790365355496545,
+  "split": {
+    "train_end": "2024-07-09",
+    "test_start": "2025-04-24"
+  },
+  "baselines": {
+    "always_t1": 0.5075812274368231,
+    "always_t2": 0.4924187725631769,
+    "majority": 0.5075812274368231,
+    "higher_last10": 0.6137184115523465,
+    "higher_elo": 0.6563176895306859,
+    "elo_plus_form": 0.6527075812274368
+  },
+  "test_acc_high_conf": 0.8173598553345389,
+  "test_n_high_conf": 553,
+  "test_high_conf_share": 0.3992779783393502,
+  "top10_features_by_gain": [
+    {
+      "feature": "elo_diff_pre",
+      "gain": 2869.1034746170044,
+      "split": 126
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 1413.3516192436218,
+      "split": 102
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 1277.6387009620667,
+      "split": 136
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 1217.5319788455963,
+      "split": 129
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 1216.2592384815216,
+      "split": 128
+    },
+    {
+      "feature": "t1_elo_pre",
+      "gain": 644.4032740592957,
+      "split": 61
+    },
+    {
+      "feature": "t1_last20",
+      "gain": 559.4065308570862,
+      "split": 57
+    },
+    {
+      "feature": "t2_elo_pre",
+      "gain": 547.4760994911194,
+      "split": 65
+    },
+    {
+      "feature": "venue_bat_first_pct",
+      "gain": 502.78099632263184,
+      "split": 59
+    },
+    {
+      "feature": "venue_toss_winner_winpct",
+      "gain": 488.7959494590759,
+      "split": 60
+    }
+  ]
+}

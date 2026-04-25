@@ -1,0 +1,88 @@
+{
+  "model_tag": "c1c_t20_margin_elo",
+  "formats": [
+    "T20",
+    "IT20"
+  ],
+  "n_train": 6926,
+  "n_calib": 923,
+  "n_test": 1385,
+  "best_iter": 49,
+  "n_features": 30,
+  "test_acc_raw": 0.6346570397111914,
+  "test_acc_cal": 0.6346570397111914,
+  "test_logloss_raw": 0.6267186734023324,
+  "test_logloss_cal": 0.6667999792089496,
+  "test_brier_raw": 0.21848012126466537,
+  "test_brier_cal": 0.21968918923142547,
+  "test_auc": 0.7084822899763477,
+  "test_ece_raw": 0.04646159298173365,
+  "test_ece_cal": 0.06519853346962225,
+  "split": {
+    "train_end": "2024-07-09",
+    "test_start": "2025-04-24"
+  },
+  "baselines": {
+    "always_t1": 0.5075812274368231,
+    "always_t2": 0.4924187725631769,
+    "majority": 0.5075812274368231,
+    "higher_last10": 0.6137184115523465,
+    "higher_elo": 0.6563176895306859,
+    "elo_plus_form": 0.6527075812274368
+  },
+  "test_acc_high_conf": 0.8027777777777778,
+  "test_n_high_conf": 360,
+  "test_high_conf_share": 0.259927797833935,
+  "top10_features_by_gain": [
+    {
+      "feature": "team_home",
+      "gain": 3815.306029319763,
+      "split": 153
+    },
+    {
+      "feature": "team_away",
+      "gain": 3765.508445739746,
+      "split": 156
+    },
+    {
+      "feature": "venue",
+      "gain": 2288.5969285964966,
+      "split": 106
+    },
+    {
+      "feature": "elo_diff_pre",
+      "gain": 1895.397484779358,
+      "split": 80
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 1061.609989643097,
+      "split": 93
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 822.3127217292786,
+      "split": 84
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 751.436201095581,
+      "split": 77
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 722.9314208030701,
+      "split": 82
+    },
+    {
+      "feature": "venue_bat_first_pct",
+      "gain": 525.2068076133728,
+      "split": 63
+    },
+    {
+      "feature": "form_diff_5",
+      "gain": 515.6933407783508,
+      "split": 50
+    }
+  ]
+}

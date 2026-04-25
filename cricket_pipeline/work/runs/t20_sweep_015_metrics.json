@@ -1,0 +1,88 @@
+{
+  "model_tag": "t20_sweep_015",
+  "formats": [
+    "T20",
+    "IT20"
+  ],
+  "n_train": 6926,
+  "n_calib": 923,
+  "n_test": 1385,
+  "best_iter": 116,
+  "n_features": 26,
+  "test_acc_raw": 0.672202166064982,
+  "test_acc_cal": 0.6635379061371841,
+  "test_logloss_raw": 0.599045042213401,
+  "test_logloss_cal": 0.5950929041981028,
+  "test_brier_raw": 0.20601066610813312,
+  "test_brier_cal": 0.20488390486500405,
+  "test_auc": 0.7451621246188309,
+  "test_ece_raw": 0.04073546638091213,
+  "test_ece_cal": 0.04576475598438314,
+  "split": {
+    "train_end": "2024-07-09",
+    "test_start": "2025-04-24"
+  },
+  "baselines": {
+    "always_t1": 0.5075812274368231,
+    "always_t2": 0.4924187725631769,
+    "majority": 0.5075812274368231,
+    "higher_last10": 0.6137184115523465,
+    "higher_elo": 0.6563176895306859,
+    "elo_plus_form": 0.6527075812274368
+  },
+  "test_acc_high_conf": 0.8244972577696527,
+  "test_n_high_conf": 547,
+  "test_high_conf_share": 0.39494584837545127,
+  "top10_features_by_gain": [
+    {
+      "feature": "elo_diff_pre",
+      "gain": 4640.291130542755,
+      "split": 161
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 2155.857078552246,
+      "split": 133
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 1979.1543416976929,
+      "split": 184
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 1965.6043167114258,
+      "split": 178
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 1698.5410733222961,
+      "split": 163
+    },
+    {
+      "feature": "t1_last20",
+      "gain": 743.0208296775818,
+      "split": 74
+    },
+    {
+      "feature": "venue_bat1_winrate",
+      "gain": 637.4284114837646,
+      "split": 76
+    },
+    {
+      "feature": "form_diff_10",
+      "gain": 616.8921809196472,
+      "split": 54
+    },
+    {
+      "feature": "venue_bat_first_pct",
+      "gain": 612.4445595741272,
+      "split": 72
+    },
+    {
+      "feature": "venue_n_prior",
+      "gain": 570.4931893348694,
+      "split": 68
+    }
+  ]
+}

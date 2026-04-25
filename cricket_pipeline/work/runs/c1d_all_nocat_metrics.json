@@ -1,0 +1,85 @@
+{
+  "model_tag": "c1d_all_nocat",
+  "formats": null,
+  "n_train": 9689,
+  "n_calib": 1292,
+  "n_test": 1938,
+  "best_iter": 112,
+  "n_features": 26,
+  "test_acc_raw": 0.6584107327141383,
+  "test_acc_cal": 0.6558307533539731,
+  "test_logloss_raw": 0.6044058910317082,
+  "test_logloss_cal": 0.6205278927466769,
+  "test_brier_raw": 0.20927811306702537,
+  "test_brier_cal": 0.21025545392312406,
+  "test_auc": 0.7267772716283043,
+  "test_ece_raw": 0.014109213136200532,
+  "test_ece_cal": 0.021844060801295705,
+  "split": {
+    "train_end": "2024-02-25",
+    "test_start": "2025-01-07"
+  },
+  "baselines": {
+    "always_t1": 0.5041279669762642,
+    "always_t2": 0.49587203302373584,
+    "majority": 0.5041279669762642,
+    "higher_last10": 0.6016511867905057,
+    "higher_elo": 0.6480908152734778,
+    "elo_plus_form": 0.6362229102167183
+  },
+  "test_acc_high_conf": 0.788787483702738,
+  "test_n_high_conf": 767,
+  "test_high_conf_share": 0.3957688338493292,
+  "top10_features_by_gain": [
+    {
+      "feature": "elo_diff_pre",
+      "gain": 6889.835093259811,
+      "split": 242
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 3665.0734589099884,
+      "split": 245
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 2400.461293697357,
+      "split": 306
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 2164.315139055252,
+      "split": 256
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 2078.965661048889,
+      "split": 241
+    },
+    {
+      "feature": "t2_elo_pre",
+      "gain": 1327.808413028717,
+      "split": 165
+    },
+    {
+      "feature": "venue_bat_first_pct",
+      "gain": 1240.3671350479126,
+      "split": 175
+    },
+    {
+      "feature": "t1_last20",
+      "gain": 1166.4529120922089,
+      "split": 165
+    },
+    {
+      "feature": "t1_elo_pre",
+      "gain": 1137.8317868709564,
+      "split": 136
+    },
+    {
+      "feature": "h2h_n_prior",
+      "gain": 1019.7484078407288,
+      "split": 134
+    }
+  ]
+}

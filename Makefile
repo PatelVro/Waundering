@@ -1,4 +1,4 @@
-.PHONY: help install gpu-check refresh views match-train ball-train sequence-train forecast clean
+.PHONY: help install gpu-check refresh views match-train ball-train sequence-train forecast live-track clean
 
 PY      ?= python3
 PIPE    := $(PY) -m cricket_pipeline.pipeline
@@ -17,6 +17,8 @@ help:
 	@echo "  make ball-train         train the ball-outcome (LightGBM) model"
 	@echo "  make sequence-train     train the sequence Transformer (uses GPU if avail)"
 	@echo "  make forecast HOME=… AWAY=… VENUE=…   produce a full forecast"
+	@echo "  make live-track         track today's live IPL match (auto-discover)"
+	@echo "  make live-track MATCH_ID=123456   track a specific Cricbuzz match"
 	@echo "  make clean              wipe the local DuckDB and cache"
 
 install:
@@ -49,6 +51,21 @@ forecast:
 		exit 2; \
 	fi
 	$(PIPE) match-forecast --home "$(HOME)" --away "$(AWAY)" --venue "$(VENUE)"
+
+MATCH_ID ?=
+INTERVAL ?= 60
+N_SIM    ?= 1000
+
+live-track:
+	@if [ -n "$(MATCH_ID)" ]; then \
+		$(PIPE) live-track --match-id "$(MATCH_ID)" \
+			--home "$(HOME)" --away "$(AWAY)" \
+			--interval $(INTERVAL) --n-sim $(N_SIM); \
+	else \
+		$(PIPE) live-track --auto \
+			--home-hint "$(HOME)" --away-hint "$(AWAY)" \
+			--interval $(INTERVAL) --n-sim $(N_SIM); \
+	fi
 
 clean:
 	rm -f cricket_pipeline/data/cricket.duckdb

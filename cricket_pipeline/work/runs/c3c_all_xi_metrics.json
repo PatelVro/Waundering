@@ -1,0 +1,85 @@
+{
+  "model_tag": "c3c_all_xi",
+  "formats": null,
+  "n_train": 9689,
+  "n_calib": 1292,
+  "n_test": 1938,
+  "best_iter": 141,
+  "n_features": 39,
+  "test_acc_raw": 0.7254901960784313,
+  "test_acc_cal": 0.7254901960784313,
+  "test_logloss_raw": 0.534010855120671,
+  "test_logloss_cal": 0.5432168636529185,
+  "test_brier_raw": 0.17988236377157862,
+  "test_brier_cal": 0.18141035884785014,
+  "test_auc": 0.8030428257838718,
+  "test_ece_raw": 0.023185679935146117,
+  "test_ece_cal": 0.032365395786454226,
+  "split": {
+    "train_end": "2024-02-25",
+    "test_start": "2025-01-07"
+  },
+  "baselines": {
+    "always_t1": 0.5041279669762642,
+    "always_t2": 0.49587203302373584,
+    "majority": 0.5041279669762642,
+    "higher_last10": 0.6016511867905057,
+    "higher_elo": 0.6480908152734778,
+    "elo_plus_form": 0.6362229102167183
+  },
+  "test_acc_high_conf": 0.8303212851405622,
+  "test_n_high_conf": 996,
+  "test_high_conf_share": 0.5139318885448917,
+  "top10_features_by_gain": [
+    {
+      "feature": "t2_bat_career_avg",
+      "gain": 6444.9552526474,
+      "split": 398
+    },
+    {
+      "feature": "t1_bat_career_avg",
+      "gain": 5763.014226436615,
+      "split": 328
+    },
+    {
+      "feature": "diff_bat_career_sr",
+      "gain": 5632.830097436905,
+      "split": 215
+    },
+    {
+      "feature": "elo_diff_pre",
+      "gain": 3541.5926938056946,
+      "split": 128
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 2693.6133341789246,
+      "split": 180
+    },
+    {
+      "feature": "diff_bat_form_sr",
+      "gain": 2548.6199572086334,
+      "split": 139
+    },
+    {
+      "feature": "diff_bowl_career_econ",
+      "gain": 2249.2797474861145,
+      "split": 207
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 1360.7136068344116,
+      "split": 146
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 1331.6225562095642,
+      "split": 150
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 1220.8627812862396,
+      "split": 139
+    }
+  ]
+}

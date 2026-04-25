@@ -1,0 +1,88 @@
+{
+  "model_tag": "c1_t20_more_feats",
+  "formats": [
+    "T20",
+    "IT20"
+  ],
+  "n_train": 6926,
+  "n_calib": 923,
+  "n_test": 1385,
+  "best_iter": 49,
+  "n_features": 40,
+  "test_acc_raw": 0.6332129963898917,
+  "test_acc_cal": 0.6245487364620939,
+  "test_logloss_raw": 0.6333990991344093,
+  "test_logloss_cal": 0.638466710909249,
+  "test_brier_raw": 0.2213755532180175,
+  "test_brier_cal": 0.22253584369950372,
+  "test_auc": 0.6975530090980007,
+  "test_ece_raw": 0.04699822397574631,
+  "test_ece_cal": 0.056523331497197515,
+  "split": {
+    "train_end": "2024-07-09",
+    "test_start": "2025-04-24"
+  },
+  "baselines": {
+    "always_t1": 0.5075812274368231,
+    "always_t2": 0.4924187725631769,
+    "majority": 0.5075812274368231,
+    "higher_last10": 0.6137184115523465,
+    "higher_elo": 0.6425992779783394,
+    "elo_plus_form": 0.6375451263537906
+  },
+  "test_acc_high_conf": 0.796078431372549,
+  "test_n_high_conf": 255,
+  "test_high_conf_share": 0.18411552346570398,
+  "top10_features_by_gain": [
+    {
+      "feature": "team_away",
+      "gain": 4032.4503560066223,
+      "split": 166
+    },
+    {
+      "feature": "team_home",
+      "gain": 4025.8729219436646,
+      "split": 146
+    },
+    {
+      "feature": "venue",
+      "gain": 2014.0429010391235,
+      "split": 92
+    },
+    {
+      "feature": "elo_diff_pre",
+      "gain": 1058.0441117286682,
+      "split": 46
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 1035.6073842048645,
+      "split": 79
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 705.2687697410583,
+      "split": 70
+    },
+    {
+      "feature": "t1_venue_winrate",
+      "gain": 689.1879606246948,
+      "split": 70
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 623.2688493728638,
+      "split": 65
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 559.5462832450867,
+      "split": 60
+    },
+    {
+      "feature": "venue_bat1_winrate",
+      "gain": 481.1237201690674,
+      "split": 56
+    }
+  ]
+}

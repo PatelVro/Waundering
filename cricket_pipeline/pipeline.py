@@ -240,6 +240,36 @@ def cmd_prematch(args):
     print(_json.dumps(last, indent=2, default=str))
 
 
+def cmd_live_track(args):
+    """Poll Cricbuzz live data and update data.json with in-play win probabilities."""
+    from pathlib import Path
+    from . import live_tracker as LT
+
+    out = Path(args.out) if args.out else LT.DATA_JSON
+
+    if args.auto:
+        LT.auto_run(
+            home_hint=args.home_hint,
+            away_hint=args.away_hint,
+            interval=args.interval,
+            n_sim=args.n_sim,
+            out_path=out,
+        )
+    else:
+        if not args.match_id:
+            print("Provide --match-id or use --auto to discover a live match.")
+            return
+        LT.run(
+            match_id=args.match_id,
+            home=args.home or "",
+            away=args.away or "",
+            venue=args.venue,
+            interval=args.interval,
+            n_sim=args.n_sim,
+            out_path=out,
+        )
+
+
 def cmd_daily_refresh(args):
     """Re-pull data, rebuild views, retrain match model. Cron-friendly."""
     from .ingest import cricsheet
@@ -499,6 +529,35 @@ def main():
                     help="Compute device — for sequence model uses CUDA, "
                          "for lgbm uses LightGBM's GPU build")
     md.set_defaults(func=cmd_model)
+
+    lt = sub.add_parser(
+        "live-track",
+        help=(
+            "Poll a live Cricbuzz match, re-run Monte Carlo win-probability "
+            "each over, and write live_match into data.json for the dashboard."
+        ),
+    )
+    lt.add_argument("--match-id", default=None,
+                    help="Cricbuzz numeric match ID (from the live-scores URL)")
+    lt.add_argument("--auto", action="store_true",
+                    help="Auto-discover a live IPL match instead of supplying --match-id")
+    lt.add_argument("--home", default=None,
+                    help="Home team name (used for venue lookup + display)")
+    lt.add_argument("--away", default=None,
+                    help="Away team name")
+    lt.add_argument("--home-hint", default=None,
+                    help="Fragment of home team name for auto-discovery (e.g. 'Rajasthan')")
+    lt.add_argument("--away-hint", default=None,
+                    help="Fragment of away team name for auto-discovery (e.g. 'Sunrisers')")
+    lt.add_argument("--venue", default=None,
+                    help="Venue name (falls back to fixtures table if omitted)")
+    lt.add_argument("--interval", type=int, default=60,
+                    help="Seconds between polls (default 60 = once per over)")
+    lt.add_argument("--n-sim", type=int, default=1000,
+                    help="Monte Carlo simulations per update (default 1000)")
+    lt.add_argument("--out", default=None,
+                    help="Path to data.json (default: auto-detected project root)")
+    lt.set_defaults(func=cmd_live_track)
 
     st = sub.add_parser("stats", help="Show row counts")
     st.set_defaults(func=cmd_stats)

@@ -1,0 +1,445 @@
+match_id,format,competition,start_date,team_home,team_away,venue,winner,y_t1_wins,elo_diff_pre,pred_p_t1,pred_t1_wins,correct
+1083619598612212287,ODI,New Zealand Women tour of South Africa,2023-10-01,South Africa,New Zealand,"Kingsmead, Durban",New Zealand,0,189.43596683204441,0.6125309519676301,1,0
+1125441218728361919,ODI,ICC Cricket World Cup,2023-10-05,England,New Zealand,"Narendra Modi Stadium, Ahmedabad",New Zealand,0,175.4452169426163,0.532830562323901,1,0
+659429794884601572,ODI,ICC Cricket World Cup,2023-10-06,Pakistan,Netherlands,"Rajiv Gandhi International Stadium, Uppal, Hyderabad",Pakistan,1,337.06564701255434,0.841683251077363,1,1
+2864283196634683689,ODI,ICC Cricket World Cup,2023-10-07,South Africa,Sri Lanka,"Arun Jaitley Stadium, Delhi",South Africa,1,172.27053225444888,0.8025848610799439,1,1
+6673603934749429119,ODI,ICC Cricket World Cup,2023-10-08,Australia,India,"MA Chidambaram Stadium, Chepauk, Chennai",India,0,-26.201887931258852,0.39573081385875436,0,1
+8266805334657841821,ODI,West Indies Women tour of Australia,2023-10-08,West Indies,Australia,"Allan Border Field, Brisbane",Australia,0,-282.714969913397,0.08486934557544835,0,1
+2751217996653436154,ODI,ICC Cricket World Cup,2023-10-09,New Zealand,Netherlands,"Rajiv Gandhi International Stadium, Uppal, Hyderabad",New Zealand,1,377.04072325647394,0.855273486147178,1,1
+5124902166001314592,ODI,ICC Cricket World Cup,2023-10-10,England,Bangladesh,"Himachal Pradesh Cricket Association Stadium, Dharamsala",England,1,261.45260125554,0.85374121844405,1,1
+501609099582453393,ODI,ICC Cricket World Cup,2023-10-10,Sri Lanka,Pakistan,"Rajiv Gandhi International Stadium, Uppal, Hyderabad",Pakistan,0,-38.70530876401904,0.20236835826908195,0,1
+3500808219759049626,ODI,ICC Cricket World Cup,2023-10-12,South Africa,Australia,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",South Africa,1,8.26013110759186,0.42837489779489035,0,0
+900300171110007743,ODI,ICC Cricket World Cup,2023-10-13,Bangladesh,New Zealand,"MA Chidambaram Stadium, Chepauk, Chennai",New Zealand,0,-150.70585294930288,0.2001159042698809,0,1
+6760453411622868707,ODI,ICC Cricket World Cup,2023-10-14,Pakistan,India,"Narendra Modi Stadium, Ahmedabad",India,0,-186.0762605233465,0.23950011510329194,0,1
+8836509243616663219,ODI,West Indies Women tour of Australia,2023-10-14,West Indies,Australia,"Junction Oval, Melbourne",Australia,0,-269.7835780167079,0.088420270662727,0,1
+6720328869336705711,ODI,ICC Cricket World Cup,2023-10-16,Sri Lanka,Australia,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",Australia,0,-184.88718564314468,0.1507292508283582,0,1
+6593985969400855551,ODI,Ireland Women v Scotland Women,2023-10-17,Scotland,Ireland,"Desert Springs Cricket Ground, Almeria",Scotland,1,149.0268465994368,0.6344716252123764,1,1
+2094875810074745792,ODI,ICC Cricket World Cup,2023-10-17,Netherlands,South Africa,"Himachal Pradesh Cricket Association Stadium, Dharamsala",Netherlands,1,-535.501071703984,0.14708577348330637,0,0
+1699702419543138195,ODI,ICC Cricket World Cup,2023-10-19,Bangladesh,India,"Maharashtra Cricket Association Stadium, Pune",India,0,-335.2411947756443,0.09465842705573667,0,1
+7306489442659456272,ODI,Ireland Women v Scotland Women,2023-10-19,Ireland,Scotland,"Desert Springs Cricket Ground, Almeria",Ireland,1,-171.16318666238203,0.3706571831804454,0,0
+5147346459384621730,ODI,ICC Cricket World Cup,2023-10-20,Australia,Pakistan,"M Chinnaswamy Stadium, Bengaluru",Australia,1,134.40604777750468,0.6357706723114663,1,1
+3370117253621787327,ODI,ICC Cricket World Cup,2023-10-21,South Africa,England,"Wankhede Stadium, Mumbai",South Africa,1,-14.709047619242028,0.6711563554889962,1,1
+3491193940994658987,ODI,ICC Cricket World Cup,2023-10-21,Netherlands,Sri Lanka,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",Sri Lanka,0,-257.53805696303175,0.27769078653143786,0,1
+1940116855177161386,ODI,Ireland Women v Scotland Women,2023-10-21,Ireland,Scotland,"Desert Springs Cricket Ground, Almeria",Ireland,1,-107.29106175732613,0.5879331782715392,1,1
+957176477908097589,ODI,ICC Cricket World Cup,2023-10-22,New Zealand,India,"Himachal Pradesh Cricket Association Stadium, Dharamsala",India,0,-168.76715794782308,0.22409822443749342,0,1
+8517978105670484344,ODI,ICC Cricket World Cup,2023-10-24,South Africa,Bangladesh,"Wankhede Stadium, Mumbai",South Africa,1,307.07336191797185,0.8593243488572935,1,1
+709548625749505709,ODI,ICC Cricket World Cup,2023-10-25,Australia,Netherlands,"Arun Jaitley Stadium, Delhi",Australia,1,476.4565334957945,0.8400491218561861,1,1
+5876062151687222823,ODI,ICC Cricket World Cup,2023-10-26,England,Sri Lanka,"M Chinnaswamy Stadium, Bengaluru",Sri Lanka,0,188.6337060499725,0.5259447365518954,1,0
+5815356809212421656,ODI,ICC Cricket World Cup,2023-10-27,Pakistan,South Africa,"MA Chidambaram Stadium, Chepauk, Chennai",South Africa,0,-190.74115796794035,0.5322079766558913,1,0
+1882887512883230765,ODI,ICC Cricket World Cup,2023-10-28,Netherlands,Bangladesh,"Eden Gardens, Kolkata",Netherlands,1,-188.38377144407673,0.4569232003351862,0,0
+7938396203063670184,ODI,ICC Cricket World Cup,2023-10-28,Australia,New Zealand,"Himachal Pradesh Cricket Association Stadium, Dharamsala",Australia,1,120.92553908092827,0.5519223456700514,1,1
+7429645438295133624,ODI,ICC Cricket World Cup,2023-10-29,India,England,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",India,1,111.43243376499686,0.7516496478817329,1,1
+814128139826573413,ODI,ICC Cricket World Cup,2023-10-31,Bangladesh,Pakistan,"Eden Gardens, Kolkata",Pakistan,0,-158.14639803524233,0.19063558545519887,0,1
+4235872149524324747,ODI,ICC Cricket World Cup,2023-11-01,South Africa,New Zealand,"Maharashtra Cricket Association Stadium, Pune",South Africa,1,159.8749615539325,0.7296793348329118,1,1
+1629561873851263974,ODI,ICC Cricket World Cup,2023-11-02,India,Sri Lanka,"Wankhede Stadium, Mumbai",India,1,265.75961647380336,0.8435590554906898,1,1
+4567847022187569779,ODI,Pakistan Women tour of Bangladesh,2023-11-04,Bangladesh,Pakistan,"Shere Bangla National Stadium, Mirpur",Pakistan,0,-176.73916322667674,0.2225218891266977,0,1
+1697514483330887468,ODI,ICC Cricket World Cup,2023-11-04,Australia,England,"Narendra Modi Stadium, Ahmedabad",Australia,1,69.67325645950223,0.5106153168770161,1,1
+8660998810319448144,ODI,ICC Cricket World Cup,2023-11-04,New Zealand,Pakistan,"M Chinnaswamy Stadium, Bengaluru",Pakistan,0,11.233046086180366,0.5936396757465465,1,0
+140809912843217883,ODI,ICC Cricket World Cup,2023-11-05,India,South Africa,"Eden Gardens, Kolkata",India,1,41.810247573248034,0.7426890646485691,1,1
+8188332919520932327,ODI,ICC Cricket World Cup,2023-11-06,Sri Lanka,Bangladesh,"Arun Jaitley Stadium, Delhi",Bangladesh,0,149.42224151076402,0.7162747947955566,1,0
+1737799836306207217,ODI,ICC Cricket World Cup,2023-11-08,England,Netherlands,"Maharashtra Cricket Association Stadium, Pune",England,1,372.0517015944781,0.8363983273682033,1,1
+8221455665154672525,ODI,ICC Cricket World Cup,2023-11-09,Sri Lanka,New Zealand,"M Chinnaswamy Stadium, Bengaluru",New Zealand,0,-57.907638537267076,0.27863219428043223,0,1
+4312528476125792199,ODI,Pakistan Women tour of Bangladesh,2023-11-10,Pakistan,Bangladesh,"Shere Bangla National Stadium, Mirpur",Bangladesh,0,189.24576920224217,0.5761952003307447,1,0
+4419393041786882783,ODI,ICC Cricket World Cup,2023-11-11,Bangladesh,Australia,"Maharashtra Cricket Association Stadium, Pune",Australia,0,-322.25539497856994,0.11053119440365927,0,1
+1956892558694867050,ODI,ICC Cricket World Cup,2023-11-11,England,Pakistan,"Eden Gardens, Kolkata",England,1,88.8596140069717,0.41934402954414896,0,0
+1497435260192949770,ODI,ICC Cricket World Cup,2023-11-12,India,Netherlands,"M Chinnaswamy Stadium, Bengaluru",India,1,569.2452553645876,0.8624410393685387,1,1
+6278339719382945541,ODI,ICC Cricket World Cup,2023-11-15,India,New Zealand,"Wankhede Stadium, Mumbai",India,1,261.1494619217344,0.7465617936683621,1,1
+7176830049084490777,ODI,ICC Cricket World Cup,2023-11-16,South Africa,Australia,"Eden Gardens, Kolkata",Australia,0,-0.9218491416670531,0.5128631917733978,1,0
+8685863528658554757,ODI,ICC Cricket World Cup,2023-11-19,India,Australia,"Narendra Modi Stadium, Ahmedabad",Australia,0,85.16768237884571,0.5783795251967511,1,0
+7420291060524377420,ODI,England tour of West Indies,2023-12-03,England,West Indies,"Sir Vivian Richards Stadium, North Sound, Antigua",West Indies,0,250.3074535259093,0.8153086451478345,1,0
+3520053787532690486,ODI,England tour of West Indies,2023-12-06,West Indies,England,"Sir Vivian Richards Stadium, North Sound, Antigua",England,0,-203.73256912628767,0.22726516434064534,0,1
+6216652712986213188,ODI,England tour of West Indies,2023-12-09,England,West Indies,"Kensington Oval, Bridgetown, Barbados",West Indies,0,218.48099912774342,0.8134915849487175,1,0
+8238026667163394685,ODI,Pakistan Women tour of New Zealand,2023-12-12,New Zealand,Pakistan,"John Davies Oval, Queenstown",New Zealand,1,25.34508984750437,0.7639608129399447,1,1
+8541156670652518839,ODI,Ireland tour of Zimbabwe,2023-12-15,Zimbabwe,Ireland,Harare Sports Club,Ireland,0,-50.91654203748726,0.3675011369552926,0,1
+7100005993100520015,ODI,Pakistan Women tour of New Zealand,2023-12-15,Pakistan,New Zealand,"Hagley Oval, Christchurch",New Zealand,0,-70.65719461944082,0.18761587109794625,0,1
+636121034058718882,ODI,Bangladesh Women tour of South Africa,2023-12-16,Bangladesh,South Africa,"Buffalo Park, East London",Bangladesh,1,-316.66103916049065,0.3221231982870069,0,0
+6903902203472819987,ODI,Ireland tour of Zimbabwe,2023-12-17,Zimbabwe,Ireland,Harare Sports Club,Ireland,0,-75.5258717300178,0.30467524955033876,0,1
+2542527053463783602,ODI,Bangladesh tour of New Zealand,2023-12-17,New Zealand,Bangladesh,"University Oval, Dunedin",New Zealand,1,145.08003187668646,0.7748740039420361,1,1
+4658421604156139913,ODI,India tour of South Africa,2023-12-17,South Africa,India,"The Wanderers Stadium, Johannesburg",India,0,-135.51908529801813,0.11979573860571803,0,1
+4464850546890834531,ODI,India tour of South Africa,2023-12-19,India,South Africa,"St George's Park, Gqeberha",South Africa,0,156.6397803596633,0.5914274651837311,1,0
+4755261600521538174,ODI,Bangladesh Women tour of South Africa,2023-12-20,Bangladesh,South Africa,"Senwes Park, Potchefstroom",South Africa,0,-259.0236270030248,0.1958515326559996,0,1
+7859012775326677593,ODI,Bangladesh tour of New Zealand,2023-12-20,Bangladesh,New Zealand,"Saxton Oval, Nelson",New Zealand,0,-174.30937786844493,0.3901226350859622,0,1
+5989174824755957853,ODI,India tour of South Africa,2023-12-21,India,South Africa,"Boland Park, Paarl",India,1,102.66620245309491,0.7796682483120772,1,1
+7185353107058773410,ODI,Bangladesh tour of New Zealand,2023-12-23,New Zealand,Bangladesh,"McLean Park, Napier",Bangladesh,0,191.69342930849803,0.7718827098608865,1,0
+8067189642745562128,ODI,Bangladesh Women tour of South Africa,2023-12-23,South Africa,Bangladesh,"Willowmoore Park, Benoni",South Africa,1,238.3461312928971,0.8340227929338426,1,1
+2072312526557803670,ODI,Australia Women tour of India,2023-12-28,India,Australia,"Wankhede Stadium, Mumbai",Australia,0,48.716601042356615,0.17012000812529626,0,1
+6234679051248719385,ODI,Australia Women tour of India,2023-12-30,Australia,India,"Wankhede Stadium, Mumbai",Australia,1,-13.170257592742473,0.70361811125603,1,1
+2402873588464294002,ODI,Australia Women tour of India,2024-01-02,Australia,India,"Wankhede Stadium, Mumbai",Australia,1,1.2305668188150776,0.7373663456393554,1,1
+6971820172928961110,ODI,Zimbabwe tour of Sri Lanka,2024-01-08,Zimbabwe,Sri Lanka,"R Premadasa Stadium, Colombo",Sri Lanka,0,-246.80607354389122,0.3906232871527852,0,1
+4715197454129148839,ODI,Zimbabwe tour of Sri Lanka,2024-01-11,Zimbabwe,Sri Lanka,"R Premadasa Stadium, Colombo",Sri Lanka,0,-257.0781643148157,0.16988264599946318,0,1
+2621582175844355731,ODI,Ireland Women tour of Zimbabwe,2024-01-18,Zimbabwe,Ireland,Harare Sports Club,Ireland,0,-112.35872466604883,0.3047427977722893,0,1
+6753126694002293463,ODI,Ireland Women tour of Zimbabwe,2024-01-23,Ireland,Zimbabwe,Harare Sports Club,Ireland,1,137.10609924310188,0.715875196589852,1,1
+852445282813221993,ODI,West Indies tour of Australia,2024-02-02,West Indies,Australia,Melbourne Cricket Ground,Australia,0,-376.3855058428892,0.1783826851048419,0,1
+6135477641489957744,ODI,South Africa Women tour of Australia,2024-02-03,South Africa,Australia,Adelaide Oval,Australia,0,-128.84880747575903,0.14505918648519137,0,1
+6230576419394935735,ODI,West Indies tour of Australia,2024-02-04,Australia,West Indies,Sydney Cricket Ground,Australia,1,394.13305527882994,0.8330064233089244,1,1
+2317287657936767486,ODI,West Indies tour of Australia,2024-02-06,West Indies,Australia,"Manuka Oval, Canberra",Australia,0,-402.44715904839086,0.13800933135992827,0,1
+925334553421618201,ODI,South Africa Women tour of Australia,2024-02-07,South Africa,Australia,"North Sydney Oval, Sydney",South Africa,1,-157.70222068680027,0.20862519276372918,0,0
+3798350614822431583,ODI,Canada tour of Nepal,2024-02-08,Nepal,Canada,"Tribhuvan University International Cricket Ground, Kirtipur",Nepal,1,147.12822354793389,0.29359265941242246,0,0
+3958147479379590098,ODI,South Africa Women tour of Australia,2024-02-10,Australia,South Africa,"North Sydney Oval, Sydney",Australia,1,94.3343202918079,0.705607910215129,1,1
+7455249213022087188,ODI,Canada tour of Nepal,2024-02-10,Canada,Nepal,"Tribhuvan University International Cricket Ground, Kirtipur",Nepal,0,-159.61896873936485,0.6396035179792274,1,0
+4229906576313885170,ODI,Canada tour of Nepal,2024-02-12,Canada,Nepal,"Tribhuvan University International Cricket Ground, Kirtipur",Nepal,0,-176.0461534937922,0.6444307106545595,1,0
+7157463670318174504,ODI,ICC Men's Cricket World Cup League 2,2024-02-15,Nepal,Namibia,"Tribhuvan University International Cricket Ground, Kirtipur",Namibia,0,10.461449858633387,0.3980970517732099,0,1
+426294427764819678,ODI,ICC Men's Cricket World Cup League 2,2024-02-17,Netherlands,Nepal,"Tribhuvan University International Cricket Ground, Kirtipur",Nepal,0,-59.79625814710221,0.20226408387972153,0,1
+8355799073771218234,ODI,ICC Men's Cricket World Cup League 2,2024-02-19,Namibia,Netherlands,"Tribhuvan University International Cricket Ground, Kirtipur",Netherlands,0,93.43628019600942,0.7831610549093133,1,0
+7609898726911487388,ODI,ICC Men's Cricket World Cup League 2,2024-02-21,Nepal,Namibia,"Tribhuvan University International Cricket Ground, Kirtipur",Namibia,0,15.683689529467074,0.44911544350518384,0,1
+1854744176285164278,ODI,ICC Men's Cricket World Cup League 2,2024-02-23,Namibia,Netherlands,"Tribhuvan University International Cricket Ground, Kirtipur",Namibia,1,66.32252666353725,0.7172678325791367,1,1
+1314729524280328710,ODI,ICC Men's Cricket World Cup League 2,2024-02-25,Nepal,Netherlands,"Tribhuvan University International Cricket Ground, Kirtipur",Netherlands,0,67.48563657677687,0.7878957978921034,1,0
+4320413913879532008,ODI,ICC Men's Cricket World Cup League 2,2024-02-28,United Arab Emirates,Canada,Dubai International Cricket Stadium,Canada,0,25.68450994898285,0.4124780778686384,0,1
+6940054115825176709,ODI,ICC Men's Cricket World Cup League 2,2024-03-01,Scotland,Canada,Dubai International Cricket Stadium,Canada,0,224.55498806418268,0.5836601119874452,1,0
+3919190725033289739,ODI,ICC Men's Cricket World Cup League 2,2024-03-03,United Arab Emirates,Scotland,Dubai International Cricket Stadium,Scotland,0,-203.08627671957606,0.18066755138714052,0,1
+14551021323457767,ODI,ICC Men's Cricket World Cup League 2,2024-03-05,Canada,United Arab Emirates,Dubai International Cricket Stadium,Canada,1,37.33703345607523,0.7462533580220946,1,1
+6149802662732789222,ODI,ICC Men's Cricket World Cup League 2,2024-03-07,Scotland,Canada,Dubai International Cricket Stadium,Canada,0,171.85869820024777,0.6119786442252204,1,0
+5462500814473317829,ODI,Sri Lanka tour of Bangladesh,2024-03-13,Sri Lanka,Bangladesh,"Zahur Ahmed Chowdhury Stadium, Chattogram",Bangladesh,0,59.68244222882731,0.535024051943586,1,0
+7578405498668026522,ODI,Sri Lanka tour of Bangladesh,2024-03-15,Bangladesh,Sri Lanka,"Zahur Ahmed Chowdhury Stadium, Chattogram",Sri Lanka,0,-23.17501210884575,0.557390700197219,1,0
+7267102089752967613,ODI,Sri Lanka tour of Bangladesh,2024-03-18,Sri Lanka,Bangladesh,"Zahur Ahmed Chowdhury Stadium, Chattogram",Bangladesh,0,48.93673355853389,0.5085947010453498,1,0
+4254014042815362546,ODI,Australia Women tour of Bangladesh,2024-03-21,Australia,Bangladesh,"Shere Bangla National Stadium, Mirpur",Australia,1,370.84344015552165,0.8733745815025018,1,1
+5940197710768832276,ODI,Australia Women tour of Bangladesh,2024-03-24,Bangladesh,Australia,"Shere Bangla National Stadium, Mirpur",Australia,0,-380.9616160998369,0.10200338913661036,0,1
+5095681877347576144,ODI,Papua New Guinea Women tour of Zimbabwe,2024-03-26,Papua New Guinea,Zimbabwe,Harare Sports Club,Zimbabwe,0,-115.88558561231616,0.5891554876415113,1,0
+4881746016176786221,ODI,Australia Women tour of Bangladesh,2024-03-27,Bangladesh,Australia,"Shere Bangla National Stadium, Mirpur",Australia,0,-387.22543021805564,0.09099330845651986,0,1
+676161450963466325,ODI,Papua New Guinea Women tour of Zimbabwe,2024-03-28,Zimbabwe,Papua New Guinea,Harare Sports Club,Zimbabwe,1,133.79262683401953,0.6953732132342901,1,1
+7226095154768165419,ODI,England Women tour of New Zealand,2024-04-01,New Zealand,England,"Basin Reserve, Wellington",England,0,-32.450590818497176,0.16000554982681492,0,1
+3948954877741280819,ODI,England Women tour of New Zealand,2024-04-04,England,New Zealand,"Seddon Park, Hamilton",England,1,58.5684567100991,0.7711138386350479,1,1
+6900254408416537903,ODI,England Women tour of New Zealand,2024-04-07,England,New Zealand,"Seddon Park, Hamilton",New Zealand,0,92.27684826152313,0.6373510629270805,1,0
+4795636913179655162,ODI,UAE Women's ODI Tri-Series,2024-04-11,United States of America,Papua New Guinea,"ICC Academy, Dubai",Papua New Guinea,0,176.83672895883683,0.6271145736522997,1,0
+5853471979602013233,ODI,UAE Women's ODI Tri-Series,2024-04-12,Scotland,Papua New Guinea,"ICC Academy, Dubai",Scotland,1,248.84629657468963,0.7390084299752292,1,1
+7048684869653772490,ODI,Sri Lanka Women tour of South Africa,2024-04-13,Sri Lanka,South Africa,"Diamond Oval, Kimberley",South Africa,0,-225.75850304324558,0.20530201610388402,0,1
+3172336789845284142,ODI,UAE Women's ODI Tri-Series,2024-04-14,Scotland,United States of America,"ICC Academy, Dubai",Scotland,1,126.82365668938178,0.6817803258378994,1,1
+830853209463975797,ODI,Sri Lanka Women tour of South Africa,2024-04-17,South Africa,Sri Lanka,"Senwes Park, Potchefstroom",Sri Lanka,0,239.64108171911266,0.7275618714574579,1,0
+4471639300078691185,ODI,West Indies Women tour of Pakistan,2024-04-18,West Indies,Pakistan,"National Stadium, Karachi",West Indies,1,-66.91823055178929,0.4195246980884608,0,0
+2680891774961038367,ODI,West Indies Women tour of Pakistan,2024-04-21,Pakistan,West Indies,"National Stadium, Karachi",West Indies,0,10.495709228312535,0.5469174876996324,1,0
+1179197720026717555,ODI,West Indies Women tour of Pakistan,2024-04-23,West Indies,Pakistan,"National Stadium, Karachi",West Indies,1,16.701567956895815,0.47483578107181806,0,0
+1865631489725237844,ODI,Pakistan Women tour of England,2024-05-23,England,Pakistan,"County Ground, Derby",England,1,190.04290504390815,0.8450494235230033,1,1
+979881756967233660,ODI,Pakistan Women tour of England,2024-05-29,England,Pakistan,"County Ground, Chelmsford",England,1,208.3101873768344,0.8569152483937752,1,1
+4118108052470168125,ODI,West Indies Women tour of Sri Lanka,2024-06-15,West Indies,Sri Lanka,"Mahinda Rajapaksa International Cricket Stadium, Sooriyawewa, Hambantota",Sri Lanka,0,5.829351385416658,0.44277665276738704,0,1
+7960669711100688276,ODI,South Africa Women tour of India,2024-06-16,India,South Africa,"M Chinnaswamy Stadium, Bengaluru",India,1,86.24494299235494,0.7191287891717651,1,1
+6381628854154938794,ODI,West Indies Women tour of Sri Lanka,2024-06-18,West Indies,Sri Lanka,"Mahinda Rajapaksa International Cricket Stadium, Sooriyawewa, Hambantota",Sri Lanka,0,-25.894080025140966,0.3308411046457374,0,1
+5332782301465148859,ODI,South Africa Women tour of India,2024-06-19,India,South Africa,"M Chinnaswamy Stadium, Bengaluru",India,1,123.8866756228017,0.7437917664554334,1,1
+6623003856072628825,ODI,West Indies Women tour of Sri Lanka,2024-06-21,Sri Lanka,West Indies,"Mahinda Rajapaksa International Cricket Stadium, Sooriyawewa, Hambantota",Sri Lanka,1,53.662336040373475,0.48315199007371384,0,0
+1133051980651598060,ODI,South Africa Women tour of India,2024-06-23,South Africa,India,"M Chinnaswamy Stadium, Bengaluru",India,0,-134.48296005191014,0.22472103608325109,0,1
+1116757440292230797,ODI,New Zealand Women tour of England,2024-06-26,New Zealand,England,"Riverside Ground, Chester-le-Street",England,0,-72.62811892076343,0.20821269086811248,0,1
+8615886796867499048,ODI,New Zealand Women tour of England,2024-06-30,New Zealand,England,"County Ground, New Road, Worcester",England,0,-100.25765037971132,0.14308392099744274,0,1
+1466241660521682467,ODI,New Zealand Women tour of England,2024-07-03,New Zealand,England,"County Ground, Bristol",England,0,-124.42232547263893,0.185485543385359,0,1
+1057927716121538173,ODI,ICC Men's Cricket World Cup League 2,2024-07-18,Oman,Namibia,"Forthill, Dundee",Namibia,0,-106.73919053465329,0.45391116313933116,0,1
+3637357185058289358,ODI,ICC Men's Cricket World Cup League 2,2024-07-20,Scotland,Namibia,"Forthill, Dundee",Scotland,1,4.8721201344319525,0.6704416739006789,1,1
+5913585317111321423,ODI,ICC Men's Cricket World Cup League 2,2024-07-22,Oman,Scotland,"Forthill, Dundee",Scotland,0,-152.6179867015287,0.1960672453487209,0,1
+6598098360280439932,ODI,ICC Men's Cricket World Cup League 2,2024-07-24,Namibia,Oman,"Forthill, Dundee",Oman,0,119.40412401340336,0.5889728566525748,1,0
+8183334655757117864,ODI,ICC Men's Cricket World Cup League 2,2024-07-26,Scotland,Namibia,"Forthill, Dundee",Scotland,1,72.09858293521938,0.5876471608610508,1,1
+8412863648778632017,ODI,India tour of Sri Lanka,2024-08-04,Sri Lanka,India,"R Premadasa Stadium, Colombo",Sri Lanka,1,-258.72086593674885,0.1305810582279513,0,0
+1816206682112551875,ODI,Netherlands Women's ODI Tri-Series,2024-08-05,Papua New Guinea,Netherlands,"Sportpark Maarschalkerweerd, Utrecht",Netherlands,0,-190.6993651679668,0.6331995036366674,1,0
+3540352737945296342,ODI,Netherlands Women's ODI Tri-Series,2024-08-06,Scotland,Papua New Guinea,"Sportpark Maarschalkerweerd, Utrecht",Scotland,1,334.47322402004056,0.6859545971041086,1,1
+3030718978229870600,ODI,India tour of Sri Lanka,2024-08-07,Sri Lanka,India,"R Premadasa Stadium, Colombo",Sri Lanka,1,-201.6094741281131,0.13498225898144164,0,0
+7543911576551896257,ODI,Netherlands Women's ODI Tri-Series,2024-08-08,Scotland,Netherlands,"VRA Ground, Amstelveen",Netherlands,0,135.24225766441918,0.6733435711351278,1,0
+6289135942122860700,ODI,Netherlands Women's ODI Tri-Series,2024-08-09,Papua New Guinea,Netherlands,"VRA Ground, Amstelveen",Netherlands,0,-228.70148603134203,0.43526728703762846,0,1
+573082587833120684,ODI,ICC Men's Cricket World Cup League 2,2024-08-11,Canada,Netherlands,"Sportpark Westvliet, The Hague",Netherlands,0,-92.14578338453452,0.47308702090876253,0,1
+8268422032689353868,ODI,Netherlands Women's ODI Tri-Series,2024-08-11,Papua New Guinea,Scotland,"VRA Ground, Amstelveen",Scotland,0,-331.43911049585313,0.32266567022914944,0,1
+6558511267953621825,ODI,Netherlands Women's ODI Tri-Series,2024-08-12,Scotland,Netherlands,"VRA Ground, Amstelveen",Scotland,1,84.692023711606,0.6087543534349407,1,1
+3703031467064400831,ODI,ICC Men's Cricket World Cup League 2,2024-08-13,United States of America,Canada,"Sportpark Westvliet, The Hague",United States of America,1,9.222319110461285,0.24013707489985822,0,0
+4322055932472262123,ODI,ICC Men's Cricket World Cup League 2,2024-08-15,Netherlands,United States of America,"Sportpark Westvliet, The Hague",Netherlands,1,78.4167797980001,0.6599617560546228,1,1
+8632097879102230321,ODI,Sri Lanka Women tour of Ireland,2024-08-16,Sri Lanka,Ireland,"Civil Service Cricket Club, Stormont, Belfast",Ireland,0,242.95473211968238,0.7076525518930611,1,0
+4067603969852624053,ODI,ICC Men's Cricket World Cup League 2,2024-08-17,Netherlands,Canada,"Hazelaarweg, Rotterdam",Netherlands,1,125.68852662408426,0.27607140075337494,0,0
+4844021259735748927,ODI,Sri Lanka Women tour of Ireland,2024-08-18,Ireland,Sri Lanka,"Civil Service Cricket Club, Stormont, Belfast",Ireland,1,-198.68680172280347,0.2214588823137662,0,0
+4139972069018256282,ODI,ICC Men's Cricket World Cup League 2,2024-08-19,United States of America,Canada,"Hazelaarweg, Rotterdam",United States of America,1,37.53844783898535,0.2872708457179736,0,0
+7893508153944513283,ODI,Sri Lanka Women tour of Ireland,2024-08-20,Ireland,Sri Lanka,"Civil Service Cricket Club, Stormont, Belfast",Sri Lanka,0,-156.59723913426978,0.16018523476674254,0,1
+1222141605975169931,ODI,ICC Men's Cricket World Cup League 2,2024-08-21,Netherlands,United States of America,"Hazelaarweg, Rotterdam",Netherlands,1,97.78255330209049,0.4414968357537666,0,0
+2345342478148627307,ODI,England Women tour of Ireland,2024-09-07,Ireland,England,"Civil Service Cricket Club, Stormont, Belfast",England,0,-287.05890660925434,0.17007320747877072,0,1
+2679864433509743712,ODI,England Women tour of Ireland,2024-09-09,England,Ireland,"Civil Service Cricket Club, Stormont, Belfast",England,1,296.31977259073165,0.8077689334765963,1,1
+6303376155208970581,ODI,England Women tour of Ireland,2024-09-11,England,Ireland,"Civil Service Cricket Club, Stormont, Belfast",Ireland,0,313.6137696871351,0.8038273631757438,1,0
+7072947942434989319,ODI,ICC Men's Cricket World Cup League 2,2024-09-16,Namibia,United States of America,"United Cricket Club Ground, Windhoek",United States of America,0,81.39107384720955,0.6766916527911118,1,0
+6964085111091310583,ODI,ICC Men's Cricket World Cup League 2,2024-09-16,Canada,Nepal,"Maple Leaf North-West Ground, King City",Canada,1,-143.89743186966757,0.4438687500036214,0,0
+1401043501949047937,ODI,ICC Men's Cricket World Cup League 2,2024-09-18,Nepal,Oman,"Maple Leaf North-West Ground, King City",Oman,0,31.03609122081457,0.3118079875526402,0,1
+1248383982921834491,ODI,ICC Men's Cricket World Cup League 2,2024-09-18,United Arab Emirates,United States of America,"United Cricket Club Ground, Windhoek",United States of America,0,-103.1259087853582,0.2561070687352291,0,1
+7325572279127704892,ODI,Australia tour of England,2024-09-19,England,Australia,"Trent Bridge, Nottingham",Australia,0,-165.32678762795695,0.3471726612705882,0,1
+8844269331789077657,ODI,ICC Men's Cricket World Cup League 2,2024-09-20,Namibia,United Arab Emirates,"United Cricket Club Ground, Windhoek",United Arab Emirates,0,158.94762934043683,0.586628181605276,1,0
+6460977350720668675,ODI,ICC Men's Cricket World Cup League 2,2024-09-20,Canada,Oman,"Maple Leaf North-West Ground, King City",Canada,1,-61.8768763954688,0.6128602885540156,1,1
+3170374112693705067,ODI,Australia tour of England,2024-09-21,Australia,England,"Headingley, Leeds",Australia,1,183.37641101962436,0.5190079161926676,1,1
+433588645159978658,ODI,ICC Men's Cricket World Cup League 2,2024-09-22,Namibia,United States of America,"United Cricket Club Ground, Windhoek",United States of America,0,12.210883217565879,0.4984282172018085,0,1
+5362633238043899968,ODI,ICC Men's Cricket World Cup League 2,2024-09-22,Nepal,Canada,"Maple Leaf North-West Ground, King City",Canada,0,41.36711902743491,0.3692820527084584,0,1
+5343861033798151395,ODI,ICC Men's Cricket World Cup League 2,2024-09-24,United States of America,United Arab Emirates,"United Cricket Club Ground, Windhoek",United States of America,1,127.51939859969593,0.7209624265774305,1,1
+2520898963708892989,ODI,Australia tour of England,2024-09-24,Australia,England,"Riverside Ground, Chester-le-Street",England,0,205.2564009282778,0.5517144947703508,1,0
+4719655150178890210,ODI,ICC Men's Cricket World Cup League 2,2024-09-26,Oman,Canada,"Maple Leaf North-West Ground, King City",Canada,0,-3.1021440769995934,0.3919785315785008,0,1
+6374756494147673508,ODI,ICC Men's Cricket World Cup League 2,2024-09-26,United Arab Emirates,Namibia,"Wanderers Cricket Ground, Windhoek",Namibia,0,-122.16174169284022,0.507408867614019,1,0
+8700340703880699215,ODI,Australia tour of England,2024-09-27,England,Australia,"Lord's, London",England,1,-146.27997851716145,0.541300234494233,1,1
+3253159908116187057,ODI,Australia tour of England,2024-09-29,England,Australia,"County Ground, Bristol",Australia,0,-73.0955817239228,0.334346939758693,0,1
+7616123214558286510,ODI,Ireland vs South Africa,2024-10-02,South Africa,Ireland,"Zayed Cricket Stadium, Abu Dhabi",South Africa,1,239.15122606324758,0.6933339506517427,1,1
+2698068916171034467,ODI,Ireland vs South Africa,2024-10-04,South Africa,Ireland,"Zayed Cricket Stadium, Abu Dhabi",South Africa,1,259.087989302036,0.755840526487183,1,1
+5481588729614464496,ODI,Ireland vs South Africa,2024-10-07,Ireland,South Africa,"Zayed Cricket Stadium, Abu Dhabi",Ireland,1,-278.080806217034,0.24941577915563257,0,0
+584264877173145726,ODI,United States of America Women tour of Zimbabwe,2024-10-17,United States of America,Zimbabwe,Harare Sports Club,Zimbabwe,0,56.981981358527264,0.3696421172262256,0,1
+4158310493630321226,ODI,West Indies tour of Sri Lanka,2024-10-20,West Indies,Sri Lanka,Pallekele International Cricket Stadium,Sri Lanka,0,-127.69810675978329,0.5664261365767301,1,0
+1574910594379936603,ODI,United States of America Women tour of Zimbabwe,2024-10-20,United States of America,Zimbabwe,Harare Sports Club,Zimbabwe,0,22.105407387374726,0.2867973087901727,0,1
+6011744608697510851,ODI,West Indies tour of Sri Lanka,2024-10-23,West Indies,Sri Lanka,Pallekele International Cricket Stadium,Sri Lanka,0,-147.14284018172543,0.4939476861684194,0,1
+6544248148750201601,ODI,United States of America Women tour of Zimbabwe,2024-10-23,Zimbabwe,United States of America,Harare Sports Club,United States of America,0,11.077002033660392,0.6569703730269227,1,0
+4632056798470333736,ODI,New Zealand Women tour of India,2024-10-24,India,New Zealand,"Narendra Modi Stadium, Ahmedabad",India,1,196.36150360045644,0.6428070997752336,1,1
+8358978610805810196,ODI,ICC Men's Cricket World Cup League 2,2024-10-25,United States of America,Scotland,"Grand Prairie Stadium, Dallas",Scotland,0,-150.82919645256356,0.6722668530064572,1,0
+309749624622891932,ODI,West Indies tour of Sri Lanka,2024-10-26,Sri Lanka,West Indies,Pallekele International Cricket Stadium,West Indies,0,165.14631273816644,0.5118556015039036,1,0
+525724836373007343,ODI,United States of America Women tour of Zimbabwe,2024-10-26,Zimbabwe,United States of America,Harare Sports Club,Zimbabwe,1,-7.998569946682892,0.6848010312159188,1,1
+6485788567521595587,ODI,New Zealand Women tour of India,2024-10-27,New Zealand,India,"Narendra Modi Stadium, Ahmedabad",New Zealand,1,-216.36738805650134,0.19941624636616737,0,0
+6658641613629005487,ODI,United States of America Women tour of Zimbabwe,2024-10-28,Zimbabwe,United States of America,Harare Sports Club,United States of America,0,22.15000043284772,0.5090614876603266,1,0
+4915575988566986283,ODI,New Zealand Women tour of India,2024-10-29,New Zealand,India,"Narendra Modi Stadium, Ahmedabad",India,0,-148.8469832251451,0.23056062076604744,0,1
+6043014613566664479,ODI,ICC Men's Cricket World Cup League 2,2024-10-29,Scotland,Nepal,"Grand Prairie Stadium, Dallas",Nepal,0,186.5471962539516,0.6787071662755382,1,0
+4426542917280184332,ODI,ICC Men's Cricket World Cup League 2,2024-10-31,Scotland,United States of America,"Grand Prairie Stadium, Dallas",Scotland,1,147.59686718100397,0.8232695878958523,1,1
+1146944773730123906,ODI,England tour of West Indies,2024-10-31,England,West Indies,"Sir Vivian Richards Stadium, North Sound, Antigua",West Indies,0,253.41785090956932,0.5876037461580713,1,0
+1376539303752132966,ODI,ICC Men's Cricket World Cup League 2,2024-11-01,United Arab Emirates,Oman,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),Oman,0,-100.55732958204521,0.6986338687301088,1,0
+7014984129210087883,ODI,England tour of West Indies,2024-11-02,West Indies,England,"Sir Vivian Richards Stadium, North Sound, Antigua",England,0,-198.89529204700352,0.4923254572021658,0,1
+731749826781710190,ODI,ICC Men's Cricket World Cup League 2,2024-11-02,United States of America,Nepal,"Grand Prairie Stadium, Dallas",United States of America,1,-18.589650424470847,0.4625940579506568,0,0
+6483353740425956378,ODI,ICC Men's Cricket World Cup League 2,2024-11-03,United Arab Emirates,Netherlands,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),United Arab Emirates,1,-239.04160273268076,0.30886202587849115,0,0
+460647127949200010,ODI,Pakistan tour of Australia,2024-11-04,Pakistan,Australia,Melbourne Cricket Ground,Australia,0,-392.4102892807862,0.3738634948753791,0,1
+6898304178547487172,ODI,ICC Men's Cricket World Cup League 2,2024-11-05,Netherlands,Oman,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),Oman,0,89.73491173076559,0.6445319192253162,1,0
+3891545675545170417,ODI,England tour of West Indies,2024-11-06,England,West Indies,"Kensington Oval, Bridgetown, Barbados",West Indies,0,213.38023682538937,0.5505194703468772,1,0
+1106279402777601231,ODI,ICC Men's Cricket World Cup League 2,2024-11-07,United Arab Emirates,Oman,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),Oman,0,-117.68074704387823,0.33037748645739823,0,1
+5061687397004991785,ODI,Pakistan tour of Australia,2024-11-08,Australia,Pakistan,Adelaide Oval,Pakistan,0,397.40437409261835,0.6542264606712787,1,0
+8352833286627892381,ODI,ICC Men's Cricket World Cup League 2,2024-11-09,Netherlands,United Arab Emirates,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),Netherlands,1,175.0263606004255,0.4103984666750593,0,0
+7054462882623832735,ODI,Pakistan tour of Australia,2024-11-10,Australia,Pakistan,Perth Stadium,Pakistan,0,334.21811897868633,0.4073437514679136,0,1
+1773068438456765189,ODI,ICC Men's Cricket World Cup League 2,2024-11-11,Oman,Netherlands,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),Oman,1,-49.23936979095174,0.3425863766660241,0,0
+8823953116617244484,ODI,New Zealand tour of Sri Lanka,2024-11-13,Sri Lanka,New Zealand,Rangiri Dambulla International Stadium,Sri Lanka,1,13.088849908652264,0.6283854719149683,1,1
+4511029826779044980,ODI,New Zealand tour of Sri Lanka,2024-11-17,New Zealand,Sri Lanka,Pallekele International Cricket Stadium,Sri Lanka,0,-49.96593185939355,0.6505572708195704,1,0
+1049434218910151698,ODI,Pakistan tour of Zimbabwe,2024-11-24,Zimbabwe,Pakistan,"Queens Sports Club, Bulawayo",Zimbabwe,1,-238.18461754385316,0.3331074614922588,0,0
+7944667242018538914,ODI,Pakistan tour of Zimbabwe,2024-11-26,Zimbabwe,Pakistan,"Queens Sports Club, Bulawayo",Pakistan,0,-168.0265331317123,0.40387006298843375,0,1
+8397844908200910061,ODI,Ireland Women tour of Bangladesh,2024-11-27,Bangladesh,Ireland,"Shere Bangla National Stadium, Mirpur",Bangladesh,1,21.86073351482355,0.48506872240888205,0,0
+2843984310268480570,ODI,Pakistan tour of Zimbabwe,2024-11-28,Pakistan,Zimbabwe,"Queens Sports Club, Bulawayo",Pakistan,1,187.85758490017724,0.7878450339199022,1,1
+3882951112805511738,ODI,Ireland Women tour of Bangladesh,2024-11-30,Ireland,Bangladesh,"Shere Bangla National Stadium, Mirpur",Bangladesh,0,-69.16731656577576,0.5255415950732198,1,0
+7010309328140684717,ODI,Ireland Women tour of Bangladesh,2024-12-02,Ireland,Bangladesh,"Shere Bangla National Stadium, Mirpur",Bangladesh,0,-93.2725998207734,0.33383790807666064,0,1
+4639168357616989261,ODI,England Women tour of South Africa,2024-12-04,England,South Africa,"Diamond Oval, Kimberley",South Africa,0,27.564354995784242,0.781829607491094,1,0
+3828907730366906120,ODI,India Women tour of Australia,2024-12-05,India,Australia,"Allan Border Field, Brisbane",Australia,0,-28.103361756445793,0.24642337309388138,0,1
+7810268719563922952,ODI,India Women tour of Australia,2024-12-08,Australia,India,"Allan Border Field, Brisbane",Australia,1,55.68200101399543,0.7492261313232563,1,1
+4240240524954945543,ODI,Bangladesh tour of West Indies,2024-12-08,Bangladesh,West Indies,"Warner Park, Basseterre, St Kitts",West Indies,0,-3.958914936054498,0.3004063933622178,0,1
+7576672016664767432,ODI,England Women tour of South Africa,2024-12-08,South Africa,England,"Kingsmead, Durban",England,0,6.105766264109889,0.2047124868327245,0,1
+5032472205133644067,ODI,Bangladesh tour of West Indies,2024-12-10,Bangladesh,West Indies,"Warner Park, Basseterre, St Kitts",West Indies,0,-33.617089535610376,0.21798824368236502,0,1
+3177937320921791364,ODI,India Women tour of Australia,2024-12-11,Australia,India,"Western Australia Cricket Association Ground, Perth",Australia,1,96.19244971625494,0.7515226484733477,1,1
+4875558701856311393,ODI,England Women tour of South Africa,2024-12-11,South Africa,England,"Senwes Park, Potchefstroom",England,0,-25.64248010600909,0.1359583472142156,0,1
+6762279592306643937,ODI,Bangladesh tour of West Indies,2024-12-12,Bangladesh,West Indies,"Warner Park, Basseterre, St Kitts",West Indies,0,-62.89188476939853,0.4870624217965605,0,1
+3391265871588414200,ODI,Pakistan tour of South Africa,2024-12-17,South Africa,Pakistan,"Boland Park, Paarl",Pakistan,0,156.29141373167727,0.39775194181809065,0,1
+7959164201524179422,ODI,Pakistan tour of South Africa,2024-12-19,Pakistan,South Africa,"Newlands, Cape Town",Pakistan,1,-117.05056673836702,0.5243208476657567,1,1
+8717916953203040714,ODI,Australia Women tour of New Zealand,2024-12-21,Australia,New Zealand,"Basin Reserve, Wellington",Australia,1,276.0443456450182,0.841781063598614,1,1
+1490074124097335552,ODI,Pakistan tour of South Africa,2024-12-22,Pakistan,South Africa,"The Wanderers Stadium, Johannesburg",Pakistan,1,-58.62326236591275,0.5953677677439997,1,1
+1077546247239146348,ODI,West Indies Women tour of India,2024-12-22,India,West Indies,"Kotambi Stadium, Vadodara",India,1,133.50355765508948,0.7532206529128171,1,1
+3727100081560154163,ODI,Australia Women tour of New Zealand,2024-12-23,Australia,New Zealand,"Basin Reserve, Wellington",Australia,1,290.2613475298151,0.8378811149844735,1,1
+6517992216930960084,ODI,West Indies Women tour of India,2024-12-24,India,West Indies,"Kotambi Stadium, Vadodara",India,1,167.47288074242715,0.7675221859646051,1,1
+4401563332034797882,ODI,West Indies Women tour of India,2024-12-27,West Indies,India,"Kotambi Stadium, Vadodara",India,0,-193.74217912970653,0.1167748852338841,0,1
+1108502408844664919,ODI,Sri Lanka tour of New Zealand,2025-01-05,Sri Lanka,New Zealand,"Basin Reserve, Wellington",New Zealand,0,87.59419452826228,0.4313501889919252,0,1
+3611119577890987079,ODI,Sri Lanka tour of New Zealand,2025-01-08,New Zealand,Sri Lanka,"Seddon Park, Hamilton",New Zealand,1,-44.20182964359833,0.7203735573206612,1,1
+8747029897404936340,ODI,Ireland Women tour of India,2025-01-10,Ireland,India,"Saurashtra Cricket Association Stadium, Rajkot",India,0,-333.45401218761094,0.12565167255488247,0,1
+1614944673748495264,ODI,Sri Lanka tour of New Zealand,2025-01-11,Sri Lanka,New Zealand,"Eden Park, Auckland",Sri Lanka,1,-9.200224845686762,0.22283253622981172,0,0
+4547580014455459820,ODI,Women's Ashes,2025-01-12,England,Australia,"North Sydney Oval, Sydney",Australia,0,-142.43841849110163,0.3607716358958567,0,1
+8061781974859945774,ODI,Ireland Women tour of India,2025-01-12,India,Ireland,"Saurashtra Cricket Association Stadium, Rajkot",India,1,341.4359452282222,0.8696102945861072,1,1
+1907158444827001568,ODI,Women's Ashes,2025-01-14,Australia,England,"Junction Oval, Melbourne",Australia,1,160.05112122081914,0.5646937534150871,1,1
+5763335116446060586,ODI,Ireland Women tour of India,2025-01-15,India,Ireland,"Saurashtra Cricket Association Stadium, Rajkot",India,1,353.1494514130452,0.868760387456521,1,1
+8325784426456365778,ODI,Women's Ashes,2025-01-17,Australia,England,"Bellerive Oval, Hobart",Australia,1,177.66618083417075,0.5346915710537425,1,1
+7382261026324070766,ODI,Bangladesh Women tour of West Indies,2025-01-19,Bangladesh,West Indies,"Warner Park, Basseterre, St Kitts",West Indies,0,-49.008785255738076,0.34643832981104694,0,1
+6618384558628174454,ODI,Bangladesh Women tour of West Indies,2025-01-21,Bangladesh,West Indies,"Warner Park, Basseterre, St Kitts",Bangladesh,1,-78.93224605771047,0.4189338986292801,0,0
+4119926012383945333,ODI,Bangladesh Women tour of West Indies,2025-01-24,Bangladesh,West Indies,"Warner Park, Basseterre, St Kitts",West Indies,0,-28.597493167133052,0.22645950897321152,0,1
+5914653043573046816,ODI,England tour of India,2025-02-06,England,India,"Vidarbha Cricket Association Stadium, Jamtha, Nagpur",India,0,-83.34189080364763,0.5049367590085697,1,0
+1907029901971680338,ODI,Pakistan Tri-Nation Series,2025-02-08,New Zealand,Pakistan,"Gaddafi Stadium, Lahore",New Zealand,1,2.3397653020495,0.5371606430444151,1,1
+4884926577279092564,ODI,ICC Men's Cricket World Cup League 2,2025-02-08,United States of America,Namibia,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),United States of America,1,4.873128240200458,0.7046704454048898,1,1
+5654324406436918948,ODI,England tour of India,2025-02-09,England,India,"Barabati Stadium, Cuttack",India,0,-105.36295261433838,0.555740323977204,1,0
+7149087957338567990,ODI,Pakistan Tri-Nation Series,2025-02-10,South Africa,New Zealand,"Gaddafi Stadium, Lahore",New Zealand,0,-7.617414416339898,0.5677635266054932,1,0
+7438124957357942907,ODI,ICC Men's Cricket World Cup League 2,2025-02-10,Namibia,Oman,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),Namibia,1,-28.355785584504474,0.5737650150167717,1,1
+6648526826728595637,ODI,Pakistan Tri-Nation Series,2025-02-12,South Africa,Pakistan,"National Stadium, Karachi",Pakistan,0,22.902642702665844,0.23713816336843446,0,1
+1408500188897092837,ODI,ICC Men's Cricket World Cup League 2,2025-02-12,United States of America,Oman,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),Oman,0,40.54160507234792,0.4474273794423736,0,1
+2568835460194477208,ODI,Australia tour of Sri Lanka,2025-02-12,Sri Lanka,Australia,"R Premadasa Stadium, Colombo",Sri Lanka,1,-268.80335414110164,0.33723638498546243,0,0
+945791931263779121,ODI,England tour of India,2025-02-12,India,England,"Narendra Modi Stadium, Ahmedabad",India,1,125.68733830783708,0.503453722089118,1,1
+4649561045408467915,ODI,Pakistan Tri-Nation Series,2025-02-14,Pakistan,New Zealand,"National Stadium, Karachi",New Zealand,0,-44.40926552595397,0.4996671068880164,0,1
+883087110553348962,ODI,ICC Men's Cricket World Cup League 2,2025-02-14,United States of America,Namibia,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),United States of America,1,16.41686197255899,0.5727522086658233,1,1
+81633924292363982,ODI,Australia tour of Sri Lanka,2025-02-14,Sri Lanka,Australia,"R Premadasa Stadium, Colombo",Sri Lanka,1,-204.23499797619502,0.30371406450535937,0,0
+824483955776162451,ODI,Ireland tour of Zimbabwe,2025-02-14,Zimbabwe,Ireland,Harare Sports Club,Zimbabwe,1,-109.53488238578075,0.5023446805101656,1,1
+7033419810139465788,ODI,ICC Men's Cricket World Cup League 2,2025-02-16,Namibia,Oman,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),Oman,0,-32.36376731701898,0.5317224847990808,1,0
+5048862158070389473,ODI,Ireland tour of Zimbabwe,2025-02-16,Zimbabwe,Ireland,Harare Sports Club,Ireland,0,-58.429525421542166,0.420367113367542,0,1
+6515901204864738743,ODI,Ireland tour of Zimbabwe,2025-02-18,Ireland,Zimbabwe,Harare Sports Club,Zimbabwe,0,84.4314190155801,0.7405439386265937,1,0
+8852131492238975672,ODI,ICC Men's Cricket World Cup League 2,2025-02-18,United States of America,Oman,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),United States of America,1,12.728899732599984,0.6088983321775724,1,1
+3826402364496757164,ODI,ICC Champions Trophy,2025-02-19,New Zealand,Pakistan,"National Stadium, Karachi",New Zealand,1,70.59540895668465,0.7292368116645783,1,1
+312564569653334512,ODI,ICC Champions Trophy,2025-02-20,Bangladesh,India,Dubai International Cricket Stadium,India,0,-316.6528068882476,0.17666086512571796,0,1
+5854612171009779486,ODI,ICC Champions Trophy,2025-02-22,England,Australia,"Gaddafi Stadium, Lahore",Australia,0,-166.92131284612083,0.6150128660810695,1,0
+8310697105749829852,ODI,ICC Champions Trophy,2025-02-23,Pakistan,India,Dubai International Cricket Stadium,India,0,-271.1865973635204,0.3912169451447261,0,1
+1547437357260867171,ODI,ICC Champions Trophy,2025-02-24,Bangladesh,New Zealand,Rawalpindi Cricket Stadium,New Zealand,0,-157.63914093576318,0.3163403192513977,0,1
+8961178192589742345,ODI,ICC Champions Trophy,2025-03-01,England,South Africa,"National Stadium, Karachi",South Africa,0,81.2197060659089,0.5350628163521554,1,0
+682560202147319175,ODI,ICC Champions Trophy,2025-03-02,India,New Zealand,Dubai International Cricket Stadium,India,1,164.48066129951985,0.7262632164560435,1,1
+3937878485597488527,ODI,ICC Champions Trophy,2025-03-04,Australia,India,Dubai International Cricket Stadium,India,0,-3.315318001777541,0.2829796943456621,0,1
+7302459713012726233,ODI,ICC Champions Trophy,2025-03-05,New Zealand,South Africa,"Gaddafi Stadium, Lahore",New Zealand,1,62.35858637513729,0.5661710539194792,1,1
+3350697602665210203,ODI,Sri Lanka Women tour of New Zealand,2025-03-07,New Zealand,Sri Lanka,"Saxton Oval, Nelson",New Zealand,1,-32.75133738839145,0.5606035274976394,1,1
+3911207491669140802,ODI,ICC Men's Cricket World Cup League 2,2025-03-07,Netherlands,Namibia,"Wanderers Cricket Ground, Windhoek",Netherlands,1,79.00526645871855,0.41127290814508766,0,0
+8053245023006975706,ODI,ICC Champions Trophy,2025-03-09,New Zealand,India,Dubai International Cricket Stadium,India,0,-159.93911564630275,0.40110386474603016,0,1
+8237975719900985615,ODI,Sri Lanka Women tour of New Zealand,2025-03-09,New Zealand,Sri Lanka,"Saxton Oval, Nelson",New Zealand,1,6.88906490630302,0.6077780724953783,1,1
+6979314350164317745,ODI,ICC Men's Cricket World Cup League 2,2025-03-13,Namibia,Netherlands,"Wanderers Cricket Ground, Windhoek",Netherlands,0,-110.00470316339374,0.5082754612174782,1,0
+6939831106220799392,ODI,ICC Men's Cricket World Cup League 2,2025-03-15,Namibia,Canada,"Wanderers Cricket Ground, Windhoek",Namibia,1,-54.227257944026405,0.3592874947309983,0,0
+3001802291816274204,ODI,Pakistan tour of New Zealand,2025-03-29,New Zealand,Pakistan,"McLean Park, Napier",New Zealand,1,161.32293566905173,0.6161544229845027,1,1
+6507992540248398303,ODI,Pakistan tour of New Zealand,2025-04-02,New Zealand,Pakistan,"Seddon Park, Hamilton",New Zealand,1,185.72245372103953,0.6639285009392885,1,1
+6533329028321161627,ODI,Pakistan tour of New Zealand,2025-04-05,New Zealand,Pakistan,"Bay Oval, Mount Maunganui",New Zealand,1,208.45085939566934,0.6965395916331822,1,1
+2701285977812470510,ODI,ICC Women's World Cup Qualifier,2025-04-09,Scotland,West Indies,Lahore City Cricket Association Ground,Scotland,1,-96.8863466133223,0.5298157924942908,1,1
+8036085722537152493,ODI,ICC Women's World Cup Qualifier,2025-04-09,Pakistan,Ireland,"Gaddafi Stadium, Lahore",Pakistan,1,133.31266943408923,0.5161824418899049,1,1
+4912831507785005450,ODI,ICC Women's World Cup Qualifier,2025-04-10,Bangladesh,Thailand,Lahore City Cricket Association Ground,Bangladesh,1,21.38976750713823,0.5256469085179503,1,1
+5767506137491185776,ODI,ICC Women's World Cup Qualifier,2025-04-11,Scotland,Pakistan,Lahore City Cricket Association Ground,Pakistan,0,-45.318959730214374,0.47631419257533897,0,1
+1133285925248082061,ODI,ICC Women's World Cup Qualifier,2025-04-11,West Indies,Ireland,"Gaddafi Stadium, Lahore",West Indies,1,176.49829337142364,0.6585741665271466,1,1
+686742213055703376,ODI,ICC Women's World Cup Qualifier,2025-04-13,Ireland,Bangladesh,"Gaddafi Stadium, Lahore",Bangladesh,0,-149.45105645405465,0.46313807513561134,0,1
+3988714348752145253,ODI,ICC Women's World Cup Qualifier,2025-04-13,Scotland,Thailand,Lahore City Cricket Association Ground,Scotland,1,23.509991790211643,0.6575533907406574,1,1
+5026098582842638397,ODI,ICC Women's World Cup Qualifier,2025-04-14,Pakistan,West Indies,"Gaddafi Stadium, Lahore",Pakistan,1,-11.535605568996516,0.44571969779813214,0,0
+1801698889417692534,ODI,ICC Women's World Cup Qualifier,2025-04-15,Bangladesh,Scotland,"Gaddafi Stadium, Lahore",Bangladesh,1,35.42795077665596,0.5488156575044086,1,1
+3345041559690082657,ODI,ICC Women's World Cup Qualifier,2025-04-15,Ireland,Thailand,Lahore City Cricket Association Ground,Ireland,1,-68.15542324989656,0.6743602987623892,1,1
+936898859433748120,ODI,ICC Women's World Cup Qualifier,2025-04-17,Bangladesh,West Indies,Lahore City Cricket Association Ground,West Indies,0,8.093904374610474,0.44649543151247223,0,1
+2365909513525311544,ODI,ICC Women's World Cup Qualifier,2025-04-17,Pakistan,Thailand,"Gaddafi Stadium, Lahore",Pakistan,1,159.6712002506581,0.6153653974617566,1,1
+6819938839641318139,ODI,ICC Women's World Cup Qualifier,2025-04-18,Scotland,Ireland,"Gaddafi Stadium, Lahore",Ireland,0,90.73532333512208,0.4298558725254161,0,1
+1972431491698354944,ODI,ICC Women's World Cup Qualifier,2025-04-19,Thailand,West Indies,"Gaddafi Stadium, Lahore",West Indies,0,-154.78071326418603,0.22515701382452913,0,1
+4669330431338087708,ODI,ICC Women's World Cup Qualifier,2025-04-19,Bangladesh,Pakistan,Lahore City Cricket Association Ground,Pakistan,0,-50.5945702638046,0.42322546787709636,0,1
+4937942702156121622,ODI,Sri Lanka Women's ODI Tri-Series,2025-04-27,Sri Lanka,India,"R Premadasa Stadium, Colombo",India,0,-205.7735920485859,0.09156013988721125,0,1
+2726176386566690228,ODI,Sri Lanka Women's ODI Tri-Series,2025-04-29,India,South Africa,"R Premadasa Stadium, Colombo",India,1,294.93810210720153,0.8353623536488721,1,1
+9160963432799495861,ODI,Zimbabwe Women tour of United States of America,2025-05-01,Zimbabwe,United States of America,"Grand Prairie Stadium, Dallas",United States of America,0,-16.311049363077473,0.27923973191548546,0,1
+336750140525367064,ODI,Sri Lanka Women's ODI Tri-Series,2025-05-02,South Africa,Sri Lanka,"R Premadasa Stadium, Colombo",Sri Lanka,0,-77.155898481838,0.7008921267889477,1,0
+6919266880817245431,ODI,Zimbabwe Women tour of United States of America,2025-05-03,Zimbabwe,United States of America,"Grand Prairie Stadium, Dallas",Zimbabwe,1,-47.19108392214048,0.614599977272825,1,1
+8522769753748555790,ODI,ICC Men's Cricket World Cup League 2,2025-05-04,United Arab Emirates,Scotland,"VRA Ground, Amstelveen",Scotland,0,-298.6771452964508,0.30924718427524767,0,1
+527821965111942822,ODI,Sri Lanka Women's ODI Tri-Series,2025-05-04,India,Sri Lanka,"R Premadasa Stadium, Colombo",Sri Lanka,0,214.6484407357941,0.8024262989066673,1,0
+7182987801241028124,ODI,ICC Men's Cricket World Cup League 2,2025-05-06,Netherlands,United Arab Emirates,"VRA Ground, Amstelveen",Netherlands,1,221.70205997283279,0.6671022511547325,1,1
+550698837094428264,ODI,Sri Lanka Women's ODI Tri-Series,2025-05-07,India,South Africa,"R Premadasa Stadium, Colombo",India,1,293.8650844072581,0.8099091557672293,1,1
+2007103024067030003,ODI,ICC Men's Cricket World Cup League 2,2025-05-08,United Arab Emirates,Scotland,"VRA Ground, Amstelveen",United Arab Emirates,1,-317.40843307089244,0.3161740468651643,0,0
+3817915852569800911,ODI,Sri Lanka Women's ODI Tri-Series,2025-05-09,South Africa,Sri Lanka,"R Premadasa Stadium, Colombo",South Africa,1,-126.93379923805037,0.6099606730963253,1,1
+908089638737429406,ODI,ICC Men's Cricket World Cup League 2,2025-05-10,Netherlands,Scotland,"VRA Ground, Amstelveen",Netherlands,1,-35.48941292401287,0.294518039221296,0,0
+2234435863166899988,ODI,Sri Lanka Women's ODI Tri-Series,2025-05-11,India,Sri Lanka,"R Premadasa Stadium, Colombo",India,1,206.17221749709302,0.845855358652788,1,1
+7665561045586547496,ODI,ICC Men's Cricket World Cup League 2,2025-05-12,United Arab Emirates,Netherlands,"Sportpark Maarschalkerweerd, Utrecht",Netherlands,0,-219.37573281533446,0.5055163281178942,1,0
+7267881371698429946,ODI,ICC Men's Cricket World Cup League 2,2025-05-14,United Arab Emirates,Scotland,"Sportpark Maarschalkerweerd, Utrecht",Scotland,0,-228.4440296870257,0.2338304923607046,0,1
+7664647625625915490,ODI,ICC Men's Cricket World Cup League 2,2025-05-16,Scotland,Netherlands,"Sportpark Maarschalkerweerd, Utrecht",Scotland,1,2.9503724000621787,0.635399609718439,1,1
+923087565292871472,ODI,ICC Men's Cricket World Cup League 2,2025-05-17,United States of America,Canada,"Central Broward Regional Park Stadium Turf Ground, Lauderhill",United States of America,1,63.78426675563742,0.651016802320788,1,1
+289158282239399434,ODI,ICC Men's Cricket World Cup League 2,2025-05-19,Oman,Canada,"Central Broward Regional Park Stadium Turf Ground, Lauderhill",Oman,1,45.10251739453088,0.20451689454628036,0,0
+9093963192789354587,ODI,West Indies tour of Ireland,2025-05-21,Ireland,West Indies,"Castle Avenue, Dublin",Ireland,1,-157.41794436037026,0.4034663079478351,0,0
+3700480140443360898,ODI,ICC Men's Cricket World Cup League 2,2025-05-23,Canada,Oman,"Central Broward Regional Park Stadium Turf Ground, Lauderhill",Oman,0,-69.27043266985629,0.6470626268621692,1,0
+802119956451904658,ODI,ICC Men's Cricket World Cup League 2,2025-05-25,United States of America,Canada,"Central Broward Regional Park Stadium Turf Ground, Lauderhill",United States of America,1,129.77462218701908,0.5715548428705455,1,1
+56111964555469199,ODI,West Indies tour of Ireland,2025-05-25,West Indies,Ireland,"Castle Avenue, Dublin",West Indies,1,88.5815410291325,0.7769119974648028,1,1
+79103415087009042,ODI,ICC Men's Cricket World Cup League 2,2025-05-27,United States of America,Oman,"Central Broward Regional Park Stadium Turf Ground, Lauderhill",United States of America,1,51.27509171786596,0.64511263626468,1,1
+1820694385750093152,ODI,West Indies tour of England,2025-05-29,England,West Indies,"Edgbaston, Birmingham",England,1,94.52154495382206,0.8154683013321572,1,1
+4728600709120823343,ODI,West Indies Women tour of England,2025-05-30,England,West Indies,"County Ground, Derby",England,1,134.7795107239947,0.8342229983067859,1,1
+6552866511569987977,ODI,West Indies tour of England,2025-06-01,West Indies,England,"Sophia Gardens, Cardiff",England,0,-164.38106890521362,0.20761210117285264,0,1
+1533426311631127207,ODI,ICC Men's Cricket World Cup League 2,2025-06-02,Scotland,Nepal,"Forthill, Dundee",Nepal,0,143.27395753050382,0.7155910780268698,1,0
+1566269844658982602,ODI,West Indies tour of England,2025-06-03,West Indies,England,"Kennington Oval, London",England,0,-179.81713606266317,0.21595287359844786,0,1
+4265012125145716156,ODI,ICC Men's Cricket World Cup League 2,2025-06-04,Netherlands,Nepal,"Forthill, Dundee",Nepal,0,73.3471900487325,0.5018840333968062,1,0
+3127070334026672098,ODI,West Indies Women tour of England,2025-06-04,England,West Indies,"Grace Road, Leicester",England,1,196.80085965592139,0.8616513942950657,1,1
+3852748588406979072,ODI,ICC Men's Cricket World Cup League 2,2025-06-06,Scotland,Netherlands,"Forthill, Dundee",Scotland,1,53.00690537057881,0.7038904555585664,1,1
+5373124837935863070,ODI,West Indies Women tour of England,2025-06-07,West Indies,England,"The Cooper Associates County Ground, Taunton",England,0,-221.03808548127085,0.10979369236267096,0,1
+1833553729982946163,ODI,ICC Men's Cricket World Cup League 2,2025-06-08,Scotland,Nepal,"Forthill, Dundee",Scotland,1,106.27920198653624,0.6810590586467182,1,1
+4276400679931428642,ODI,ICC Men's Cricket World Cup League 2,2025-06-10,Nepal,Netherlands,"Forthill, Dundee",Nepal,1,-25.160156075979557,0.39589207192982917,0,0
+2456633267161934501,ODI,South Africa Women tour of West Indies,2025-06-11,South Africa,West Indies,"Three Ws Oval, Cave Hill, Barbados",West Indies,0,116.21213133581341,0.6519355751759786,1,0
+1331836181565776898,ODI,ICC Men's Cricket World Cup League 2,2025-06-12,Scotland,Netherlands,"Forthill, Dundee",Netherlands,0,104.76212781136883,0.6717091542812714,1,0
+1757916372532946092,ODI,South Africa Women tour of West Indies,2025-06-14,South Africa,West Indies,"Three Ws Oval, Cave Hill, Barbados",South Africa,1,78.12282574503342,0.7775409117921479,1,1
+6422950187751818134,ODI,South Africa Women tour of West Indies,2025-06-17,South Africa,West Indies,"Three Ws Oval, Cave Hill, Barbados",South Africa,1,107.07169946703061,0.727956868333689,1,1
+5065501186374391245,ODI,Bangladesh tour of Sri Lanka,2025-07-02,Sri Lanka,Bangladesh,"R Premadasa Stadium, Colombo",Sri Lanka,1,131.3765183072062,0.750493268473842,1,1
+3673881276079142513,ODI,Bangladesh tour of Sri Lanka,2025-07-05,Bangladesh,Sri Lanka,"R Premadasa Stadium, Colombo",Bangladesh,1,-159.23665485142214,0.3436986116649497,0,0
+2818002230520474070,ODI,Bangladesh tour of Sri Lanka,2025-07-08,Sri Lanka,Bangladesh,Pallekele International Cricket Stadium,Sri Lanka,1,118.72261175025938,0.7378674458246154,1,1
+7893958484551865900,ODI,India Women tour of England,2025-07-16,England,India,"The Rose Bowl, Southampton",India,0,-165.08956509343716,0.2832509692160619,0,1
+7330214715393278949,ODI,India Women tour of England,2025-07-19,India,England,"Lord's, London",England,0,181.14948611419322,0.49210180590015956,0,1
+4310319866227455066,ODI,India Women tour of England,2025-07-22,India,England,"Riverside Ground, Chester-le-Street",India,1,131.4627399320575,0.6855614572722837,1,1
+4853816089198917881,ODI,Zimbabwe Women tour of Ireland,2025-07-26,Ireland,Zimbabwe,"Civil Service Cricket Club, Stormont, Belfast",Ireland,1,57.899376206870556,0.7107241008334827,1,1
+6033555556092681606,ODI,Zimbabwe Women tour of Ireland,2025-07-28,Zimbabwe,Ireland,"Civil Service Cricket Club, Stormont, Belfast",Ireland,0,-96.21185706249958,0.22511047870450063,0,1
+9125144078575156213,ODI,Pakistan tour of West Indies,2025-08-08,West Indies,Pakistan,"Brian Lara Stadium, Tarouba, Trinidad",Pakistan,0,-134.04925505108167,0.3681596959075998,0,1
+3302186971508527826,ODI,Pakistan tour of West Indies,2025-08-10,Pakistan,West Indies,"Brian Lara Stadium, Tarouba, Trinidad",West Indies,0,153.01659818019334,0.6885728266854516,1,0
+4926417772670626775,ODI,Pakistan tour of West Indies,2025-08-12,West Indies,Pakistan,"Brian Lara Stadium, Tarouba, Trinidad",West Indies,1,-110.59689289955486,0.3530646177855184,0,0
+5114407646725292037,ODI,South Africa tour of Australia,2025-08-19,South Africa,Australia,"Cazaly's Stadium, Cairns",South Africa,1,-224.97420940688176,0.5711629240596277,1,1
+3792788234833792250,ODI,South Africa tour of Australia,2025-08-22,South Africa,Australia,"Great Barrier Reef Arena, Mackay",South Africa,1,-152.7673500070971,0.4970065090297314,0,0
+2998638922870284563,ODI,South Africa tour of Australia,2025-08-24,Australia,South Africa,"Great Barrier Reef Arena, Mackay",Australia,1,89.91999926008089,0.6952348969911314,1,1
+261541729259091147,ODI,ICC Men's Cricket World Cup League 2,2025-08-27,Canada,Namibia,"Maple Leaf North-West Ground, King City",Namibia,0,-34.816440297255895,0.4209374352666812,0,1
+1300763638279585474,ODI,Sri Lanka tour of Zimbabwe,2025-08-29,Sri Lanka,Zimbabwe,Harare Sports Club,Sri Lanka,1,327.8570198635657,0.840676125864662,1,1
+8002752093737908656,ODI,ICC Men's Cricket World Cup League 2,2025-08-31,Canada,Scotland,"Maple Leaf North-West Ground, King City",Scotland,0,-211.37558009484837,0.3384652957758489,0,1
+1281962504955521418,ODI,Sri Lanka tour of Zimbabwe,2025-08-31,Zimbabwe,Sri Lanka,Harare Sports Club,Sri Lanka,0,-333.3329577020072,0.32351758644213974,0,1
+4940578355191367531,ODI,ICC Men's Cricket World Cup League 2,2025-09-02,Namibia,Canada,"Maple Leaf North-West Ground, King City",Namibia,1,69.22371170788279,0.3289701977743156,0,0
+5624683549783895572,ODI,South Africa tour of England,2025-09-02,England,South Africa,"Headingley, Leeds",South Africa,0,68.53800687534977,0.654156831186819,1,0
+834697392598947446,ODI,South Africa tour of England,2025-09-04,South Africa,England,"Lord's, London",South Africa,1,-29.828153116360227,0.3556543750994505,0,0
+1471805265722922922,ODI,ICC Men's Cricket World Cup League 2,2025-09-04,Scotland,Namibia,"Maple Leaf North-West Ground, King City",Scotland,1,144.01812900277537,0.7718822439809171,1,1
+5671840471101988517,ODI,South Africa tour of England,2025-09-07,England,South Africa,"The Rose Bowl, Southampton",England,1,10.3589855952182,0.786831044000526,1,1
+6401069330837071318,ODI,Australia Women tour of India,2025-09-14,India,Australia,"Maharaja Yadavindra Singh International Cricket Stadium, New Chandigarh",Australia,0,84.91320053072218,0.3289545899005627,0,1
+11605289191302612,ODI,South Africa Women tour of Pakistan,2025-09-16,Pakistan,South Africa,"Gaddafi Stadium, Lahore",South Africa,0,-102.70136227440594,0.17203320086445192,0,1
+5037637898944970931,ODI,Australia Women tour of India,2025-09-17,India,Australia,"Maharaja Yadavindra Singh International Cricket Stadium, New Chandigarh",India,1,43.26105289327529,0.37795864303817056,0,0
+6586699285556562752,ODI,South Africa Women tour of Pakistan,2025-09-19,South Africa,Pakistan,"Gaddafi Stadium, Lahore",South Africa,1,126.64877806099253,0.8214517026703915,1,1
+1382790293404619458,ODI,Australia Women tour of India,2025-09-20,Australia,India,"Arun Jaitley Stadium, Delhi",Australia,1,-83.9026772211007,0.663874479601424,1,1
+6953347455994978063,ODI,South Africa Women tour of Pakistan,2025-09-22,South Africa,Pakistan,"Gaddafi Stadium, Lahore",Pakistan,0,147.87130723112273,0.4384494584935209,0,1
+2624653026349967942,ODI,United Arab Emirates Women tour of Zimbabwe,2025-09-26,United Arab Emirates,Zimbabwe,"Queens Sports Club, Bulawayo",United Arab Emirates,1,-148.72381842828077,0.5928674703264579,1,1
+7850495033516114468,ODI,United Arab Emirates Women tour of Zimbabwe,2025-09-28,United Arab Emirates,Zimbabwe,"Queens Sports Club, Bulawayo",Zimbabwe,0,-97.99287225610874,0.5624973895916182,1,0
+9193581585879624115,ODI,ICC Women's World Cup,2025-09-30,India,Sri Lanka,"Barsapara Cricket Stadium, Guwahati",India,1,179.61087438562276,0.8067038923146308,1,1
+7599536233839573348,ODI,United Arab Emirates Women tour of Zimbabwe,2025-09-30,Zimbabwe,United Arab Emirates,"Queens Sports Club, Bulawayo",Zimbabwe,1,120.61918128647335,0.6203214872083465,1,1
+6963660131077201484,ODI,ICC Women's World Cup,2025-10-01,Australia,New Zealand,"Holkar Cricket Stadium, Indore",Australia,1,58.85110041419716,0.7435380337512631,1,1
+4981747778463823531,ODI,United Arab Emirates Women tour of Zimbabwe,2025-10-02,United Arab Emirates,Zimbabwe,"Queens Sports Club, Bulawayo",United Arab Emirates,1,-144.5112690548574,0.5774969710624981,1,1
+5759514287412763769,ODI,ICC Women's World Cup,2025-10-02,Pakistan,Bangladesh,"R Premadasa Stadium, Colombo",Bangladesh,0,40.2222072038719,0.6414411939243823,1,0
+5177175067680060633,ODI,ICC Women's World Cup,2025-10-03,South Africa,England,"Barsapara Cricket Stadium, Guwahati",England,0,-66.32664342155931,0.3977037772818525,0,1
+4772033900232666924,ODI,ICC Women's World Cup,2025-10-05,India,Pakistan,"R Premadasa Stadium, Colombo",India,1,324.43367530165983,0.8614152960595685,1,1
+5537761053682038950,ODI,ICC Women's World Cup,2025-10-06,New Zealand,South Africa,"Holkar Cricket Stadium, Indore",South Africa,0,91.43516852329526,0.5030461283939153,1,0
+1935551822915151546,ODI,ICC Women's World Cup,2025-10-07,Bangladesh,England,"Barsapara Cricket Stadium, Guwahati",England,0,-207.22662066282328,0.1394532119189077,0,1
+5249709596414698088,ODI,ICC Women's World Cup,2025-10-08,Australia,Pakistan,"R Premadasa Stadium, Colombo",Australia,1,301.3814573430434,0.8718330010106653,1,1
+7965765380722472692,ODI,ICC Women's World Cup,2025-10-09,India,South Africa,"Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium, Visakhapatnam",South Africa,0,203.23017912255114,0.7630260182623757,1,0
+5274439532445491685,ODI,ICC Women's World Cup,2025-10-10,New Zealand,Bangladesh,"Barsapara Cricket Stadium, Guwahati",New Zealand,1,190.21510178986387,0.8170611357240091,1,1
+4370499221254007917,ODI,ICC Women's World Cup,2025-10-11,England,Sri Lanka,"R Premadasa Stadium, Colombo",England,1,86.51859307908853,0.7810949625026741,1,1
+1796060738830225154,ODI,ICC Women's World Cup,2025-10-12,India,Australia,"Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium, Visakhapatnam",Australia,0,6.986352589407716,0.3375008461267433,0,1
+7171686855864671264,ODI,ICC Women's World Cup,2025-10-13,Bangladesh,South Africa,"Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium, Visakhapatnam",South Africa,0,-170.6482078089855,0.14921876256933514,0,1
+7000061694145800261,ODI,United Arab Emirates Women tour of Papua New Guinea,2025-10-13,Papua New Guinea,United Arab Emirates,"Amini Park, Port Moresby",United Arab Emirates,0,-84.3840008795853,0.4567701906892841,0,1
+7911801433573396361,ODI,United Arab Emirates Women tour of Papua New Guinea,2025-10-15,United Arab Emirates,Papua New Guinea,"Amini Park, Port Moresby",Papua New Guinea,0,107.23766952374785,0.5679383286327939,1,0
+7686091195009234248,ODI,ICC Women's World Cup,2025-10-16,Bangladesh,Australia,"Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium, Visakhapatnam",Australia,0,-346.36407474934913,0.12339573552321416,0,1
+2761192930734904079,ODI,United Arab Emirates Women tour of Papua New Guinea,2025-10-17,United Arab Emirates,Papua New Guinea,"Amini Park, Port Moresby",United Arab Emirates,1,71.37939497257662,0.5599703134564169,1,1
+264092695165383471,ODI,ICC Women's World Cup,2025-10-17,Sri Lanka,South Africa,"R Premadasa Stadium, Colombo",South Africa,0,-49.49802319799369,0.15277944002476118,0,1
+4433118067129673674,ODI,West Indies tour of Bangladesh,2025-10-18,Bangladesh,West Indies,"Shere Bangla National Stadium, Mirpur",Bangladesh,1,-11.950969681166725,0.2702392725788248,0,0
+3800281770900379867,ODI,India tour of Australia,2025-10-19,India,Australia,Perth Stadium,Australia,0,-25.483236826708207,0.44677296853212706,0,1
+5517840283364673189,ODI,United Arab Emirates Women tour of Papua New Guinea,2025-10-19,Papua New Guinea,United Arab Emirates,"Amini Park, Port Moresby",Papua New Guinea,1,-111.93388100158813,0.5056129874981863,1,1
+7311073393837823197,ODI,ICC Women's World Cup,2025-10-19,England,India,"Holkar Cricket Stadium, Indore",England,1,-53.42618158889286,0.3407796139275772,0,0
+6439377270257070936,ODI,ICC Women's World Cup,2025-10-20,Sri Lanka,Bangladesh,"Dr DY Patil Sports Academy, Navi Mumbai",Sri Lanka,1,102.70086475563903,0.6956038523871401,1,1
+8545330504492437995,ODI,ICC Women's World Cup,2025-10-21,South Africa,Pakistan,"R Premadasa Stadium, Colombo",South Africa,1,184.28923232295983,0.8323743122722059,1,1
+6278838645781547757,ODI,ICC Women's World Cup,2025-10-22,England,Australia,"Holkar Cricket Stadium, Indore",Australia,0,-99.65413110635632,0.2168404636687324,0,1
+3394283031144445337,ODI,ICC Women's World Cup,2025-10-23,India,New Zealand,"Dr DY Patil Sports Academy, Navi Mumbai",India,1,80.0052593544508,0.8119962367713743,1,1
+7874688691524911681,ODI,India tour of Australia,2025-10-23,India,Australia,Adelaide Oval,Australia,0,-60.593283838310754,0.652978802130314,1,0
+1976264159304918984,ODI,West Indies tour of Bangladesh,2025-10-23,Bangladesh,West Indies,"Shere Bangla National Stadium, Mirpur",Bangladesh,1,25.330816800508046,0.477855133929135,0,0
+930512927636328847,ODI,ICC Women's World Cup,2025-10-25,South Africa,Australia,"Holkar Cricket Stadium, Indore",Australia,0,-152.3530086052217,0.20970751392451611,0,1
+7648612090112560991,ODI,India tour of Australia,2025-10-25,Australia,India,Sydney Cricket Ground,India,0,82.43520373508886,0.12901623171324947,0,1
+8837568357245679,ODI,England tour of New Zealand,2025-10-26,England,New Zealand,"Bay Oval, Mount Maunganui",New Zealand,0,78.2058099346848,0.6320061274896851,1,0
+235286706081494479,ODI,ICC Women's World Cup,2025-10-26,New Zealand,England,"Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium, Visakhapatnam",England,0,-49.34617612337502,0.19841511891458627,0,1
+4320539743793341454,ODI,ICC Men's Cricket World Cup League 2,2025-10-26,United States of America,Nepal,Dubai International Cricket Stadium,United States of America,1,51.52009349350851,0.7053615354008841,1,1
+8752481119569074627,ODI,ICC Men's Cricket World Cup League 2,2025-10-28,United Arab Emirates,United States of America,Dubai International Cricket Stadium,United States of America,0,-228.30379292818816,0.25123120963213647,0,1
+4496381794676030049,ODI,England tour of New Zealand,2025-10-29,England,New Zealand,"Seddon Park, Hamilton",New Zealand,0,15.566482915411143,0.6937780981565849,1,0
+2427520628197653136,ODI,ICC Women's World Cup,2025-10-29,South Africa,England,"Barsapara Cricket Stadium, Guwahati",South Africa,1,-47.10316538881102,0.30432888148245146,0,0
+1173395895113436463,ODI,ICC Men's Cricket World Cup League 2,2025-10-30,Nepal,United Arab Emirates,"ICC Academy, Dubai",United Arab Emirates,0,142.99857134591298,0.6062387926519873,1,0
+4804383703309807446,ODI,ICC Women's World Cup,2025-10-30,Australia,India,"Dr DY Patil Sports Academy, Navi Mumbai",India,0,49.04884159306721,0.5401277844075898,1,0
+3815153465436583991,ODI,England tour of New Zealand,2025-11-01,England,New Zealand,"Sky Stadium, Wellington",New Zealand,0,-15.776736596715182,0.6717023119808057,1,0
+2030503936075764693,ODI,ICC Men's Cricket World Cup League 2,2025-11-01,Nepal,United States of America,"ICC Academy, Dubai",United States of America,0,-118.35105560749662,0.396732926865789,0,1
+4956279856234760720,ODI,ICC Women's World Cup,2025-11-02,India,South Africa,"Dr DY Patil Sports Academy, Navi Mumbai",India,1,111.98193345302161,0.7272030198275512,1,1
+8903979985362753793,ODI,ICC Men's Cricket World Cup League 2,2025-11-03,United States of America,United Arab Emirates,Dubai International Cricket Stadium,United States of America,1,229.3312262724187,0.795599113588734,1,1
+172275271531869899,ODI,South Africa tour of Pakistan,2025-11-04,South Africa,Pakistan,"Iqbal Stadium, Faisalabad",Pakistan,0,214.38242253121416,0.2862708488989265,0,1
+7269011232376272214,ODI,ICC Men's Cricket World Cup League 2,2025-11-05,Nepal,United Arab Emirates,"ICC Academy, Dubai",United Arab Emirates,0,103.22597322754882,0.6959714936171195,1,0
+7409515692219071864,ODI,South Africa tour of Pakistan,2025-11-06,Pakistan,South Africa,"Iqbal Stadium, Faisalabad",South Africa,0,-173.4870988905477,0.4920405176908959,0,1
+1710979570530101915,ODI,South Africa tour of Pakistan,2025-11-08,South Africa,Pakistan,"Iqbal Stadium, Faisalabad",Pakistan,0,191.57751349753426,0.23691782263771355,0,1
+1094652387619085696,ODI,Sri Lanka tour of Pakistan,2025-11-11,Pakistan,Sri Lanka,Rawalpindi Cricket Stadium,Pakistan,1,-88.48756646556353,0.6778722988093203,1,1
+4895788904682662401,ODI,Sri Lanka tour of Pakistan,2025-11-14,Sri Lanka,Pakistan,Rawalpindi Cricket Stadium,Pakistan,0,64.15558193002948,0.3205796229612019,0,1
+8902958225159626436,ODI,Sri Lanka tour of Pakistan,2025-11-16,Sri Lanka,Pakistan,Rawalpindi Cricket Stadium,Pakistan,0,24.420756154142282,0.1903883200959842,0,1
+3768044585803058687,ODI,West Indies tour of New Zealand,2025-11-16,New Zealand,West Indies,"Hagley Oval, Christchurch",New Zealand,1,275.68780530066215,0.806890825358355,1,1
+1113458756898392514,ODI,West Indies tour of New Zealand,2025-11-19,West Indies,New Zealand,"McLean Park, Napier",New Zealand,0,-282.75613212791404,0.28174822534393223,0,1
+4906880458835974814,ODI,West Indies tour of New Zealand,2025-11-22,West Indies,New Zealand,"Seddon Park, Hamilton",New Zealand,0,-292.6050777144728,0.19095615871135763,0,1
+4950688083591523639,ODI,South Africa tour of India,2025-11-30,India,South Africa,"JSCA International Stadium Complex, Ranchi",India,1,175.06557056087286,0.7038925401454317,1,1
+3214541959793710102,ODI,South Africa tour of India,2025-12-03,India,South Africa,"Shaheed Veer Narayan Singh International Stadium, Raipur",South Africa,0,190.5379318751543,0.7769481876038323,1,0
+338809727583060948,ODI,South Africa tour of India,2025-12-06,South Africa,India,"Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium, Visakhapatnam",India,0,-147.3572485783393,0.13255173080414928,0,1
+7949004252025588786,ODI,Ireland Women tour of South Africa,2025-12-13,Ireland,South Africa,"Buffalo Park, East London",South Africa,0,-239.25047953997387,0.2804551060617763,0,1
+308049762808300478,ODI,Ireland Women tour of South Africa,2025-12-16,South Africa,Ireland,"St George's Park, Gqeberha",South Africa,1,252.30464700717744,0.7675455589098281,1,1
+273950384157953607,ODI,Ireland Women tour of South Africa,2025-12-19,Ireland,South Africa,"The Wanderers Stadium, Johannesburg",South Africa,0,-268.6939742863617,0.25558413905220995,0,1
+8392994341941226074,ODI,New Zealand tour of India,2026-01-11,New Zealand,India,"Kotambi Stadium, Vadodara",India,0,-104.39081989107535,0.3548716184070059,0,1
+3643322950808545553,ODI,New Zealand tour of India,2026-01-14,India,New Zealand,"Niranjan Shah Stadium, Rajkot",New Zealand,0,124.78886998194639,0.5995907607300283,1,0
+4845570768204058450,ODI,New Zealand tour of India,2026-01-18,New Zealand,India,"Holkar Cricket Stadium, Indore",New Zealand,1,-81.22759386551934,0.5515007508015053,1,1
+7690223032060725776,ODI,England tour of Sri Lanka,2026-01-22,Sri Lanka,England,"R Premadasa Stadium, Colombo",Sri Lanka,1,-116.47559874734407,0.49937859999698403,0,0
+623716870392297628,ODI,England tour of Sri Lanka,2026-01-24,Sri Lanka,England,"R Premadasa Stadium, Colombo",England,0,-76.80053868818595,0.45529781567330185,0,1
+7548388676197753338,ODI,England tour of Sri Lanka,2026-01-27,England,Sri Lanka,"R Premadasa Stadium, Colombo",England,1,100.27498842052182,0.690325664412266,1,1
+5298455702484678687,ODI,Sri Lanka Women tour of West Indies,2026-02-20,Sri Lanka,West Indies,"National Cricket Stadium, St George's, Grenada",Sri Lanka,1,124.94430110567396,0.49179558915398186,0,0
+6791923620590879396,ODI,Sri Lanka Women tour of West Indies,2026-02-22,Sri Lanka,West Indies,"National Cricket Stadium, St George's, Grenada",Sri Lanka,1,140.66722795132296,0.4132057805175739,0,0
+1956195074205707199,ODI,ICC Women's Championship,2026-02-22,South Africa,Pakistan,"Mangaung Oval, Bloemfontein",South Africa,1,117.81884399803494,0.7964000436906966,1,1
+370747218558092012,ODI,India Women tour of Australia,2026-02-24,India,Australia,"Allan Border Field, Brisbane",Australia,0,-39.166257662101316,0.4895013147128038,0,1
+3079650474534173707,ODI,Sri Lanka Women tour of West Indies,2026-02-25,Sri Lanka,West Indies,"National Cricket Stadium, St George's, Grenada",West Indies,0,157.3604614182957,0.3467094531674205,0,1
+5130549005778939333,ODI,Pakistan Women tour of South Africa,2026-02-25,South Africa,Pakistan,"SuperSport Park, Centurion",South Africa,1,142.33284578563325,0.7658217415129988,1,1
+4468299831209901645,ODI,India Women tour of Australia,2026-02-27,India,Australia,"Bellerive Oval, Hobart",Australia,0,-66.8639189582102,0.45335956938705757,0,1
+1738479898777603348,ODI,Pakistan Women tour of South Africa,2026-03-01,Pakistan,South Africa,"Kingsmead, Durban",Pakistan,1,-159.68194924137015,0.15650601383525267,0,0
+8487508245771215467,ODI,India Women tour of Australia,2026-03-01,Australia,India,"Bellerive Oval, Hobart",Australia,1,91.16066125042221,0.4362231425120336,0,0
+8055311549941794343,ODI,Zimbabwe Women tour of New Zealand,2026-03-05,New Zealand,Zimbabwe,"University Oval, Dunedin",New Zealand,1,490.28222403861287,0.8362452094875923,1,1
+8746666057868156419,ODI,Zimbabwe Women tour of New Zealand,2026-03-08,Zimbabwe,New Zealand,"University Oval, Dunedin",New Zealand,0,-496.1233261536902,0.1704818474199429,0,1
+3287338526401124886,ODI,Zimbabwe Women tour of New Zealand,2026-03-11,New Zealand,Zimbabwe,"University Oval, Dunedin",New Zealand,1,499.77741653681437,0.8300299161300991,1,1
+1833606987524650931,ODI,Pakistan tour of Bangladesh,2026-03-11,Pakistan,Bangladesh,"Shere Bangla National Stadium, Mirpur",Bangladesh,0,67.00212141716452,0.7617505178076238,1,0
+796895586496921822,ODI,Pakistan tour of Bangladesh,2026-03-13,Pakistan,Bangladesh,"Shere Bangla National Stadium, Mirpur",Pakistan,1,27.00159143777205,0.7305558022935039,1,1
+693910322951851128,ODI,Pakistan tour of Bangladesh,2026-03-15,Bangladesh,Pakistan,"Shere Bangla National Stadium, Mirpur",Bangladesh,1,-71.86975717989822,0.5162088056952798,1,1
+8136112276308450280,ODI,Australia Women tour of West Indies,2026-03-27,Australia,West Indies,"Warner Park, Basseterre, St Kitts",Australia,1,450.02562023544147,0.8467247901754994,1,1
+8899049556811282605,ODI,Australia Women tour of West Indies,2026-03-29,Australia,West Indies,"Warner Park, Basseterre, St Kitts",Australia,1,456.510113120127,0.8622374721640564,1,1
+468689011650805104,ODI,South Africa Women tour of New Zealand,2026-03-29,New Zealand,South Africa,"Hagley Oval, Christchurch",South Africa,0,99.1149187784099,0.5636450613597537,1,0
+2222396609506683745,ODI,South Africa Women tour of New Zealand,2026-04-01,South Africa,New Zealand,"Basin Reserve, Wellington",New Zealand,0,-65.3815065369995,0.4026824234726548,0,1
+5712394638826071662,ODI,Australia Women tour of West Indies,2026-04-02,West Indies,Australia,"Warner Park, Basseterre, St Kitts",Australia,0,-462.592956176037,0.10224190923714985,0,1
+3663565020840749274,ODI,South Africa Women tour of New Zealand,2026-04-04,New Zealand,South Africa,"Basin Reserve, Wellington",New Zealand,1,86.87129778641656,0.5282492310374167,1,1
+6249501631787588278,ODI,ICC Men's Cricket World Cup League 2,2026-04-04,Namibia,Oman,"Namibia Cricket Ground, Windhoek",Oman,0,-48.53166235989397,0.6530746122799241,1,0
+9109882523192703249,ODI,ICC Men's Cricket World Cup League 2,2026-04-08,Oman,Scotland,"Namibia Cricket Ground, Windhoek",Oman,1,-108.08514953424515,0.17871960093177425,0,0
+1862548544495988487,ODI,ICC Men's Cricket World Cup League 2,2026-04-10,Oman,Namibia,"Namibia Cricket Ground, Windhoek",Namibia,0,89.00641430162364,0.34834533943340307,0,1
+5620152053431224208,ODI,ICC Men's Cricket World Cup League 2,2026-04-12,Namibia,Scotland,"Namibia Cricket Ground, Windhoek",Scotland,0,-147.922116963774,0.18765356837064104,0,1
+1529851255348422325,ODI,New Zealand tour of Bangladesh,2026-04-17,New Zealand,Bangladesh,"Shere Bangla National Stadium, Mirpur",New Zealand,1,254.51722000126483,0.77886287556077,1,1
+7986359736459476933,ODI,Sri Lanka Women tour of Bangladesh,2026-04-20,Sri Lanka,Bangladesh,"Shahid Kamruzzaman Stadium, Rajshahi",Bangladesh,0,0.4213361246531804,0.5580105451520965,1,0
+3104767742776393639,ODI,New Zealand tour of Bangladesh,2026-04-20,New Zealand,Bangladesh,"Shere Bangla National Stadium, Mirpur",Bangladesh,0,266.89970490738506,0.731692714127563,1,0
+1728080708934672125,ODI,Sri Lanka Women tour of Bangladesh,2026-04-22,Bangladesh,Sri Lanka,"Shahid Kamruzzaman Stadium, Rajshahi",Sri Lanka,0,27.21213445759099,0.26319401913040313,0,1
+8874090846183068760,ODI,New Zealand tour of Bangladesh,2026-04-23,Bangladesh,New Zealand,"Bir Sreshtho Flight Lieutenant Matiur Rahman Stadium, Chattogram",Bangladesh,1,-217.2570291567713,0.2817066680746174,0,0

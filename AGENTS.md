@@ -58,7 +58,15 @@ python -m cricket_pipeline.pipeline prematch \
   --url "https://www.cricbuzz.com/cricket-match-squads/<id>/<slug>" \
   --max-wait-seconds 3600
 
-# 4. Train models manually
+# 4. Track a live match in real-time (auto-updates data.json every over)
+make live-track                          # auto-discover any live IPL match
+make live-track MATCH_ID=151902          # explicit Cricbuzz match ID
+# equivalent (with team names for venue lookup):
+python -m cricket_pipeline.pipeline live-track --auto \
+  --home-hint "Rajasthan" --away-hint "Sunrisers" \
+  --interval 60 --n-sim 1000
+
+# 5. Train models manually
 make match-train       # match-outcome (binary classifier)
 make ball-train        # ball-outcome (LightGBM, runs + wicket heads)
 make sequence-train    # Transformer (uses GPU automatically — 30x faster on CUDA)

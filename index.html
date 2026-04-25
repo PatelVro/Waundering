@@ -3,25 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VoltOps ERP | Electronics Ecommerce Operations Software</title>
+    <title>Cirelay Cricket | Match-Winner Prediction Engine</title>
     <meta
       name="description"
-      content="ERP for small and mid-sized electronics ecommerce sellers. Centralize inventory, returns, customer issues, product condition tracking, and order workflows in one operations command center."
+      content="Calibrated cricket match-winner predictions across T20, ODI and Test. Stacked LightGBM/XGBoost/CatBoost ensemble trained on 13,512 CricSheet matches."
     />
-    <meta
-      name="keywords"
-      content="ecommerce ERP, inventory management for electronics store, returns management system, order and stock management software, operations software for online electronics sellers"
-    />
-    <meta property="og:title" content="VoltOps ERP for Electronics Ecommerce" />
+    <meta property="og:title" content="Cirelay Cricket — Match-Winner Predictor" />
     <meta
       property="og:description"
-      content="Stop running operations across spreadsheets, inboxes, and marketplace dashboards. Get one focused ERP for electronics ecommerce."
+      content="76% test accuracy on T20+IT20, with calibrated probabilities. Today's prediction, top team Elo, recent matches and full methodology."
     />
     <meta property="og:type" content="website" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
@@ -31,336 +27,276 @@
 
     <header class="site-header">
       <nav class="navbar container" aria-label="Main">
-        <a class="brand" href="#top">VoltOps</a>
+        <a class="brand" href="#top">
+          <span class="brand-mark">CC</span>
+          <span class="brand-name">Cirelay Cricket</span>
+        </a>
         <ul class="nav-links">
-          <li><a href="#modules">Features</a></li>
-          <li><a href="#how-it-works">How It Works</a></li>
-          <li><a href="#trust">Proof</a></li>
-          <li><a href="#contact">Contact</a></li>
+          <li><a href="#today">Today</a></li>
+          <li><a href="#performance">Model</a></li>
+          <li><a href="#teams">Teams</a></li>
+          <li><a href="#recent">Recent</a></li>
+          <li><a href="#method">Method</a></li>
         </ul>
-        <a class="btn btn-primary nav-cta" href="#demo">Book Demo</a>
+        <a class="btn btn-primary nav-cta" href="#today">Live Prediction</a>
       </nav>
     </header>
 
     <main id="main-content">
+      <!-- HERO + LIVE PREDICTION -->
       <section id="top" class="section hero">
         <div class="container hero-grid">
           <div class="hero-copy reveal">
-            <p class="eyebrow">ERP FOR ELECTRONICS ECOMMERCE OPERATORS</p>
-            <h1>
-              Stop Losing Margin to Inventory Guesswork, Return Chaos, and
-              Disconnected Operations.
-            </h1>
+            <p class="eyebrow">CRICKET MATCH-WINNER ENGINE</p>
+            <h1>Calibrated probabilities for every cricket match.</h1>
             <p class="subtitle">
-              VoltOps gives electronics sellers one command center for stock,
-              returns, customer issues, order flow, and condition tracking—so
-              your team can move faster with fewer mistakes.
+              A stacked LightGBM / XGBoost / CatBoost ensemble trained on
+              <strong id="stat-matches">13,500+</strong> CricSheet matches and
+              <strong id="stat-balls">5.5M+</strong> balls. Per-format Elo,
+              announced-XI player aggregates, leakage-safe time splits.
             </p>
             <div class="cta-row">
-              <a class="btn btn-primary" href="#demo">Book a Demo</a>
-              <a class="btn btn-secondary" href="#how-it-works"
-                >See How It Works</a
-              >
+              <a class="btn btn-primary" href="#today">Today's Prediction</a>
+              <a class="btn btn-secondary" href="#performance">See Accuracy</a>
             </div>
-            <ul class="hero-signals" aria-label="Key outcomes">
-              <li>Reduce oversells and stock disputes</li>
-              <li>Standardize returns and RMA workflows</li>
-              <li>Track sealed, open-box, and used inventory precisely</li>
+            <ul class="hero-signals" aria-label="Headline metrics">
+              <li><strong id="hs-t20">—</strong> test accuracy on T20 + IT20</li>
+              <li><strong id="hs-hi">—</strong> when the model is &gt;70% confident</li>
+              <li><strong id="hs-ece">—</strong> expected calibration error</li>
             </ul>
           </div>
-          <div class="hero-visual reveal" aria-hidden="true">
-            <div class="dashboard-shell">
-              <div class="panel panel-main">
-                <h3>Operations Command Center</h3>
-                <div class="signal-grid">
-                  <div><span>Live Orders</span><strong>182</strong></div>
-                  <div><span>Pending Returns</span><strong>27</strong></div>
-                  <div><span>Stock Alerts</span><strong>12</strong></div>
-                  <div><span>Open Issues</span><strong>19</strong></div>
+          <div class="hero-visual reveal" aria-hidden="false">
+            <div id="prediction-card" class="dashboard-shell">
+              <div class="panel-header">
+                <span class="badge badge-live">LIVE PREDICTION</span>
+                <span id="pred-date" class="muted small">—</span>
+              </div>
+              <h3 id="pred-vs">Loading…</h3>
+              <p id="pred-venue" class="muted small">—</p>
+
+              <div class="prob-bar" aria-label="Win probability">
+                <div id="prob-home" class="prob-fill prob-home"></div>
+                <div id="prob-away" class="prob-fill prob-away"></div>
+              </div>
+              <div class="prob-labels">
+                <span><span id="prob-home-pct">—</span> · <span id="pred-home">Home</span></span>
+                <span><span id="pred-away">Away</span> · <span id="prob-away-pct">—</span></span>
+              </div>
+
+              <div id="pred-favored" class="callout">—</div>
+
+              <details class="features-block">
+                <summary>Pre-match feature snapshot</summary>
+                <table id="pred-features" class="kv-table"></table>
+              </details>
+
+              <details class="features-block">
+                <summary>Per-base-learner probabilities</summary>
+                <table id="pred-bases" class="kv-table"></table>
+              </details>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIVE MATCH (hidden until live_match data present) -->
+      <section id="live" class="section live-section" style="display:none">
+        <div class="container">
+          <div class="live-header">
+            <span class="badge badge-live badge-pulse">LIVE</span>
+            <span id="live-status" class="live-status-text">In progress</span>
+            <span id="live-updated" class="muted small"></span>
+          </div>
+
+          <div class="live-grid">
+            <!-- Scorecard -->
+            <div class="live-scorecard">
+              <div class="live-teams">
+                <span id="live-batting-team" class="live-team-name">—</span>
+                <span class="live-score-big" id="live-score">—</span>
+              </div>
+              <div class="live-meta">
+                <span id="live-overs" class="live-overs">0.0 ov</span>
+                <span id="live-crr" class="live-rate">CRR —</span>
+                <span id="live-rrr" class="live-rate live-rrr" style="display:none">RRR —</span>
+                <span id="live-target" class="live-rate live-target-badge" style="display:none">Target —</span>
+              </div>
+
+              <div class="live-players" id="live-players">
+                <div class="live-player-row">
+                  <span class="live-player-label">Batting</span>
+                  <span id="live-striker" class="live-player-name">—</span>
+                  <span id="live-striker-score" class="live-player-score muted small">—</span>
+                </div>
+                <div class="live-player-row">
+                  <span class="live-player-label"></span>
+                  <span id="live-non-striker" class="live-player-name">—</span>
+                  <span id="live-non-striker-score" class="live-player-score muted small">—</span>
+                </div>
+                <div class="live-player-row live-bowler-row">
+                  <span class="live-player-label">Bowling</span>
+                  <span id="live-bowler" class="live-player-name">—</span>
+                  <span id="live-bowler-figures" class="live-player-score muted small">—</span>
                 </div>
               </div>
-              <div class="panel floating one">
-                <p>SKU Sync Alert</p>
-                <strong>AMZ listing exceeds available stock by 8 units</strong>
+
+              <div id="live-last-overs" class="live-last-overs muted small"></div>
+            </div>
+
+            <!-- In-play prediction -->
+            <div class="live-prediction-panel">
+              <p class="eyebrow" style="font-size:0.65rem;margin-bottom:0.5rem">IN-PLAY WIN PROBABILITY</p>
+              <div id="live-pred-mode" class="live-pred-mode muted small"></div>
+
+              <div class="live-prob-wrap" id="live-prob-wrap">
+                <div class="live-prob-bar">
+                  <div id="live-prob-bat-fill" class="live-prob-fill" style="width:50%"></div>
+                </div>
+                <div class="live-prob-labels">
+                  <span><strong id="live-prob-bat-pct">—</strong> <span id="live-bat-label">Batting</span></span>
+                  <span><span id="live-bowl-label">Bowling</span> <strong id="live-prob-bowl-pct">—</strong></span>
+                </div>
               </div>
-              <div class="panel floating two">
-                <p>Condition Log</p>
-                <strong>iPhone 14 256GB: Open-box, Grade A</strong>
-              </div>
-              <div class="panel floating three">
-                <p>Returns Queue</p>
-                <strong>4 refunds blocked: missing diagnostic notes</strong>
+
+              <div class="live-sim-stats" id="live-sim-stats">
+                <div class="live-sim-row">
+                  <span class="live-sim-label">Projected score</span>
+                  <span id="live-proj-score" class="live-sim-value">—</span>
+                </div>
+                <div class="live-sim-row">
+                  <span class="live-sim-label">p10 – p90 range</span>
+                  <span id="live-proj-range" class="live-sim-value">—</span>
+                </div>
+                <div class="live-sim-row" id="live-venue-row" style="display:none">
+                  <span class="live-sim-label">Venue avg (1st inn)</span>
+                  <span id="live-venue-avg" class="live-sim-value">—</span>
+                </div>
+                <div class="live-sim-row" id="live-rem-row">
+                  <span class="live-sim-label">Balls remaining</span>
+                  <span id="live-balls-rem" class="live-sim-value">—</span>
+                </div>
+                <div class="live-sim-row">
+                  <span class="live-sim-label">Simulations</span>
+                  <span id="live-n-sim" class="live-sim-value muted">—</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="section chaos">
-        <div class="container split">
-          <div class="reveal">
-            <p class="eyebrow">THE HIDDEN CHAOS</p>
-            <h2>You are not running one operation. You are chasing fragments.</h2>
-            <p>
-              One tab for Shopify. One for Amazon. Return emails in inboxes.
-              Supplier updates in Slack. Condition notes in spreadsheets.
-              Customer complaint threads scattered across tools.
-            </p>
-            <p>
-              Teams spend the day reconciling what already happened instead of
-              preventing what goes wrong next.
-            </p>
-          </div>
-          <div class="chaos-stack reveal" aria-hidden="true">
-            <div>Spreadsheet_Inventory_v17.xlsx</div>
-            <div>RMA Inbox (48 unread)</div>
-            <div>Amazon listing mismatch warning</div>
-            <div>Supplier purchase log (missing serials)</div>
-            <div>"Where is this order?" support ticket</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section cost">
+      <!-- MODEL PERFORMANCE -->
+      <section id="performance" class="section">
         <div class="container">
-          <p class="eyebrow reveal">THE COST OF DISORDER</p>
-          <h2 class="reveal">Operational chaos is not noise. It is margin loss.</h2>
-          <div class="cost-grid">
-            <article class="card reveal">
-              <h3>Overselling and stock inaccuracies</h3>
-              <p>
-                Listing data drifts from real inventory, leading to canceled
-                orders and marketplace penalties.
-              </p>
-            </article>
-            <article class="card reveal">
-              <h3>Returns that slip through cracks</h3>
-              <p>
-                Without one return workflow, refunds get delayed and customer
-                trust drops.
-              </p>
-            </article>
-            <article class="card reveal">
-              <h3>Support teams without context</h3>
-              <p>
-                Agents cannot see order, condition, and return history in one
-                view, so response quality suffers.
-              </p>
-            </article>
-            <article class="card reveal">
-              <h3>Team confusion and no accountability</h3>
-              <p>
-                Tasks disappear across chats and spreadsheets with no clear
-                owner or history.
-              </p>
-            </article>
-          </div>
+          <p class="eyebrow">MODEL PERFORMANCE</p>
+          <h2>Held-out test accuracy.</h2>
+          <p class="subtitle">
+            Time-based 75 / 10 / 15 split (train / calibration / test). Test = the
+            most recent slice of matches the model has never seen during training.
+            No random shuffling — past predicts future.
+          </p>
+          <div id="metrics-grid" class="metrics-grid"></div>
+          <p class="footnote">
+            Calibration target: when the model says <em>x%</em>, it should be
+            right <em>~x%</em> of the time. ECE = mean |predicted − observed| over 10 probability bins.
+          </p>
         </div>
       </section>
 
-      <section class="section shift">
-        <div class="container split">
-          <div class="reveal">
-            <p class="eyebrow">THE SHIFT TO CONTROL</p>
-            <h2>Move from fragmented firefighting to one operating system.</h2>
-            <p>
-              VoltOps unifies inventory, returns, order flow, supplier records,
-              and customer issues into one shared workflow. Everyone sees the
-              same truth. Every event is tracked. Every handoff is visible.
+      <!-- TOP TEAMS -->
+      <section id="teams" class="section">
+        <div class="container teams-grid">
+          <div>
+            <p class="eyebrow">T20 + IT20</p>
+            <h2>Top teams by Elo.</h2>
+            <p class="muted small">
+              Per-format chronological Elo with FiveThirtyEight-style margin-of-victory K.
+              Updated through the most recent match.
             </p>
+            <table id="elo-t20" class="rank-table"></table>
           </div>
-          <div class="system-graph reveal" aria-hidden="true">
-            <div class="node">Shopify</div>
-            <div class="node">Amazon</div>
-            <div class="node">Warehouse</div>
-            <div class="node core">VoltOps Core</div>
-            <div class="node">Support</div>
-            <div class="node">Returns Desk</div>
+          <div>
+            <p class="eyebrow">ODI</p>
+            <h2>Top teams by Elo.</h2>
+            <p class="muted small">Same K-factor scheme; separate rating pool per format.</p>
+            <table id="elo-odi" class="rank-table"></table>
           </div>
         </div>
       </section>
 
-      <section id="modules" class="section modules">
+      <!-- RECENT MATCHES -->
+      <section id="recent" class="section">
         <div class="container">
-          <p class="eyebrow reveal">CORE MODULES</p>
-          <h2 class="reveal">Every module tied to a business outcome.</h2>
-          <div class="modules-grid">
-            <article class="card reveal">
-              <h3>Inventory Control</h3>
-              <p>Keep channel stock accurate and prevent oversells.</p>
-            </article>
-            <article class="card reveal">
-              <h3>Returns Management</h3>
-              <p>Standardize RMAs, diagnostics, and refund decisions.</p>
-            </article>
-            <article class="card reveal">
-              <h3>Customer Issue Tracking</h3>
-              <p>Resolve faster with full order + return context in one place.</p>
-            </article>
-            <article class="card reveal">
-              <h3>Product Condition Logging</h3>
-              <p>Track sealed/open-box/used grading with audit history.</p>
-            </article>
-            <article class="card reveal">
-              <h3>Supplier & Purchases</h3>
-              <p>Link inbound stock to purchase records and discrepancies.</p>
-            </article>
-            <article class="card reveal">
-              <h3>Order Workflow Visibility</h3>
-              <p>See bottlenecks from order creation to fulfillment.</p>
-            </article>
-            <article class="card reveal">
-              <h3>Marketplace Oversight</h3>
-              <p>Monitor listing health and exceptions across channels.</p>
-            </article>
-            <article class="card reveal">
-              <h3>Team Notes & Activity History</h3>
-              <p>Preserve decisions, ownership, and accountability.</p>
-            </article>
+          <p class="eyebrow">DATA</p>
+          <h2>Recent matches.</h2>
+          <p class="subtitle">The latest matches the engine has ingested. Outcomes feed the next training cycle.</p>
+          <div class="filter-row">
+            <button class="chip is-active" data-fmt="ALL">All</button>
+            <button class="chip" data-fmt="T20">T20</button>
+            <button class="chip" data-fmt="ODI">ODI</button>
+            <button class="chip" data-fmt="Test">Test</button>
           </div>
+          <table id="recent-table" class="match-table"></table>
         </div>
       </section>
 
-      <section class="section niche">
-        <div class="container split">
-          <div class="reveal">
-            <p class="eyebrow">BUILT FOR ELECTRONICS ECOMMERCE</p>
-            <h2>Generic ERP cannot handle electronics complexity.</h2>
-            <p>
-              Electronics sellers work with device-level detail, condition
-              grading, return sensitivity, and thin margins. VoltOps is designed
-              around those realities—not generic workflows meant for every
-              industry.
-            </p>
+      <!-- METHOD -->
+      <section id="method" class="section">
+        <div class="container method-grid">
+          <div>
+            <p class="eyebrow">METHODOLOGY</p>
+            <h2>How predictions are built.</h2>
           </div>
-          <ul class="checklist reveal">
-            <li>Serial/IMEI-aware process support</li>
-            <li>Condition-grade inventory states</li>
-            <li>Return diagnostics and resolution trails</li>
-            <li>Multi-channel listing sync pressure coverage</li>
-            <li>Customer issue context tied to order events</li>
-          </ul>
-        </div>
-      </section>
-
-      <section id="how-it-works" class="section how">
-        <div class="container">
-          <p class="eyebrow reveal">HOW IT WORKS</p>
-          <h2 class="reveal">Four steps from chaos to controlled growth.</h2>
-          <ol class="steps">
-            <li class="reveal">
-              <span>1</span>
-              <div>
-                <h3>Centralize operations</h3>
-                <p>Connect channels, stock events, returns, and support data.</p>
-              </div>
+          <ol class="method-steps">
+            <li>
+              <strong>Ingest.</strong> CricSheet zips for T20, IT20, ODI, Test and major
+              franchise leagues — over 13,500 matches and 5.5 million balls — loaded
+              into a local DuckDB.
             </li>
-            <li class="reveal">
-              <span>2</span>
-              <div>
-                <h3>Track every operational event</h3>
-                <p>Capture changes across inventory, condition, orders, and issues.</p>
-              </div>
+            <li>
+              <strong>Extract announced XI.</strong> Re-walk every cached JSON to pull
+              <code>info.players[team] = […]</code> into a <code>match_xi</code> table.
+              This is the highest-leverage signal: knowing the lineup pre-toss.
             </li>
-            <li class="reveal">
-              <span>3</span>
-              <div>
-                <h3>Standardize workflows</h3>
-                <p>Define clear ownership, handoffs, and SLA expectations.</p>
-              </div>
+            <li>
+              <strong>Engineer leakage-safe features.</strong> Per-format Elo (margin-weighted
+              K), rolling form (last 3/5/10/20), time-aware H2H, AS-OF venue stats,
+              top-7 batter / top-5 bowler career aggregates from the announced XI.
             </li>
-            <li class="reveal">
-              <span>4</span>
-              <div>
-                <h3>Scale with visibility</h3>
-                <p>Grow order volume without growing operational confusion.</p>
-              </div>
+            <li>
+              <strong>Stacked ensemble.</strong> LightGBM-numeric, LightGBM-with-cats,
+              XGBoost, CatBoost, Logistic Regression. Outputs blended via a
+              logistic-regression meta-learner trained on the calibration slice.
+            </li>
+            <li>
+              <strong>Verify.</strong> Time-based test set; re-split sanity checks
+              (2023+, 2024+, 2025+ cutoffs) confirm 70-76% accuracy band on T20 with
+              ECE ≤ 3.5%.
             </li>
           </ol>
         </div>
       </section>
 
-      <section id="trust" class="section trust">
+      <!-- DATA STATS -->
+      <section id="data" class="section section-tight">
         <div class="container">
-          <p class="eyebrow reveal">TRUST & PROOF</p>
-          <h2 class="reveal">Built for operators who need control, not hype.</h2>
-          <div class="trust-grid">
-            <article class="card reveal">
-              <p class="metric">-31%</p>
-              <h3>Fewer stock mismatch incidents</h3>
-              <p>Example outcome from teams centralizing listing + inventory updates.</p>
-            </article>
-            <article class="card reveal">
-              <p class="metric">-42%</p>
-              <h3>Faster return resolution cycles</h3>
-              <p>Teams stop hunting context across inboxes and spreadsheets.</p>
-            </article>
-            <article class="card reveal">
-              <p class="metric">+2.3x</p>
-              <h3>Improved support response clarity</h3>
-              <p>Agents respond with full operational history in one timeline.</p>
-            </article>
-          </div>
-          <blockquote class="testimonial reveal">
-            “We replaced five disconnected workflows with one operating cadence.
-            Our ops team finally has visibility.”
-            <cite>— Operations Lead, Mid-Market Electronics Retailer</cite>
-          </blockquote>
-        </div>
-      </section>
-
-      <section id="demo" class="section demo">
-        <div class="container demo-wrap reveal">
-          <div>
-            <p class="eyebrow">BOOK A DEMO</p>
-            <h2>Stop running electronics operations across disconnected tools.</h2>
-            <p>
-              See how a focused ERP reduces stock confusion, return bottlenecks,
-              and customer issue delays in your workflow.
-            </p>
-          </div>
-          <form class="lead-form" aria-label="Book demo form">
-            <label>
-              Work Email
-              <input type="email" name="email" placeholder="you@company.com" required />
-            </label>
-            <label>
-              Monthly Order Volume
-              <select name="volume" required>
-                <option value="">Select volume range</option>
-                <option>Under 2,000</option>
-                <option>2,000 - 10,000</option>
-                <option>10,000 - 25,000</option>
-                <option>25,000+</option>
-              </select>
-            </label>
-            <label>
-              Primary Channel Mix
-              <input type="text" name="channels" placeholder="Shopify + Amazon + Walmart" required />
-            </label>
-            <button class="btn btn-primary" type="submit">Request Demo Access</button>
-          </form>
+          <p class="eyebrow">UNDER THE HOOD</p>
+          <h2>Data inventory.</h2>
+          <div id="data-stats" class="stats-grid"></div>
         </div>
       </section>
     </main>
 
-    <footer id="contact" class="site-footer">
-      <div class="container footer-grid">
-        <p class="brand">VoltOps</p>
-        <div class="footer-links">
-          <a href="#modules">Features</a>
-          <a href="#how-it-works">How It Works</a>
-          <a href="#demo">Book Demo</a>
-          <a href="mailto:hello@voltops.example">Contact</a>
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
+    <footer class="site-footer">
+      <div class="container footer-row">
+        <div>
+          <span class="brand-name">Cirelay Cricket</span> · Built on the Waundering
+          cricket pipeline · Data: <a href="https://cricsheet.org" rel="noopener">CricSheet</a>
         </div>
+        <div class="muted small" id="generated-at">—</div>
       </div>
     </footer>
 
-    <a class="sticky-mobile-cta" href="#demo">Book Demo</a>
-
-    <script src="https://unpkg.com/lenis@1.3.13/dist/lenis.min.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
   </body>
 </html>

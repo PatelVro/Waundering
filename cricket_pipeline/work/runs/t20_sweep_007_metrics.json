@@ -1,0 +1,88 @@
+{
+  "model_tag": "t20_sweep_007",
+  "formats": [
+    "T20",
+    "IT20"
+  ],
+  "n_train": 6926,
+  "n_calib": 923,
+  "n_test": 1385,
+  "best_iter": 80,
+  "n_features": 26,
+  "test_acc_raw": 0.6729241877256318,
+  "test_acc_cal": 0.6714801444043321,
+  "test_logloss_raw": 0.5982689213182909,
+  "test_logloss_cal": 0.6023795755907108,
+  "test_brier_raw": 0.20573991286143786,
+  "test_brier_cal": 0.20433377445684017,
+  "test_auc": 0.7448576064874876,
+  "test_ece_raw": 0.03875103375187225,
+  "test_ece_cal": 0.025403614475186926,
+  "split": {
+    "train_end": "2024-07-09",
+    "test_start": "2025-04-24"
+  },
+  "baselines": {
+    "always_t1": 0.5075812274368231,
+    "always_t2": 0.4924187725631769,
+    "majority": 0.5075812274368231,
+    "higher_last10": 0.6137184115523465,
+    "higher_elo": 0.6563176895306859,
+    "elo_plus_form": 0.6527075812274368
+  },
+  "test_acc_high_conf": 0.8232044198895028,
+  "test_n_high_conf": 543,
+  "test_high_conf_share": 0.392057761732852,
+  "top10_features_by_gain": [
+    {
+      "feature": "elo_diff_pre",
+      "gain": 2430.322291612625,
+      "split": 97
+    },
+    {
+      "feature": "h2h_t1_winpct",
+      "gain": 1314.4269816875458,
+      "split": 80
+    },
+    {
+      "feature": "t2_career_n",
+      "gain": 1275.7186818122864,
+      "split": 127
+    },
+    {
+      "feature": "t1_career_n",
+      "gain": 1106.4970717430115,
+      "split": 102
+    },
+    {
+      "feature": "venue_avg_first",
+      "gain": 1014.3154368400574,
+      "split": 103
+    },
+    {
+      "feature": "t1_elo_pre",
+      "gain": 585.1291589736938,
+      "split": 40
+    },
+    {
+      "feature": "t1_last20",
+      "gain": 556.1743612289429,
+      "split": 56
+    },
+    {
+      "feature": "form_diff_10",
+      "gain": 490.77015948295593,
+      "split": 48
+    },
+    {
+      "feature": "t2_elo_pre",
+      "gain": 463.8207697868347,
+      "split": 45
+    },
+    {
+      "feature": "t2_last20",
+      "gain": 445.3455011844635,
+      "split": 44
+    }
+  ]
+}
