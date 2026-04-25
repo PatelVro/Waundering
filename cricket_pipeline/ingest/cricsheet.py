@@ -124,6 +124,22 @@ def _other_team(team: str | None, teams: list[str]) -> str | None:
     return next((t for t in teams if t != team), None)
 
 
+def _officials_rows(match_id: str, m: dict) -> list[dict]:
+    officials = (m.get("info", {}) or {}).get("officials") or {}
+    role_map = {
+        "umpires":          "umpire",
+        "tv_umpires":       "tv_umpire",
+        "reserve_umpires":  "reserve_umpire",
+        "match_referees":   "match_referee",
+    }
+    rows = []
+    for key, role in role_map.items():
+        for name in officials.get(key, []) or []:
+            if name:
+                rows.append({"match_id": match_id, "role": role, "name": name})
+    return rows
+
+
 def _ball_rows(match_id: str, m: dict) -> list[dict]:
     rows = []
     info_teams = m.get("info", {}).get("teams") or []
@@ -169,23 +185,24 @@ def _ball_rows(match_id: str, m: dict) -> list[dict]:
 
 def load_zip_to_db(zip_path: Path, db_path: Path | str | None = None, limit: int | None = None) -> dict:
     con = connect(db_path)
-    matches, innings, balls = [], [], []
+    matches, innings, balls, officials = [], [], [], []
     count = 0
     for m in tqdm(_iter_match_jsons(zip_path, limit=limit), desc="parsing"):
         mid = _match_id_from(m.get("info", {}))
         matches.append(_match_row(m))
         innings.extend(_innings_rows(mid, m))
         balls.extend(_ball_rows(mid, m))
+        officials.extend(_officials_rows(mid, m))
         count += 1
         if len(balls) > 200_000:
-            _flush(con, matches, innings, balls)
-            matches, innings, balls = [], [], []
-    _flush(con, matches, innings, balls)
+            _flush(con, matches, innings, balls, officials)
+            matches, innings, balls, officials = [], [], [], []
+    _flush(con, matches, innings, balls, officials)
     con.close()
     return {"matches_loaded": count}
 
 
-def _flush(con, matches: list[dict], innings: list[dict], balls: list[dict]) -> None:
+def _flush(con, matches: list[dict], innings: list[dict], balls: list[dict], officials: list[dict] | None = None) -> None:
     if matches:
         con.executemany(
             """INSERT OR REPLACE INTO matches VALUES (
@@ -213,6 +230,12 @@ def _flush(con, matches: list[dict], innings: list[dict], balls: list[dict]) -> 
                 $extras_type, $is_wicket, $wicket_kind,
                 $player_out, $fielders)""",
             balls,
+        )
+    if officials:
+        con.executemany(
+            """INSERT OR REPLACE INTO match_officials (match_id, role, name)
+               VALUES ($match_id, $role, $name)""",
+            officials,
         )
 
 

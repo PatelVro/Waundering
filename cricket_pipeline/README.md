@@ -11,11 +11,13 @@ cricket_pipeline/
 ├── config.py              # URLs, env vars, cache/data paths
 ├── pipeline.py            # CLI entry point
 ├── db/
-│   ├── schema.sql         # matches, innings, balls, players, weather, rankings, news
-│   └── connection.py      # DuckDB connection factory
+│   ├── schema.sql         # 12 tables — matches, innings, balls, players, ...
+│   ├── views.sql          # derived analytical views (venue profile, phase metrics, ...)
+│   └── connection.py      # DuckDB connection factory + view installer
 ├── ingest/
-│   ├── cricsheet.py       # ball-by-ball zips
+│   ├── cricsheet.py       # ball-by-ball zips (now 27 datasets — see `pipeline datasets`)
 │   ├── people.py          # CricSheet people.csv → cross-provider IDs
+│   ├── cricinfo_profiles.py  # Cricinfo profile pages → dob, role, batting/bowling style
 │   ├── statsguru.py       # leaderboards + groupby splits (year / opposition / ground)
 │   ├── rankings.py        # ICC men's player + team rankings
 │   ├── venues.py          # geocode venues via Nominatim
@@ -88,10 +90,44 @@ python -m cricket_pipeline.pipeline umpires
 # 12. Upcoming + live fixtures (needs CRICAPI_KEY)
 python -m cricket_pipeline.pipeline fixtures
 
-# 13. Row counts + sample queries
+# 13. Cricinfo player profiles (dob, role, batting/bowling style)
+python -m cricket_pipeline.pipeline profiles --limit 200
+
+# 14. Install/refresh derived analytical views (free, no fetch)
+python -m cricket_pipeline.pipeline views
+
+# 15. Browse all available CricSheet datasets
+python -m cricket_pipeline.pipeline datasets
+
+# 16. Row counts + sample queries
 python -m cricket_pipeline.pipeline stats
 python -m cricket_pipeline.examples.basic_query
 ```
+
+## Available CricSheet datasets (free, ball-by-ball)
+
+International: `tests_json`, `odis_json`, `t20s_json`, `all_json`.
+Men's franchise: `ipl_json`, `bbl_json`, `psl_json`, `cpl_json`, `lpl_json`,
+`bpl_json`, `sa20_json`, `ilt20_json`, `mlc_json`, `the_hundred_men`,
+`vitality_blast`, `super_smash`, `syed_mushtaq_ali`.
+Men's first-class / list A: `county_championship`, `ranji_trophy`,
+`sheffield_shield`, `royal_one_day_cup`.
+Women's: `women_t20s`, `women_odis`, `women_tests`, `wpl_json`, `wbbl_json`,
+`the_hundred_women`.
+
+Run `python -m cricket_pipeline.pipeline datasets` for the URL list.
+
+## Analytical views (after `pipeline views`)
+
+| View                 | What it gives you                                              |
+|----------------------|-----------------------------------------------------------------|
+| `v_venue_profile`    | per-venue avg first-innings score, toss-winner-wins-pct        |
+| `v_phase_metrics`    | run rate / wicket% / dot% / boundary% by phase per format      |
+| `v_batter_profile`   | runs, SR, average, dismissals from ball data                   |
+| `v_bowler_profile`   | wickets, economy, average, balls bowled                        |
+| `v_matchup`          | bowler-vs-batter raw counts (feed into a Bayesian shrink)      |
+| `v_umpire_lbw`       | LBW propensity per umpire (real bias signal)                   |
+| `v_toss_impact`      | does winning the toss matter at this venue?                    |
 
 ## Available CricSheet datasets
 
@@ -101,19 +137,20 @@ python -m cricket_pipeline.examples.basic_query
 
 ## What's in the DB after ingestion
 
-| Table           | Grain                                                       |
-|-----------------|-------------------------------------------------------------|
-| `matches`       | one row per match                                           |
-| `innings`       | one row per innings                                         |
-| `balls`         | one row per delivery (source of truth)                      |
-| `players`       | CricSheet identifier → Cricinfo/Cricbuzz/BCCI               |
-| `player_splits` | Statsguru leaderboard / split rows                          |
-| `rankings`      | ICC men's rankings snapshot                                 |
-| `venues`        | venue, lat/lon, capacity, ends, established                 |
-| `weather_daily` | one row per (venue, date) — historical + live               |
-| `news`          | RSS items with sentiment + entity tags                      |
-| `fixtures`      | upcoming + live matches                                     |
-| `umpires`       | matches officiated, formats                                 |
+| Table              | Grain                                                       |
+|--------------------|-------------------------------------------------------------|
+| `matches`          | one row per match                                           |
+| `innings`          | one row per innings                                         |
+| `balls`            | one row per delivery (source of truth)                      |
+| `players`          | identifier + cross-provider IDs + dob/role/style/country    |
+| `player_splits`    | Statsguru leaderboard / split rows                          |
+| `rankings`         | ICC men's rankings snapshot                                 |
+| `venues`           | venue, lat/lon, capacity, ends, established                 |
+| `weather_daily`    | one row per (venue, date) — historical + live               |
+| `news`             | RSS items with sentiment + entity tags                      |
+| `fixtures`         | upcoming + live matches                                     |
+| `umpires`          | matches officiated, formats                                 |
+| `match_officials`  | every umpire / TV umpire / referee per match                |
 
 ## Extending
 

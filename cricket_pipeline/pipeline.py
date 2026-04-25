@@ -16,8 +16,9 @@ from __future__ import annotations
 
 import argparse
 
-from .db import connect
+from .db import connect, install_views
 from .ingest import (
+    cricinfo_profiles,
     cricsheet,
     fixtures,
     news,
@@ -101,22 +102,41 @@ def cmd_fixtures(args):
     print(f"stored {n} fixtures")
 
 
+def cmd_profiles(args):
+    n = cricinfo_profiles.enrich_all(limit=args.limit, only_active=not args.all)
+    print(f"enriched {n} player profiles from Cricinfo")
+
+
+def cmd_views(args):
+    install_views()
+    print("views installed: v_venue_profile, v_phase_metrics, v_batter_profile, "
+          "v_bowler_profile, v_matchup, v_umpire_lbw, v_toss_impact")
+
+
+def cmd_datasets(args):
+    from . import config
+    for k, v in config.CRICSHEET_ZIPS.items():
+        print(f"  {k:<35} {v}")
+
+
 def cmd_stats(args):
     con = connect()
     queries = [
-        ("matches",          "SELECT COUNT(*) FROM matches"),
-        ("balls",            "SELECT COUNT(*) FROM balls"),
-        ("innings",          "SELECT COUNT(*) FROM innings"),
-        ("players",          "SELECT COUNT(*) FROM players"),
-        ("player_splits",    "SELECT COUNT(*) FROM player_splits"),
-        ("rankings",         "SELECT COUNT(*) FROM rankings"),
-        ("venues_geocoded",  "SELECT COUNT(*) FROM venues WHERE lat IS NOT NULL"),
-        ("venues_enriched",  "SELECT COUNT(*) FROM venues WHERE capacity IS NOT NULL"),
-        ("weather_days",     "SELECT COUNT(*) FROM weather_daily"),
-        ("news",             "SELECT COUNT(*) FROM news"),
-        ("fixtures",         "SELECT COUNT(*) FROM fixtures"),
-        ("umpires",          "SELECT COUNT(*) FROM umpires"),
-        ("distinct_venues",  "SELECT COUNT(DISTINCT venue) FROM matches"),
+        ("matches",            "SELECT COUNT(*) FROM matches"),
+        ("balls",              "SELECT COUNT(*) FROM balls"),
+        ("innings",            "SELECT COUNT(*) FROM innings"),
+        ("players",            "SELECT COUNT(*) FROM players"),
+        ("players_enriched",   "SELECT COUNT(*) FROM players WHERE enriched_at IS NOT NULL"),
+        ("player_splits",      "SELECT COUNT(*) FROM player_splits"),
+        ("rankings",           "SELECT COUNT(*) FROM rankings"),
+        ("venues_geocoded",    "SELECT COUNT(*) FROM venues WHERE lat IS NOT NULL"),
+        ("venues_enriched",    "SELECT COUNT(*) FROM venues WHERE capacity IS NOT NULL"),
+        ("weather_days",       "SELECT COUNT(*) FROM weather_daily"),
+        ("news",               "SELECT COUNT(*) FROM news"),
+        ("fixtures",           "SELECT COUNT(*) FROM fixtures"),
+        ("umpires",            "SELECT COUNT(*) FROM umpires"),
+        ("match_officials",    "SELECT COUNT(*) FROM match_officials"),
+        ("distinct_venues",    "SELECT COUNT(DISTINCT venue) FROM matches"),
     ]
     for label, q in queries:
         n = con.execute(q).fetchone()[0]
@@ -181,6 +201,18 @@ def main():
 
     fx = sub.add_parser("fixtures", help="Fetch upcoming/live fixtures via CricAPI")
     fx.set_defaults(func=cmd_fixtures)
+
+    pr = sub.add_parser("profiles", help="Enrich players from Cricinfo profile pages")
+    pr.add_argument("--limit", type=int, default=None)
+    pr.add_argument("--all", action="store_true",
+                    help="Don't restrict to players we have ball data for")
+    pr.set_defaults(func=cmd_profiles)
+
+    vw = sub.add_parser("views", help="Install/refresh analytical views (free, derived)")
+    vw.set_defaults(func=cmd_views)
+
+    ds = sub.add_parser("datasets", help="List available CricSheet zip datasets")
+    ds.set_defaults(func=cmd_datasets)
 
     st = sub.add_parser("stats", help="Show row counts")
     st.set_defaults(func=cmd_stats)

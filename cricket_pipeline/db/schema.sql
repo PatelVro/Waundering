@@ -58,11 +58,22 @@ CREATE TABLE IF NOT EXISTS balls (
 );
 
 CREATE TABLE IF NOT EXISTS players (
-    player_id    VARCHAR PRIMARY KEY,          -- CricSheet people.csv registry id
-    name         VARCHAR,
-    country      VARCHAR,
-    batting_hand VARCHAR,
-    bowling_type VARCHAR
+    player_id     VARCHAR PRIMARY KEY,         -- CricSheet people.csv registry id
+    name          VARCHAR,
+    unique_name   VARCHAR,
+    country       VARCHAR,
+    dob           DATE,
+    role          VARCHAR,
+    batting_hand  VARCHAR,
+    bowling_type  VARCHAR,
+    key_cricinfo  VARCHAR,
+    key_cricbuzz  VARCHAR,
+    key_bcci      VARCHAR,
+    key_opta      VARCHAR,
+    key_nvplay    VARCHAR,
+    key_pulse     VARCHAR,
+    profile_url   VARCHAR,
+    enriched_at   TIMESTAMP
 );
 
 -- Aggregated player career splits from Statsguru (optional enrichment)
@@ -157,6 +168,13 @@ CREATE TABLE IF NOT EXISTS umpires (
     name        VARCHAR PRIMARY KEY,
     matches     INTEGER,                -- counted from matches table
     formats     VARCHAR                  -- comma-joined formats officiated
+);
+
+CREATE TABLE IF NOT EXISTS match_officials (
+    match_id    VARCHAR,
+    role        VARCHAR,                 -- umpire / tv_umpire / reserve_umpire / match_referee
+    name        VARCHAR,
+    PRIMARY KEY (match_id, role, name)
 );
 
 -- Indexes to make the common filters cheap
