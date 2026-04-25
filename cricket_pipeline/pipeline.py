@@ -21,6 +21,7 @@ from .ingest import (
     cricbuzz,
     cricinfo_profiles,
     cricsheet,
+    cricsheet_players,
     fixtures,
     gdelt,
     news,
@@ -147,6 +148,11 @@ def cmd_gdelt(args):
 def cmd_wikidata(args):
     n = wikidata.merge()
     print(f"matched {n} Wikidata cricketer records onto players")
+
+
+def cmd_csplayers(args):
+    n = cricsheet_players.backfill(datasets=args.datasets or None)
+    print(f"backfilled country on {n} player rows from CricSheet match files")
 
 
 def cmd_model(args):
@@ -286,6 +292,12 @@ def main():
 
     wd = sub.add_parser("wikidata", help="Enrich players from Wikidata SPARQL")
     wd.set_defaults(func=cmd_wikidata)
+
+    cp = sub.add_parser("cs-players",
+                        help="Backfill players.country from cached CricSheet match JSON")
+    cp.add_argument("--datasets", nargs="*",
+                    help="CricSheet datasets to walk (default: all_json)")
+    cp.set_defaults(func=cmd_csplayers)
 
     md = sub.add_parser("model", help="Train / predict / simulate the ball-outcome model")
     md.add_argument("action", choices=["train", "predict", "simulate"])

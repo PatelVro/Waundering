@@ -235,10 +235,20 @@ Outputs:
 - For simulations: mean / p10 / p50 / p90 / histogram / `win_prob` (if target set)
 
 Caveats (read these before using outputs in anger):
-1. **Temporal leakage** — career aggregates (`v_batter_profile` etc.) are computed across all data including future balls. The reported test metrics are therefore optimistic. Fix: bucket aggregates by year and join the year-aware aggregate.
-2. **Strike rotation** — the simulator approximates this; it doesn't swap the batter's *features* mid-innings.
-3. **No batting order queue** — when a wicket falls the simulator keeps the same striker label. Pass an explicit batting order list to extend.
-4. **Single ball-tracking layer is missing** — without Hawk-Eye, the model can't learn from pace, swing, seam, RPM. That's the next big jump if you can license it.
+1. ~~Temporal leakage~~ **Fixed** — features now join `v_batter_history` /
+   `v_bowler_history` which compute career & rolling stats *strictly before*
+   each ball's match.
+2. ~~Uncalibrated probabilities~~ **Fixed** — isotonic calibration is fit on a
+   held-out 10% slice and applied automatically in `predict_ball`,
+   `predict_batch`, and the simulator. Both raw and calibrated log-loss are
+   reported.
+3. **Strike rotation** — the simulator approximates this; it doesn't swap the
+   batter's *features* mid-innings.
+4. **No batting order queue** — when a wicket falls the simulator keeps the
+   same striker label. Pass an explicit batting order list to extend.
+5. **Ball-tracking layer is missing** — without Hawk-Eye, the model can't
+   learn from pace, swing, seam, RPM. That's the next big jump if you can
+   license it.
 
 ## Notes on scraping
 

@@ -1,11 +1,9 @@
 """Build the model-ready feature table by joining v_ball_state with
-player / venue / form / weather aggregates.
+time-aware player history, venue and weather aggregates.
 
-Note on temporal leakage: career aggregates (v_batter_profile, v_bowler_profile)
-are computed across ALL data in the DB, including matches in the test split.
-For a prototype this is acceptable; for production, recompute aggregates as of
-each ball's date so features only see the past. See FEATURE_QUERY_NO_LEAK below
-for a stricter (slower) variant.
+The joins use `v_batter_history` and `v_bowler_history` which compute
+career and rolling stats *strictly before* each ball's match — so features
+only see the past and there's no temporal leakage.
 """
 
 from __future__ import annotations
@@ -26,8 +24,8 @@ NUMERIC = [
     "legal_balls_left", "current_run_rate", "required_run_rate",
     "batter_sr", "batter_avg", "batter_balls",
     "bowler_econ", "bowler_avg", "bowler_balls",
-    "batter_form_sr", "batter_form_avg", "batter_form_runs",
-    "bowler_workload_30d", "bowler_workload_7d",
+    "batter_form_sr", "batter_form_runs", "batter_form_balls",
+    "bowler_workload_7d", "bowler_workload_30d",
     "venue_avg_first_innings", "venue_toss_winner_won_pct",
     "temp_c", "humidity", "wind_kmh",
 ]
@@ -50,20 +48,20 @@ SELECT
       ELSE 0
     END                                                          AS y_wicket,
 
-    bp.strike_rate                                               AS batter_sr,
-    bp.average                                                   AS batter_avg,
-    bp.balls_faced                                               AS batter_balls,
+    bh.career_sr                                                 AS batter_sr,
+    bh.career_avg                                                AS batter_avg,
+    bh.career_balls                                              AS batter_balls,
 
-    bw.economy                                                   AS bowler_econ,
-    bw.average                                                   AS bowler_avg,
-    bw.balls_bowled                                              AS bowler_balls,
+    wh.career_econ                                               AS bowler_econ,
+    wh.career_avg                                                AS bowler_avg,
+    wh.career_balls                                              AS bowler_balls,
 
-    bf.last10_sr                                                 AS batter_form_sr,
-    bf.last10_avg                                                AS batter_form_avg,
-    bf.last10_runs                                               AS batter_form_runs,
+    bh.form_sr                                                   AS batter_form_sr,
+    bh.form_runs                                                 AS batter_form_runs,
+    bh.form_balls                                                AS batter_form_balls,
 
-    bk.overs_last_30d                                            AS bowler_workload_30d,
-    bk.overs_last_7d                                             AS bowler_workload_7d,
+    wh.workload_7d                                               AS bowler_workload_7d,
+    wh.workload_30d                                              AS bowler_workload_30d,
 
     pb.batting_hand                                              AS batter_hand,
     pn.bowling_type                                              AS bowler_type,
@@ -75,10 +73,8 @@ SELECT
 
     m.start_date
 FROM v_ball_state bs
-LEFT JOIN v_batter_profile  bp ON bp.batter = bs.batter
-LEFT JOIN v_bowler_profile  bw ON bw.bowler = bs.bowler
-LEFT JOIN v_batter_form     bf ON bf.batter = bs.batter
-LEFT JOIN v_bowler_workload bk ON bk.bowler = bs.bowler
+LEFT JOIN v_batter_history  bh ON bh.batter = bs.batter AND bh.match_id = bs.match_id
+LEFT JOIN v_bowler_history  wh ON wh.bowler = bs.bowler AND wh.match_id = bs.match_id
 LEFT JOIN players           pb ON pb.name   = bs.batter
 LEFT JOIN players           pn ON pn.name   = bs.bowler
 LEFT JOIN matches           m  ON m.match_id = bs.match_id
