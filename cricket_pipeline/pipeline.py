@@ -23,6 +23,7 @@ from .ingest import (
     cricsheet,
     cricsheet_players,
     fixtures,
+    lineup,
     gdelt,
     news,
     newsapi,
@@ -162,15 +163,46 @@ def cmd_match_train(args):
 
 def cmd_match_predict(args):
     import json as _json
-    from .model.match import predict_match
-    out = predict_match(
-        home=args.home, away=args.away, venue=args.venue,
-        format_=args.fmt,
-        toss_winner=args.toss_winner,
-        toss_decision=args.toss_decision,
-        ref_date=args.ref_date,
-    )
+    if args.ensemble:
+        from .model.match import predict_match_ensemble
+        out = predict_match_ensemble(
+            home=args.home, away=args.away, venue=args.venue,
+            format_=args.fmt,
+            toss_winner=args.toss_winner,
+            toss_decision=args.toss_decision,
+            ref_date=args.ref_date,
+        )
+    else:
+        from .model.match import predict_match
+        out = predict_match(
+            home=args.home, away=args.away, venue=args.venue,
+            format_=args.fmt,
+            toss_winner=args.toss_winner,
+            toss_decision=args.toss_decision,
+            ref_date=args.ref_date,
+        )
     print(_json.dumps(out, indent=2, default=str))
+
+
+def cmd_lineup(args):
+    import json as _json
+    out = lineup.fetch(args.url) if args.url else lineup.fetch_by_match_id(args.match_id)
+    print(_json.dumps(out, indent=2, default=str))
+
+
+def cmd_daily_refresh(args):
+    """Re-pull data, rebuild views, retrain match model. Cron-friendly."""
+    from .ingest import cricsheet
+    from .model import match as M
+    print("=== Daily refresh ===")
+    for ds in args.datasets:
+        print(f"\n[1/3] Re-ingesting {ds} …")
+        cricsheet.ingest(dataset=ds, force=args.force)
+    print("\n[2/3] Reinstalling views …")
+    install_views()
+    print("\n[3/3] Retraining match model …")
+    M.train(format_filter=args.fmt)
+    print("\nDone.")
 
 
 def cmd_model(args):
@@ -343,7 +375,27 @@ def main():
                     choices=[None, "bat", "field"], help="bat or field")
     mp.add_argument("--ref-date", default=None,
                     help="As-of date for form lookups (default = today). YYYY-MM-DD")
+    mp.add_argument("--ensemble", action="store_true",
+                    help="Blend match model with form + h2h priors (recommended)")
     mp.set_defaults(func=cmd_match_predict)
+
+    ln = sub.add_parser("lineup",
+                        help="Fetch announced playing XIs from a Cricbuzz match URL")
+    ln.add_argument("--url",      default=None,
+                    help="Cricbuzz match-squads URL (preferred)")
+    ln.add_argument("--match-id", default=None,
+                    help="Cricbuzz match id (alt to --url)")
+    ln.set_defaults(func=cmd_lineup)
+
+    dr = sub.add_parser("daily-refresh",
+                        help="Re-ingest, reinstall views, retrain match model (cron-friendly)")
+    dr.add_argument("--datasets", nargs="+", default=["ipl_json"],
+                    help="CricSheet datasets to refresh (e.g. ipl_json t20s_json)")
+    dr.add_argument("--fmt", default="T20,IT20",
+                    help="Format filter for retrain")
+    dr.add_argument("--force", action="store_true",
+                    help="Force re-download even if cached zip exists")
+    dr.set_defaults(func=cmd_daily_refresh)
 
     md = sub.add_parser("model", help="Train / predict / simulate the ball-outcome model")
     md.add_argument("action", choices=["train", "predict", "simulate"])

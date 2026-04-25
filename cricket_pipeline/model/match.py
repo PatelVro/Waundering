@@ -42,12 +42,23 @@ NUMERIC = [
 ]
 
 
-def build_features(format_filter: str | None = None) -> pd.DataFrame:
+def _normalise_formats(format_filter: str | list | None) -> list[str] | None:
+    """Accept a comma-string ('T20,IT20'), a list, or None (= all)."""
+    if format_filter is None:
+        return None
+    if isinstance(format_filter, str):
+        return [f.strip() for f in format_filter.split(",") if f.strip()]
+    return list(format_filter)
+
+
+def build_features(format_filter: str | list | None = None) -> pd.DataFrame:
     install_views()
     con = connect()
     sql = "SELECT * FROM v_match_features"
-    if format_filter:
-        sql += f" WHERE format = '{format_filter}'"
+    fmts = _normalise_formats(format_filter)
+    if fmts:
+        in_clause = ",".join(f"'{f}'" for f in fmts)
+        sql += f" WHERE format IN ({in_clause})"
     df = con.execute(sql).df()
     con.close()
     if df.empty:
@@ -77,9 +88,10 @@ def _params() -> dict:
     }
 
 
-def train(format_filter: str | None = "T20") -> dict:
-    print(f"Loading match-level features (format={format_filter}) …")
-    df = build_features(format_filter=format_filter)
+def train(format_filter: str | list | None = "T20,IT20") -> dict:
+    fmts = _normalise_formats(format_filter)
+    print(f"Loading match-level features (formats={fmts or 'all'}) …")
+    df = build_features(format_filter=fmts)
     if df.empty:
         raise RuntimeError("No matches. Run `pipeline cricsheet` and `pipeline views` first.")
 
@@ -123,7 +135,7 @@ def train(format_filter: str | None = "T20") -> dict:
         "brier_calib":      float(brier_score_loss(yte, cal_test)),
         "auc":              float(roc_auc_score(yte, cal_test)),
         "accuracy":         float(accuracy_score(yte, (cal_test > 0.5).astype(int))),
-        "format_filter":    format_filter,
+        "format_filter":    fmts,
     }
 
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
@@ -296,4 +308,59 @@ def predict_match(
         "calibrated":         iso is not None,
         "input_features":     {k: state[k] for k in feats},
         "model":              "match",
+    }
+
+
+def _form_prior(home_last10: float | None, away_last10: float | None) -> float:
+    """Bradley-Terry-ish form prior: P(home wins) ≈ home / (home + away).
+    Falls back to 0.5 if either is missing."""
+    if home_last10 is None or away_last10 is None:
+        return 0.5
+    if home_last10 + away_last10 == 0:
+        return 0.5
+    return home_last10 / (home_last10 + away_last10)
+
+
+def predict_match_ensemble(
+    home: str, away: str, venue: str,
+    format_: str = "T20",
+    toss_winner: str | None = None,
+    toss_decision: str | None = None,
+    ref_date: str | None = None,
+    weights: dict | None = None,
+) -> dict:
+    """Ensemble: 60% match-model + 25% form prior + 15% h2h prior.
+
+    The match model learns interactions; the priors anchor it on raw signal
+    that's directly observable. Final prediction is a convex combination.
+
+    Override `weights` like {"match": 0.5, "form": 0.3, "h2h": 0.2}.
+    """
+    w = weights or {"match": 0.60, "form": 0.25, "h2h": 0.15}
+    s = sum(w.values())
+    w = {k: v / s for k, v in w.items()}    # normalise
+
+    match_out = predict_match(home, away, venue, format_, toss_winner, toss_decision, ref_date)
+    p_match = match_out["p_home_wins"]
+
+    feats = match_out["input_features"]
+    p_form = _form_prior(feats.get("home_last10"), feats.get("away_last10"))
+    h2h_v  = feats.get("h2h_home_winpct")
+    p_h2h  = h2h_v if h2h_v is not None else 0.5
+
+    p_ens = w["match"] * p_match + w["form"] * p_form + w["h2h"] * p_h2h
+
+    return {
+        "p_home_wins":   p_ens,
+        "p_away_wins":   1 - p_ens,
+        "favored":       home if p_ens >= 0.5 else away,
+        "edge_pct":      round(abs(p_ens - 0.5) * 200, 1),
+        "components": {
+            "match_model":   p_match,
+            "form_prior":    p_form,
+            "h2h_prior":     p_h2h,
+        },
+        "weights":       w,
+        "input_features": feats,
+        "model":         "ensemble",
     }
