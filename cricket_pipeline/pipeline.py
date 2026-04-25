@@ -23,6 +23,7 @@ from .ingest import (
     cricsheet,
     cricsheet_players,
     fixtures,
+    lineup,
     gdelt,
     news,
     newsapi,
@@ -155,21 +156,129 @@ def cmd_csplayers(args):
     print(f"backfilled country on {n} player rows from CricSheet match files")
 
 
+def cmd_match_train(args):
+    from .model import match as M
+    M.train(format_filter=args.fmt)
+
+
+def cmd_match_predict(args):
+    import json as _json
+    if args.ensemble:
+        from .model.match import predict_match_ensemble
+        out = predict_match_ensemble(
+            home=args.home, away=args.away, venue=args.venue,
+            format_=args.fmt,
+            toss_winner=args.toss_winner,
+            toss_decision=args.toss_decision,
+            ref_date=args.ref_date,
+        )
+    else:
+        from .model.match import predict_match
+        out = predict_match(
+            home=args.home, away=args.away, venue=args.venue,
+            format_=args.fmt,
+            toss_winner=args.toss_winner,
+            toss_decision=args.toss_decision,
+            ref_date=args.ref_date,
+        )
+    print(_json.dumps(out, indent=2, default=str))
+
+
+def cmd_lineup(args):
+    import json as _json
+    out = lineup.fetch(args.url) if args.url else lineup.fetch_by_match_id(args.match_id)
+    print(_json.dumps(out, indent=2, default=str))
+
+
+def cmd_match_forecast(args):
+    """End-to-end forecast — winner, scores, top players, key matchups."""
+    from . import forecast as F
+    home_xi = [n.strip() for n in args.home_xi.split(",")] if args.home_xi else None
+    away_xi = [n.strip() for n in args.away_xi.split(",")] if args.away_xi else None
+    fc = F.forecast(
+        home=args.home, away=args.away, venue=args.venue,
+        home_xi=home_xi, away_xi=away_xi,
+        toss_winner=args.toss_winner,
+        toss_decision=args.toss_decision,
+        ref_date=args.ref_date,
+        n_sim=args.n_sim,
+    )
+    if args.json:
+        import dataclasses, json as _json
+        print(_json.dumps(dataclasses.asdict(fc), indent=2, default=str))
+    else:
+        print(F.render(fc))
+
+
+def cmd_prematch(args):
+    """Poll a Cricbuzz match page for XIs + toss until both are present, then
+    write the result to data/cache/prematch_<match_id>.json so a subsequent
+    `match-forecast` can pick them up. Cron-friendly."""
+    import json as _json
+    import time as _time
+    from pathlib import Path
+    deadline = _time.time() + args.max_wait_seconds
+    last = None
+    while _time.time() < deadline:
+        try:
+            data = lineup.fetch(args.url)
+        except Exception as e:
+            print(f"  fetch error: {e}")
+            data = None
+        if data:
+            last = data
+            ann = data.get("announced")
+            toss = data.get("toss_winner")
+            print(f"  XIs={'yes' if ann else 'no'}  toss={toss or 'no'}")
+            if ann and toss:
+                break
+        _time.sleep(args.poll_seconds)
+    out = Path(args.out) if args.out else None
+    if out and last:
+        out.write_text(_json.dumps(last, indent=2))
+        print(f"  wrote {out}")
+    print(_json.dumps(last, indent=2, default=str))
+
+
+def cmd_daily_refresh(args):
+    """Re-pull data, rebuild views, retrain match model. Cron-friendly."""
+    from .ingest import cricsheet
+    from .model import match as M
+    print("=== Daily refresh ===")
+    for ds in args.datasets:
+        print(f"\n[1/3] Re-ingesting {ds} …")
+        cricsheet.ingest(dataset=ds, force=args.force)
+    print("\n[2/3] Reinstalling views …")
+    install_views()
+    print("\n[3/3] Retraining match model …")
+    M.train(format_filter=args.fmt)
+    print("\nDone.")
+
+
 def cmd_model(args):
+    import json as _json
     if args.action == "train":
-        from .model import train as M
-        M.train(format_filter=args.fmt, limit=args.limit)
+        if args.type == "sequence":
+            from .model import sequence as S
+            S.train(format_filter=args.fmt, limit=args.limit, epochs=args.epochs)
+        else:
+            from .model import train as M
+            M.train(format_filter=args.fmt, limit=args.limit)
     elif args.action == "predict":
-        from .model.predict import predict_ball
-        import json as _json
-        state = _json.loads(args.state)
-        out = predict_ball(state)
+        if args.type == "sequence":
+            from .model.sequence import predict_sequence
+            history = _json.loads(args.state)
+            if isinstance(history, dict):
+                history = [history]
+            out = predict_sequence(history)
+        else:
+            from .model.predict import predict_ball
+            out = predict_ball(_json.loads(args.state))
         print(_json.dumps(out, indent=2))
     elif args.action == "simulate":
         from .model.simulate import simulate_innings
-        import json as _json
-        state = _json.loads(args.state)
-        out = simulate_innings(state, n_sim=args.n_sim, seed=args.seed)
+        out = simulate_innings(_json.loads(args.state),
+                               n_sim=args.n_sim, seed=args.seed)
         print(_json.dumps(out, indent=2))
 
 
@@ -299,13 +408,86 @@ def main():
                     help="CricSheet datasets to walk (default: all_json)")
     cp.set_defaults(func=cmd_csplayers)
 
+    mt = sub.add_parser("match-train",
+                        help="Train the match-outcome model (binary win classifier)")
+    mt.add_argument("--fmt", default="T20",
+                    help="Format filter (T20, IT20, ODI, Test)")
+    mt.set_defaults(func=cmd_match_train)
+
+    mp = sub.add_parser("match-predict",
+                        help="Predict P(home wins) for a single upcoming match")
+    mp.add_argument("--home",   required=True)
+    mp.add_argument("--away",   required=True)
+    mp.add_argument("--venue",  required=True)
+    mp.add_argument("--fmt",    default="T20")
+    mp.add_argument("--toss-winner",   default=None)
+    mp.add_argument("--toss-decision", default=None,
+                    choices=[None, "bat", "field"], help="bat or field")
+    mp.add_argument("--ref-date", default=None,
+                    help="As-of date for form lookups (default = today). YYYY-MM-DD")
+    mp.add_argument("--ensemble", action="store_true",
+                    help="Blend match model with form + h2h priors (recommended)")
+    mp.set_defaults(func=cmd_match_predict)
+
+    ln = sub.add_parser("lineup",
+                        help="Fetch announced playing XIs from a Cricbuzz match URL")
+    ln.add_argument("--url",      default=None,
+                    help="Cricbuzz match-squads URL (preferred)")
+    ln.add_argument("--match-id", default=None,
+                    help="Cricbuzz match id (alt to --url)")
+    ln.set_defaults(func=cmd_lineup)
+
+    mf = sub.add_parser("match-forecast",
+                        help="End-to-end forecast: winner, scores, top players, matchups")
+    mf.add_argument("--home",   required=True)
+    mf.add_argument("--away",   required=True)
+    mf.add_argument("--venue",  required=True)
+    mf.add_argument("--home-xi", default=None,
+                    help="Comma-separated playing XI for home team")
+    mf.add_argument("--away-xi", default=None,
+                    help="Comma-separated playing XI for away team")
+    mf.add_argument("--toss-winner",   default=None)
+    mf.add_argument("--toss-decision", default=None, choices=[None, "bat", "field"])
+    mf.add_argument("--ref-date", default=None,
+                    help="As-of date for form lookups. YYYY-MM-DD")
+    mf.add_argument("--n-sim", type=int, default=2000)
+    mf.add_argument("--json",  action="store_true",
+                    help="Emit JSON instead of formatted text")
+    mf.set_defaults(func=cmd_match_forecast)
+
+    pm = sub.add_parser("prematch",
+                        help="Poll Cricbuzz for XIs + toss; write to a cache file")
+    pm.add_argument("--url", required=True,
+                    help="Cricbuzz match-squads URL")
+    pm.add_argument("--max-wait-seconds", type=int, default=3600,
+                    help="Stop polling after this many seconds (default 1h)")
+    pm.add_argument("--poll-seconds", type=int, default=120,
+                    help="Sleep between polls")
+    pm.add_argument("--out", default=None,
+                    help="Write last successful response to this path")
+    pm.set_defaults(func=cmd_prematch)
+
+    dr = sub.add_parser("daily-refresh",
+                        help="Re-ingest, reinstall views, retrain match model (cron-friendly)")
+    dr.add_argument("--datasets", nargs="+", default=["ipl_json"],
+                    help="CricSheet datasets to refresh (e.g. ipl_json t20s_json)")
+    dr.add_argument("--fmt", default="T20,IT20",
+                    help="Format filter for retrain")
+    dr.add_argument("--force", action="store_true",
+                    help="Force re-download even if cached zip exists")
+    dr.set_defaults(func=cmd_daily_refresh)
+
     md = sub.add_parser("model", help="Train / predict / simulate the ball-outcome model")
     md.add_argument("action", choices=["train", "predict", "simulate"])
+    md.add_argument("--type", choices=["lgbm", "sequence"], default="lgbm",
+                    help="Model architecture: lgbm (default) or sequence Transformer")
     md.add_argument("--fmt", default="IT20",
                     help="Format filter for training (e.g. IT20, T20, ODI)")
     md.add_argument("--limit", type=int, default=None)
+    md.add_argument("--epochs", type=int, default=8,
+                    help="Sequence-model training epochs (ignored for lgbm)")
     md.add_argument("--state", default="{}",
-                    help="JSON of ball state (predict + simulate)")
+                    help="JSON of ball state, or list of state dicts for sequence predict")
     md.add_argument("--n-sim", type=int, default=5000)
     md.add_argument("--seed", type=int, default=None)
     md.set_defaults(func=cmd_model)

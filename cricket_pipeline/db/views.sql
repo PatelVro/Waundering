@@ -394,20 +394,20 @@ WITH per_match AS (
 )
 SELECT
     bowler, match_id, start_date,
-    COALESCE(SUM(runs)    OVER w, 0)  AS career_runs,
-    COALESCE(SUM(balls)   OVER w, 0)  AS career_balls,
-    COALESCE(SUM(wickets) OVER w, 0)  AS career_wickets,
-    ROUND(6.0 * COALESCE(SUM(runs)    OVER w, 0)
-              / NULLIF(SUM(balls)     OVER w, 0), 2) AS career_econ,
-    ROUND(1.0 * COALESCE(SUM(runs)    OVER w, 0)
-              / NULLIF(SUM(wickets)   OVER w, 0), 2) AS career_avg,
+    COALESCE(SUM(runs)    OVER wb, 0)  AS career_runs,
+    COALESCE(SUM(balls)   OVER wb, 0)  AS career_balls,
+    COALESCE(SUM(wickets) OVER wb, 0)  AS career_wickets,
+    ROUND(6.0 * COALESCE(SUM(runs)    OVER wb, 0)
+              / NULLIF(SUM(balls)     OVER wb, 0), 2) AS career_econ,
+    ROUND(1.0 * COALESCE(SUM(runs)    OVER wb, 0)
+              / NULLIF(SUM(wickets)   OVER wb, 0), 2) AS career_avg,
     -- workload windows (overs in last 7 / 30 / 90 days strictly before this match)
     COALESCE(SUM(balls / 6.0) OVER w7,  0) AS workload_7d,
     COALESCE(SUM(balls / 6.0) OVER w30, 0) AS workload_30d,
     COALESCE(SUM(balls / 6.0) OVER w90, 0) AS workload_90d
 FROM per_match
 WINDOW
-    w   AS (PARTITION BY bowler ORDER BY start_date, match_id
+    wb  AS (PARTITION BY bowler ORDER BY start_date, match_id
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING),
     w7  AS (PARTITION BY bowler ORDER BY start_date
             RANGE BETWEEN INTERVAL  7 DAY PRECEDING AND INTERVAL 1 DAY PRECEDING),
@@ -447,3 +447,104 @@ SELECT
     (r.wkts + 30 * o.bowler_wkt_per_ball)  / (r.n + 30) AS shrunk_wkt_per_ball
 FROM raw r
 JOIN overall o ON o.bowler = r.bowler;
+
+
+-- ============================================================================
+-- MATCH-LEVEL FEATURES — for the team-vs-team outcome model.
+--
+-- One row per completed match. All rolling team stats are computed strictly
+-- BEFORE the current match's start_date (no leakage). This view is consumed
+-- by model/match.py.
+-- ============================================================================
+CREATE OR REPLACE VIEW v_match_features AS
+WITH team_results AS (
+    -- One row per (team, match) — symmetric expansion so we can compute
+    -- per-team rolling form without caring whether they were home or away.
+    SELECT
+        m.match_id, m.start_date, m.team_home AS team, m.team_away AS opp,
+        m.venue, m.format,
+        CASE WHEN m.winner = m.team_home THEN 1
+             WHEN m.winner = m.team_away THEN 0 ELSE NULL END AS won
+    FROM matches m
+    WHERE m.winner IS NOT NULL AND m.start_date IS NOT NULL
+    UNION ALL
+    SELECT
+        m.match_id, m.start_date, m.team_away AS team, m.team_home AS opp,
+        m.venue, m.format,
+        CASE WHEN m.winner = m.team_away THEN 1
+             WHEN m.winner = m.team_home THEN 0 ELSE NULL END AS won
+    FROM matches m
+    WHERE m.winner IS NOT NULL AND m.start_date IS NOT NULL
+),
+team_form AS (
+    SELECT
+        match_id, start_date, team, opp, format,
+        AVG(won * 1.0) OVER (
+            PARTITION BY team
+            ORDER BY start_date, match_id
+            ROWS BETWEEN  5 PRECEDING AND 1 PRECEDING
+        ) AS last5_winpct,
+        AVG(won * 1.0) OVER (
+            PARTITION BY team
+            ORDER BY start_date, match_id
+            ROWS BETWEEN 10 PRECEDING AND 1 PRECEDING
+        ) AS last10_winpct,
+        DATE_DIFF('day',
+                  LAG(start_date) OVER (PARTITION BY team ORDER BY start_date, match_id),
+                  start_date) AS days_since_last_match
+    FROM team_results
+),
+h2h AS (
+    -- Past meetings between the same two teams. We assemble a self-join,
+    -- then average "did current home win in past matches between the same
+    -- pair", time-windowed.
+    SELECT
+        m1.match_id          AS current_match_id,
+        AVG(CASE WHEN m2.winner = m1.team_home THEN 1.0
+                 WHEN m2.winner = m1.team_away THEN 0.0
+                 ELSE NULL END)         AS h2h_home_winpct,
+        COUNT(m2.match_id)              AS h2h_meetings
+    FROM matches m1
+    LEFT JOIN matches m2
+      ON ((m2.team_home = m1.team_home AND m2.team_away = m1.team_away)
+       OR (m2.team_home = m1.team_away AND m2.team_away = m1.team_home))
+     AND m2.start_date < m1.start_date
+     AND m2.winner IS NOT NULL
+    WHERE m1.winner IS NOT NULL
+    GROUP BY m1.match_id
+)
+SELECT
+    m.match_id,
+    m.format,
+    m.start_date,
+    m.team_home,
+    m.team_away,
+    m.venue,
+    m.toss_winner,
+    m.toss_decision,
+    -- target
+    CASE WHEN m.winner = m.team_home THEN 1
+         WHEN m.winner = m.team_away THEN 0 ELSE NULL END AS y_home_wins,
+    -- toss flags
+    CASE WHEN m.toss_winner    = m.team_home THEN 1 ELSE 0 END AS toss_winner_is_home,
+    CASE WHEN m.toss_decision  = 'bat'        THEN 1 ELSE 0 END AS toss_decision_is_bat,
+    -- form
+    th.last5_winpct           AS home_last5,
+    th.last10_winpct          AS home_last10,
+    ta.last5_winpct           AS away_last5,
+    ta.last10_winpct          AS away_last10,
+    th.days_since_last_match  AS home_days_rest,
+    ta.days_since_last_match  AS away_days_rest,
+    -- head-to-head
+    h2h.h2h_home_winpct,
+    h2h.h2h_meetings,
+    -- venue
+    vp.avg_first_innings      AS venue_avg_first_innings,
+    vp.toss_winner_won_pct    AS venue_toss_winner_won_pct,
+    vp.bat_first_pct          AS venue_bat_first_pct
+FROM matches m
+LEFT JOIN team_form     th  ON th.match_id  = m.match_id AND th.team = m.team_home
+LEFT JOIN team_form     ta  ON ta.match_id  = m.match_id AND ta.team = m.team_away
+LEFT JOIN h2h               ON h2h.current_match_id = m.match_id
+LEFT JOIN v_venue_profile vp ON vp.venue = m.venue AND vp.format = m.format
+WHERE m.winner IS NOT NULL AND m.start_date IS NOT NULL;

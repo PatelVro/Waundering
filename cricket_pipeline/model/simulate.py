@@ -93,7 +93,7 @@ def simulate_innings(
                 "current_run_rate":  6.0 * runs_arr[i] / max(deliv_arr[i], 1),
                 "required_run_rate": (
                     6.0 * (target - runs_arr[i]) / max(balls_arr[i], 1)
-                    if target is not None else None
+                    if target is not None else float("nan")
                 ),
             })
             rows.append(r)
