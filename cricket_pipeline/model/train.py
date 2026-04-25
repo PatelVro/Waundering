@@ -1,4 +1,10 @@
-"""Train ball-outcome models (runs multiclass + wicket binary) with LightGBM."""
+"""Train ball-outcome models (runs multiclass + wicket binary) with LightGBM.
+
+Supports GPU acceleration via the `device` argument:
+  * "auto" (default) — use GPU if a usable LightGBM build is available, else CPU
+  * "cpu"            — force CPU
+  * "gpu" / "cuda"   — force the named device (raises if unavailable)
+"""
 
 from __future__ import annotations
 
@@ -24,6 +30,31 @@ RUN_BUCKETS = [0, 1, 2, 3, 4, 5, 6]            # 5 = "other / 5+ except 6"
 
 def _matrix(df: pd.DataFrame) -> pd.DataFrame:
     return df[F.NUMERIC + F.CATEGORICAL].copy()
+
+
+def _resolve_device(device: str = "auto") -> str:
+    """Returns 'cpu', 'gpu', or 'cuda'. 'auto' probes a tiny LightGBM call."""
+    device = (device or "auto").lower()
+    if device in ("cpu", "gpu", "cuda"):
+        return device
+    # auto-probe
+    import numpy as np
+    X = np.random.rand(1000, 4); y = (X.sum(1) > 2).astype(int)
+    for d in ("gpu", "cuda"):
+        try:
+            ds = lgb.Dataset(X, label=y)
+            lgb.train({"device": d, "objective": "binary",
+                       "verbose": -1, "num_leaves": 7}, ds, num_boost_round=3)
+            return d
+        except Exception:
+            continue
+    return "cpu"
+
+
+def _add_device(params: dict, device: str) -> dict:
+    if device != "cpu":
+        params = {**params, "device": device}
+    return params
 
 
 def _runs_params() -> dict:
@@ -67,8 +98,10 @@ def _train_one(X_tr, y_tr, X_te, y_te, params, num_round=600):
     )
 
 
-def train(format_filter: str | None = "IT20", limit: int | None = None) -> dict:
-    print(f"Loading features (format={format_filter}, limit={limit}) …")
+def train(format_filter: str | None = "IT20", limit: int | None = None,
+          device: str = "auto") -> dict:
+    dev = _resolve_device(device)
+    print(f"Loading features (format={format_filter}, limit={limit}, device={dev}) …")
     df = F.build(format_filter=format_filter, limit=limit)
     if df.empty:
         raise RuntimeError("No rows. Run `pipeline cricsheet` and `pipeline views` first.")
@@ -81,13 +114,13 @@ def train(format_filter: str | None = "IT20", limit: int | None = None) -> dict:
 
     X_tr, X_ca, X_te = _matrix(train_df), _matrix(calib_df), _matrix(test_df)
 
-    print("Training runs model …")
+    print(f"Training runs model on {dev} …")
     runs = _train_one(X_tr, train_df["y_runs_bucket"], X_te, test_df["y_runs_bucket"],
-                      _runs_params())
+                      _add_device(_runs_params(), dev))
 
-    print("Training wicket model …")
+    print(f"Training wicket model on {dev} …")
     wkt = _train_one(X_tr, train_df["y_wicket"], X_te, test_df["y_wicket"],
-                     _wicket_params())
+                     _add_device(_wicket_params(), dev))
 
     print("Fitting calibrators on holdout …")
     runs_calib_raw = runs.predict(X_ca)

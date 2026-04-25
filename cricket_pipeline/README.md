@@ -44,9 +44,90 @@ cricket_pipeline/
 
 ## Install
 
+### One-shot installer (detects your GPU automatically)
+
+```bash
+./scripts/install.sh
+# or, equivalently:
+make install
+```
+
+What it does:
+1. Detects OS + NVIDIA GPU + CUDA driver version (via `nvidia-smi`)
+2. Creates a `.venv/` (skip with `--no-venv` if you have your own env)
+3. Installs CPU base deps (DuckDB, pandas, sklearn, LightGBM, …)
+4. Installs **PyTorch with the matching CUDA wheel** (`cu118` / `cu121` / `cu124`) — sequence-model training will use the GPU automatically
+5. Runs `scripts/gpu_check.py` to verify
+
+**Force CPU-only** (no GPU on this machine, or you don't want it):
+
+```bash
+./scripts/install.sh --cpu
+```
+
+**Optional: LightGBM with GPU build** (requires Boost + OpenCL dev headers; modest speedup):
+
+```bash
+./scripts/install.sh --lightgbm-gpu
+```
+
+### Manual install (if you prefer)
+
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r cricket_pipeline/requirements.txt
+# For NVIDIA GPU, replace torch with the CUDA wheel that matches your driver:
+pip install --index-url https://download.pytorch.org/whl/cu121 torch
+```
+
+### Verify
+
+```bash
+make gpu-check
+# or
+python scripts/gpu_check.py
+```
+
+You should see:
+```
+✓ GPU0: NVIDIA GeForce RTX 4060  driver 555.42.02  vram 8188 MiB
+✓ matmul on GPU works.
+```
+
+### What actually uses the GPU
+
+| Component | GPU benefit | Notes |
+|---|---|---|
+| **Sequence Transformer** (`model/sequence.py`) | **~30× faster** | Auto-detects CUDA. Pass `--device cuda` to force. |
+| **LightGBM ball model** | ~2-3× faster | Only with `--lightgbm-gpu` build; small datasets see no win |
+| **LightGBM match model** | ~1× | Too few rows (~1k) for GPU to matter |
+| Data ingestion / DuckDB | none | CPU-bound, already fast (10s for full IPL) |
+| Monte Carlo simulator | none | Already vectorised in numpy + LightGBM batched |
+
+Practical message: **the GPU mainly speeds up `model train --type sequence`.** For the ball-outcome and match-outcome models, CPU is fine.
+
+### Pass `--device` explicitly
+
+```bash
+# Force CUDA for sequence model
+python -m cricket_pipeline.pipeline model train --type sequence --device cuda
+
+# Force CPU on a GPU machine (e.g. for reproducibility comparison)
+python -m cricket_pipeline.pipeline match-train --device cpu
+
+# Auto-detect (default)
+python -m cricket_pipeline.pipeline model train --device auto
+```
+
+### Convenience targets
+
+```bash
+make install            # install + GPU detect
+make refresh            # daily-refresh
+make sequence-train     # GPU-accelerated training
+make forecast HOME='Lucknow Super Giants' AWAY='Kolkata Knight Riders' \
+              VENUE='Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow'
+make clean              # wipe DuckDB + cache + models
 ```
 
 ## One-time env
