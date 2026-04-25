@@ -70,6 +70,9 @@ python -m cricket_pipeline.pipeline cricsheet --dataset t20s_json --limit 100
 # 2. Load CricSheet people registry (Cricinfo / Cricbuzz / BCCI ids)
 python -m cricket_pipeline.pipeline people
 
+# 2b. Backfill players.country from already-cached CricSheet zips (free, no scrape)
+python -m cricket_pipeline.pipeline cs-players
+
 # 3. Geocode every venue seen in matches (lat/lon via Nominatim)
 python -m cricket_pipeline.pipeline venues --limit 200
 
@@ -261,9 +264,19 @@ paid provider (Opta, CricViz, Roanuz, SportMonks, Entity Sports).
 
 The data foundation is broad enough; the next jumps are quality and breadth:
 
-- **Time-aware feature aggregates** to remove leakage in career stats
-- **Calibrate** the runs and wicket probabilities (Platt / isotonic on a holdout)
-- **Bayesian shrinkage** on bowler-vs-batter matchup priors
+- ~~**Time-aware feature aggregates**~~ ✅ done — features now join the
+  `v_batter_history` / `v_bowler_history` views which use windows
+  `ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING` so the model only sees
+  data from before the current match.
+- ~~**Calibrate** the runs and wicket probabilities~~ ✅ done — isotonic on a
+  10% holdout, applied automatically by `predict_ball`, `predict_batch`, and
+  the simulator.
+- ~~**Bayesian shrinkage** on bowler-vs-batter matchup priors~~ ✅ done — see
+  `v_matchup_shrunk` (k=30 prior balls toward the bowler's overall rate).
+- ~~**Player profile updates from CricSheet match files**~~ ✅ done — see
+  `pipeline cs-players`, which walks cached zips and fills `players.country`
+  from the most-recent international team each player appears in.
 - **Bigger architectures**: LSTM / Transformer over sequences of recent balls
 - **Hawk-Eye / TrackMan** ball-tracking features (pace, swing, seam, RPM)
-- **Player profile updates from CricSheet match files** to fill `country` / `batting_hand` / `bowling_type` directly from match metadata when Cricinfo can't be reached
+- **Strike rotation + batting-order queue** in the simulator (currently
+  approximated)
