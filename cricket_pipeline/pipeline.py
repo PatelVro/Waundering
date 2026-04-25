@@ -155,6 +155,24 @@ def cmd_csplayers(args):
     print(f"backfilled country on {n} player rows from CricSheet match files")
 
 
+def cmd_match_train(args):
+    from .model import match as M
+    M.train(format_filter=args.fmt)
+
+
+def cmd_match_predict(args):
+    import json as _json
+    from .model.match import predict_match
+    out = predict_match(
+        home=args.home, away=args.away, venue=args.venue,
+        format_=args.fmt,
+        toss_winner=args.toss_winner,
+        toss_decision=args.toss_decision,
+        ref_date=args.ref_date,
+    )
+    print(_json.dumps(out, indent=2, default=str))
+
+
 def cmd_model(args):
     import json as _json
     if args.action == "train":
@@ -307,6 +325,25 @@ def main():
     cp.add_argument("--datasets", nargs="*",
                     help="CricSheet datasets to walk (default: all_json)")
     cp.set_defaults(func=cmd_csplayers)
+
+    mt = sub.add_parser("match-train",
+                        help="Train the match-outcome model (binary win classifier)")
+    mt.add_argument("--fmt", default="T20",
+                    help="Format filter (T20, IT20, ODI, Test)")
+    mt.set_defaults(func=cmd_match_train)
+
+    mp = sub.add_parser("match-predict",
+                        help="Predict P(home wins) for a single upcoming match")
+    mp.add_argument("--home",   required=True)
+    mp.add_argument("--away",   required=True)
+    mp.add_argument("--venue",  required=True)
+    mp.add_argument("--fmt",    default="T20")
+    mp.add_argument("--toss-winner",   default=None)
+    mp.add_argument("--toss-decision", default=None,
+                    choices=[None, "bat", "field"], help="bat or field")
+    mp.add_argument("--ref-date", default=None,
+                    help="As-of date for form lookups (default = today). YYYY-MM-DD")
+    mp.set_defaults(func=cmd_match_predict)
 
     md = sub.add_parser("model", help="Train / predict / simulate the ball-outcome model")
     md.add_argument("action", choices=["train", "predict", "simulate"])

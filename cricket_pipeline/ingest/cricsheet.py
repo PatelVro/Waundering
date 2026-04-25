@@ -203,40 +203,48 @@ def load_zip_to_db(zip_path: Path, db_path: Path | str | None = None, limit: int
 
 
 def _flush(con, matches: list[dict], innings: list[dict], balls: list[dict], officials: list[dict] | None = None) -> None:
-    if matches:
-        con.executemany(
-            """INSERT OR REPLACE INTO matches VALUES (
-                $match_id, $format, $competition, $season,
-                $start_date, $end_date, $venue, $city, $country,
-                $team_home, $team_away, $toss_winner, $toss_decision,
-                $winner, $win_margin_runs, $win_margin_wickets,
-                $player_of_match, $umpires, 'cricsheet')""",
-            matches,
-        )
-    if innings:
-        con.executemany(
-            """INSERT OR REPLACE INTO innings VALUES (
-                $match_id, $innings_no, $batting_team, $bowling_team,
-                $total_runs, $total_wkts, $total_overs, $target)""",
-            innings,
-        )
-    if balls:
-        con.executemany(
-            """INSERT OR REPLACE INTO balls VALUES (
-                $match_id, $innings_no, $over_no, $ball_in_over,
-                $legal_ball_no, $batting_team, $bowling_team,
-                $batter, $non_striker, $bowler,
-                $runs_batter, $runs_extras, $runs_total,
-                $extras_type, $is_wicket, $wicket_kind,
-                $player_out, $fielders)""",
-            balls,
-        )
+    """Bulk-insert each batch via a registered DataFrame.
+
+    `executemany` with named parameters performs one bind+execute per row,
+    which on a 100k+ row batch is dramatically slower than letting DuckDB
+    ingest the batch in one go via a registered Pandas DataFrame.
+    """
+    import pandas as pd
+
+    def _bulk(table: str, rows: list[dict], cols: list[str]) -> None:
+        if not rows:
+            return
+        df = pd.DataFrame(rows, columns=cols)
+        con.register("_stage", df)
+        try:
+            con.execute(f"INSERT OR REPLACE INTO {table} SELECT * FROM _stage")
+        finally:
+            con.unregister("_stage")
+
+    _bulk("matches", [{**m, "source": "cricsheet"} for m in matches], [
+        "match_id", "format", "competition", "season",
+        "start_date", "end_date", "venue", "city", "country",
+        "team_home", "team_away", "toss_winner", "toss_decision",
+        "winner", "win_margin_runs", "win_margin_wickets",
+        "player_of_match", "umpires", "source",
+    ])
+
+    _bulk("innings", innings, [
+        "match_id", "innings_no", "batting_team", "bowling_team",
+        "total_runs", "total_wkts", "total_overs", "target",
+    ])
+
+    _bulk("balls", balls, [
+        "match_id", "innings_no", "over_no", "ball_in_over",
+        "legal_ball_no", "batting_team", "bowling_team",
+        "batter", "non_striker", "bowler",
+        "runs_batter", "runs_extras", "runs_total",
+        "extras_type", "is_wicket", "wicket_kind",
+        "player_out", "fielders",
+    ])
+
     if officials:
-        con.executemany(
-            """INSERT OR REPLACE INTO match_officials (match_id, role, name)
-               VALUES ($match_id, $role, $name)""",
-            officials,
-        )
+        _bulk("match_officials", officials, ["match_id", "role", "name"])
 
 
 def ingest(dataset: str = "t20s_json", limit: int | None = None, force: bool = False) -> dict:
