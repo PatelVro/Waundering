@@ -306,8 +306,7 @@ FROM balls b
 JOIN matches m USING (match_id)
 GROUP BY m.venue, m.format, b.innings_no;
 
--- Time / season features — month + year breakdown of run rate (proxy for
--- conditions and the evolution of T20 strike rates over years)
+-- Time metrics view (existing) ...
 CREATE OR REPLACE VIEW v_time_metrics AS
 SELECT
     m.format,
@@ -320,3 +319,131 @@ FROM balls b
 JOIN matches m USING (match_id)
 WHERE m.start_date IS NOT NULL
 GROUP BY m.format, year, month;
+
+-- ============================================================================
+-- TIME-AWARE PLAYER HISTORY VIEWS (no leakage)
+--
+-- For every (player, match), compute the player's career & rolling stats up
+-- to but NOT including this match. Join `(player, match_id)` from features.py
+-- to get features that only see the past.
+-- ============================================================================
+
+CREATE OR REPLACE VIEW v_batter_history AS
+WITH innings_agg AS (
+    SELECT
+        b.batter,
+        b.match_id,
+        b.innings_no,
+        m.start_date,
+        SUM(b.runs_batter)                                  AS runs,
+        COUNT(*)                                            AS balls,
+        CAST(BOOL_OR(b.is_wicket AND b.player_out = b.batter) AS INTEGER) AS dismissed
+    FROM balls b
+    JOIN matches m USING (match_id)
+    WHERE b.batter IS NOT NULL AND m.start_date IS NOT NULL
+    GROUP BY b.batter, b.match_id, b.innings_no, m.start_date
+),
+collapsed AS (
+    -- One row per (batter, match): innings 1 + innings 2 in the same match are summed
+    SELECT batter, match_id, start_date,
+           SUM(runs)        AS runs,
+           SUM(balls)       AS balls,
+           SUM(dismissed)   AS dismissed
+    FROM innings_agg
+    GROUP BY batter, match_id, start_date
+)
+SELECT
+    batter,
+    match_id,
+    start_date,
+    -- career-to-date (excluding this match)
+    COALESCE(SUM(runs)      OVER w, 0) AS career_runs,
+    COALESCE(SUM(balls)     OVER w, 0) AS career_balls,
+    COALESCE(SUM(dismissed) OVER w, 0) AS career_dismissals,
+    ROUND(100.0 * COALESCE(SUM(runs)  OVER w, 0)
+                / NULLIF(SUM(balls)   OVER w, 0), 2) AS career_sr,
+    ROUND(1.0 * COALESCE(SUM(runs) OVER w, 0)
+              / NULLIF(SUM(dismissed) OVER w, 0), 2) AS career_avg,
+    -- rolling last-10 innings (still excluding current match)
+    COALESCE(SUM(runs)      OVER w10, 0) AS form_runs,
+    COALESCE(SUM(balls)     OVER w10, 0) AS form_balls,
+    ROUND(100.0 * COALESCE(SUM(runs)  OVER w10, 0)
+                / NULLIF(SUM(balls)   OVER w10, 0), 2) AS form_sr
+FROM collapsed
+WINDOW
+    w   AS (PARTITION BY batter ORDER BY start_date, match_id
+            ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING),
+    w10 AS (PARTITION BY batter ORDER BY start_date, match_id
+            ROWS BETWEEN 10 PRECEDING AND 1 PRECEDING);
+
+
+CREATE OR REPLACE VIEW v_bowler_history AS
+WITH per_match AS (
+    SELECT
+        b.bowler,
+        b.match_id,
+        m.start_date,
+        SUM(b.runs_total)                                                                  AS runs,
+        COUNT(*)                                                                           AS balls,
+        SUM(CASE WHEN b.is_wicket AND b.wicket_kind NOT IN ('run out','retired hurt')
+                 THEN 1 ELSE 0 END)                                                         AS wickets
+    FROM balls b
+    JOIN matches m USING (match_id)
+    WHERE b.bowler IS NOT NULL AND m.start_date IS NOT NULL
+    GROUP BY b.bowler, b.match_id, m.start_date
+)
+SELECT
+    bowler, match_id, start_date,
+    COALESCE(SUM(runs)    OVER w, 0)  AS career_runs,
+    COALESCE(SUM(balls)   OVER w, 0)  AS career_balls,
+    COALESCE(SUM(wickets) OVER w, 0)  AS career_wickets,
+    ROUND(6.0 * COALESCE(SUM(runs)    OVER w, 0)
+              / NULLIF(SUM(balls)     OVER w, 0), 2) AS career_econ,
+    ROUND(1.0 * COALESCE(SUM(runs)    OVER w, 0)
+              / NULLIF(SUM(wickets)   OVER w, 0), 2) AS career_avg,
+    -- workload windows (overs in last 7 / 30 / 90 days strictly before this match)
+    COALESCE(SUM(balls / 6.0) OVER w7,  0) AS workload_7d,
+    COALESCE(SUM(balls / 6.0) OVER w30, 0) AS workload_30d,
+    COALESCE(SUM(balls / 6.0) OVER w90, 0) AS workload_90d
+FROM per_match
+WINDOW
+    w   AS (PARTITION BY bowler ORDER BY start_date, match_id
+            ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING),
+    w7  AS (PARTITION BY bowler ORDER BY start_date
+            RANGE BETWEEN INTERVAL  7 DAY PRECEDING AND INTERVAL 1 DAY PRECEDING),
+    w30 AS (PARTITION BY bowler ORDER BY start_date
+            RANGE BETWEEN INTERVAL 30 DAY PRECEDING AND INTERVAL 1 DAY PRECEDING),
+    w90 AS (PARTITION BY bowler ORDER BY start_date
+            RANGE BETWEEN INTERVAL 90 DAY PRECEDING AND INTERVAL 1 DAY PRECEDING);
+
+
+-- Bowler-vs-batter matchup with Bayesian shrinkage toward bowler's overall
+-- prior. `k` is the prior strength (effective number of "prior balls").
+CREATE OR REPLACE VIEW v_matchup_shrunk AS
+WITH overall AS (
+    SELECT bowler,
+           SUM(runs_batter) * 1.0 / NULLIF(COUNT(*), 0)                                    AS bowler_runs_per_ball,
+           SUM(CASE WHEN is_wicket AND wicket_kind NOT IN ('run out','retired hurt')
+                    THEN 1 ELSE 0 END) * 1.0 / NULLIF(COUNT(*), 0)                          AS bowler_wkt_per_ball
+    FROM balls
+    WHERE bowler IS NOT NULL
+    GROUP BY bowler
+),
+raw AS (
+    SELECT bowler, batter,
+           COUNT(*) AS n,
+           SUM(runs_batter) AS runs,
+           SUM(CASE WHEN is_wicket AND wicket_kind NOT IN ('run out','retired hurt')
+                    THEN 1 ELSE 0 END) AS wkts
+    FROM balls
+    WHERE bowler IS NOT NULL AND batter IS NOT NULL
+    GROUP BY bowler, batter
+)
+SELECT
+    r.bowler, r.batter, r.n AS balls,
+    r.runs, r.wkts,
+    -- shrunk = (n*observed + k*prior) / (n + k)
+    (r.runs + 30 * o.bowler_runs_per_ball) / (r.n + 30) AS shrunk_runs_per_ball,
+    (r.wkts + 30 * o.bowler_wkt_per_ball)  / (r.n + 30) AS shrunk_wkt_per_ball
+FROM raw r
+JOIN overall o ON o.bowler = r.bowler;

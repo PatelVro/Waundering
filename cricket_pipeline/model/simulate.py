@@ -22,6 +22,7 @@ from typing import Iterable
 
 import numpy as np
 
+from . import calibrate as C
 from .predict import _load
 from . import features as F
 from .train import RUN_BUCKETS
@@ -31,7 +32,6 @@ RNG = np.random.default_rng(42)
 
 
 def _state_to_array(state: dict) -> np.ndarray:
-    runs, wkt, _ = _load()
     import pandas as pd
     df = pd.DataFrame([{c: state.get(c) for c in F.NUMERIC + F.CATEGORICAL}])
     for col in F.CATEGORICAL:
@@ -40,9 +40,13 @@ def _state_to_array(state: dict) -> np.ndarray:
 
 
 def _predict(states_df) -> tuple[np.ndarray, np.ndarray]:
-    runs, wkt, _ = _load()
+    runs, wkt, _, cal = _load()
     rp = runs.predict(states_df)
     wp = wkt.predict(states_df)
+    if cal is not None:
+        runs_isos, wicket_iso = cal
+        rp = C.transform_multiclass(runs_isos, rp)
+        wp = C.transform_binary(wicket_iso, wp)
     return rp, wp
 
 
