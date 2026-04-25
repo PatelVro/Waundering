@@ -2,6 +2,10 @@
 
 A premium, dark, scroll-story marketing homepage for a niche SaaS ERP product focused on **small to mid-sized electronics e-commerce operators**.
 
+> **AI agents** (Claude Code, Cursor, Codex, Copilot, …): start with [`AGENTS.md`](./AGENTS.md) — it briefs you on the install flow, common commands, architecture, and known gotchas in one read.
+>
+> **Cricket prediction pipeline** users: see [`cricket_pipeline/README.md`](./cricket_pipeline/README.md) for the full guide.
+
 ## What is included
 
 - Conversion-focused one-page site with sharp niche messaging.
