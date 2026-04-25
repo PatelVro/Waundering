@@ -394,20 +394,20 @@ WITH per_match AS (
 )
 SELECT
     bowler, match_id, start_date,
-    COALESCE(SUM(runs)    OVER w, 0)  AS career_runs,
-    COALESCE(SUM(balls)   OVER w, 0)  AS career_balls,
-    COALESCE(SUM(wickets) OVER w, 0)  AS career_wickets,
-    ROUND(6.0 * COALESCE(SUM(runs)    OVER w, 0)
-              / NULLIF(SUM(balls)     OVER w, 0), 2) AS career_econ,
-    ROUND(1.0 * COALESCE(SUM(runs)    OVER w, 0)
-              / NULLIF(SUM(wickets)   OVER w, 0), 2) AS career_avg,
+    COALESCE(SUM(runs)    OVER wb, 0)  AS career_runs,
+    COALESCE(SUM(balls)   OVER wb, 0)  AS career_balls,
+    COALESCE(SUM(wickets) OVER wb, 0)  AS career_wickets,
+    ROUND(6.0 * COALESCE(SUM(runs)    OVER wb, 0)
+              / NULLIF(SUM(balls)     OVER wb, 0), 2) AS career_econ,
+    ROUND(1.0 * COALESCE(SUM(runs)    OVER wb, 0)
+              / NULLIF(SUM(wickets)   OVER wb, 0), 2) AS career_avg,
     -- workload windows (overs in last 7 / 30 / 90 days strictly before this match)
     COALESCE(SUM(balls / 6.0) OVER w7,  0) AS workload_7d,
     COALESCE(SUM(balls / 6.0) OVER w30, 0) AS workload_30d,
     COALESCE(SUM(balls / 6.0) OVER w90, 0) AS workload_90d
 FROM per_match
 WINDOW
-    w   AS (PARTITION BY bowler ORDER BY start_date, match_id
+    wb  AS (PARTITION BY bowler ORDER BY start_date, match_id
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING),
     w7  AS (PARTITION BY bowler ORDER BY start_date
             RANGE BETWEEN INTERVAL  7 DAY PRECEDING AND INTERVAL 1 DAY PRECEDING),

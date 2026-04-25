@@ -6,3 +6,4 @@ __pycache__/
 # cricket_pipeline
 cricket_pipeline/data/*.duckdb
 cricket_pipeline/data/cache/
+cricket_pipeline/data/models/
