@@ -158,7 +158,7 @@ def cmd_csplayers(args):
 
 def cmd_match_train(args):
     from .model import match as M
-    M.train(format_filter=args.fmt)
+    M.train(format_filter=args.fmt, device=args.device)
 
 
 def cmd_match_predict(args):
@@ -260,10 +260,11 @@ def cmd_model(args):
     if args.action == "train":
         if args.type == "sequence":
             from .model import sequence as S
-            S.train(format_filter=args.fmt, limit=args.limit, epochs=args.epochs)
+            S.train(format_filter=args.fmt, limit=args.limit, epochs=args.epochs,
+                    device=None if args.device == "auto" else args.device)
         else:
             from .model import train as M
-            M.train(format_filter=args.fmt, limit=args.limit)
+            M.train(format_filter=args.fmt, limit=args.limit, device=args.device)
     elif args.action == "predict":
         if args.type == "sequence":
             from .model.sequence import predict_sequence
@@ -412,6 +413,9 @@ def main():
                         help="Train the match-outcome model (binary win classifier)")
     mt.add_argument("--fmt", default="T20",
                     help="Format filter (T20, IT20, ODI, Test)")
+    mt.add_argument("--device", default="auto",
+                    choices=["auto", "cpu", "gpu", "cuda"],
+                    help="LightGBM device (auto = use GPU if available)")
     mt.set_defaults(func=cmd_match_train)
 
     mp = sub.add_parser("match-predict",
@@ -490,6 +494,10 @@ def main():
                     help="JSON of ball state, or list of state dicts for sequence predict")
     md.add_argument("--n-sim", type=int, default=5000)
     md.add_argument("--seed", type=int, default=None)
+    md.add_argument("--device", default="auto",
+                    choices=["auto", "cpu", "gpu", "cuda"],
+                    help="Compute device — for sequence model uses CUDA, "
+                         "for lgbm uses LightGBM's GPU build")
     md.set_defaults(func=cmd_model)
 
     st = sub.add_parser("stats", help="Show row counts")

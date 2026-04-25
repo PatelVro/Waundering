@@ -183,7 +183,13 @@ def train(format_filter: str | None = "IT20", limit: int | None = None,
           epochs: int = EPOCHS, batch_size: int = BATCH, lr: float = LR,
           device: str | None = None) -> dict:
     dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
-    print(f"Device: {dev}")
+    if dev.type == "cuda":
+        idx = dev.index or 0
+        gpu_name = torch.cuda.get_device_name(idx)
+        gpu_mem  = torch.cuda.get_device_properties(idx).total_memory // (1 << 20)
+        print(f"Device: {dev}  ({gpu_name}, {gpu_mem} MiB)")
+    else:
+        print(f"Device: {dev}  (CPU — sequence training will be ~20-30x slower than GPU)")
 
     print(f"Loading features (format={format_filter}, limit={limit}) …")
     df = F.build(format_filter=format_filter, limit=limit)

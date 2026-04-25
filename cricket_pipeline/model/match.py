@@ -88,9 +88,12 @@ def _params() -> dict:
     }
 
 
-def train(format_filter: str | list | None = "T20,IT20") -> dict:
+def train(format_filter: str | list | None = "T20,IT20",
+          device: str = "auto") -> dict:
+    from .train import _resolve_device
+    dev = _resolve_device(device)
     fmts = _normalise_formats(format_filter)
-    print(f"Loading match-level features (formats={fmts or 'all'}) …")
+    print(f"Loading match-level features (formats={fmts or 'all'}, device={dev}) …")
     df = build_features(format_filter=fmts)
     if df.empty:
         raise RuntimeError("No matches. Run `pipeline cricsheet` and `pipeline views` first.")
@@ -110,9 +113,12 @@ def train(format_filter: str | list | None = "T20,IT20") -> dict:
 
     train_set = lgb.Dataset(Xtr, label=ytr, categorical_feature=CATEGORICAL)
     valid_set = lgb.Dataset(Xte, label=yte, categorical_feature=CATEGORICAL, reference=train_set)
-    print("Training match-outcome model …")
+    print(f"Training match-outcome model on {dev} …")
+    params = _params()
+    if dev != "cpu":
+        params = {**params, "device": dev}
     booster = lgb.train(
-        _params(), train_set,
+        params, train_set,
         num_boost_round=600,
         valid_sets=[valid_set],
         callbacks=[lgb.early_stopping(40), lgb.log_evaluation(50)],
