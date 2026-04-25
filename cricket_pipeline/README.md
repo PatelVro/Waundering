@@ -224,12 +224,53 @@ python -m cricket_pipeline.examples.model_demo
 
 What's inside `model/`:
 
-| File         | Purpose                                                     |
-|--------------|-------------------------------------------------------------|
-| `features.py`| joins `v_ball_state` + player/venue/form/weather views      |
-| `train.py`   | LightGBM runs (multiclass) + wicket (binary) — saves to `data/models/` |
-| `predict.py` | scores one ball or a batch                                  |
-| `simulate.py`| vectorised Monte Carlo innings rollout                      |
+| File          | Purpose                                                     |
+|---------------|-------------------------------------------------------------|
+| `features.py` | joins `v_ball_state` + player/venue/form/weather views      |
+| `train.py`    | LightGBM runs (multiclass) + wicket (binary)                |
+| `calibrate.py`| isotonic calibration on a held-out 10% slice                |
+| `predict.py`  | scores one ball or a batch (LightGBM)                       |
+| `simulate.py` | vectorised Monte Carlo innings rollout                      |
+| `sequence.py` | Transformer over the last 12 balls (PyTorch) — captures momentum |
+
+### Two model architectures
+
+The CLI supports both via `--type`:
+
+```bash
+# 1. Independent ball model (LightGBM, default — fast, strong baseline)
+python -m cricket_pipeline.pipeline model train --type lgbm --fmt IT20
+
+# 2. Sequence model (Transformer — captures momentum from the last 12 balls)
+python -m cricket_pipeline.pipeline model train --type sequence --fmt IT20 --epochs 8
+```
+
+The sequence model is a small Transformer (~2 layers, 4 heads, d_model=64)
+with learned embeddings for batter / bowler / venue. It looks at the last
+`SEQ_LEN=12` deliveries within the same innings and predicts the same two
+heads (runs multiclass + wicket binary). For early balls in an innings the
+sequence is left-padded with a key-padding mask.
+
+Use it when:
+- You want better accuracy on momentum-driven moments (death overs, run chases)
+- You have a GPU available (CPU training works but is slower — ~15 minutes
+  on a typical CPU for 200k T20 balls × 8 epochs)
+
+Stick with `--type lgbm` when:
+- You need millisecond inference latency
+- You're using the Monte Carlo simulator (which currently routes through the
+  LightGBM predictor; integrating the sequence model is a follow-up)
+
+### Predicting with the sequence model
+
+`--state` accepts either a single state dict (auto-wrapped) or a list of
+state dicts representing the last few balls (oldest-first). The last entry
+is what gets predicted; earlier entries are context.
+
+```bash
+python -m cricket_pipeline.pipeline model predict --type sequence \
+  --state '[{...prev ball 1...}, {...prev ball 2...}, {...current ball...}]'
+```
 
 Outputs:
 - `runs_probs`: distribution over {0,1,2,3,4,5+,6}
@@ -276,7 +317,10 @@ The data foundation is broad enough; the next jumps are quality and breadth:
 - ~~**Player profile updates from CricSheet match files**~~ ✅ done — see
   `pipeline cs-players`, which walks cached zips and fills `players.country`
   from the most-recent international team each player appears in.
-- **Bigger architectures**: LSTM / Transformer over sequences of recent balls
+- ~~**Bigger architectures**: LSTM / Transformer over sequences of recent balls~~
+  ✅ done — see `model/sequence.py` (small Transformer, SEQ_LEN=12, learned
+  batter/bowler/venue embeddings, isotonic-calibrated heads). Run via
+  `pipeline model train --type sequence`. Simulator integration is a follow-up.
 - **Hawk-Eye / TrackMan** ball-tracking features (pace, swing, seam, RPM)
 - **Strike rotation + batting-order queue** in the simulator (currently
   approximated)

@@ -156,20 +156,29 @@ def cmd_csplayers(args):
 
 
 def cmd_model(args):
+    import json as _json
     if args.action == "train":
-        from .model import train as M
-        M.train(format_filter=args.fmt, limit=args.limit)
+        if args.type == "sequence":
+            from .model import sequence as S
+            S.train(format_filter=args.fmt, limit=args.limit, epochs=args.epochs)
+        else:
+            from .model import train as M
+            M.train(format_filter=args.fmt, limit=args.limit)
     elif args.action == "predict":
-        from .model.predict import predict_ball
-        import json as _json
-        state = _json.loads(args.state)
-        out = predict_ball(state)
+        if args.type == "sequence":
+            from .model.sequence import predict_sequence
+            history = _json.loads(args.state)
+            if isinstance(history, dict):
+                history = [history]
+            out = predict_sequence(history)
+        else:
+            from .model.predict import predict_ball
+            out = predict_ball(_json.loads(args.state))
         print(_json.dumps(out, indent=2))
     elif args.action == "simulate":
         from .model.simulate import simulate_innings
-        import json as _json
-        state = _json.loads(args.state)
-        out = simulate_innings(state, n_sim=args.n_sim, seed=args.seed)
+        out = simulate_innings(_json.loads(args.state),
+                               n_sim=args.n_sim, seed=args.seed)
         print(_json.dumps(out, indent=2))
 
 
@@ -301,11 +310,15 @@ def main():
 
     md = sub.add_parser("model", help="Train / predict / simulate the ball-outcome model")
     md.add_argument("action", choices=["train", "predict", "simulate"])
+    md.add_argument("--type", choices=["lgbm", "sequence"], default="lgbm",
+                    help="Model architecture: lgbm (default) or sequence Transformer")
     md.add_argument("--fmt", default="IT20",
                     help="Format filter for training (e.g. IT20, T20, ODI)")
     md.add_argument("--limit", type=int, default=None)
+    md.add_argument("--epochs", type=int, default=8,
+                    help="Sequence-model training epochs (ignored for lgbm)")
     md.add_argument("--state", default="{}",
-                    help="JSON of ball state (predict + simulate)")
+                    help="JSON of ball state, or list of state dicts for sequence predict")
     md.add_argument("--n-sim", type=int, default=5000)
     md.add_argument("--seed", type=int, default=None)
     md.set_defaults(func=cmd_model)
