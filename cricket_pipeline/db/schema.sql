@@ -66,12 +66,15 @@ CREATE TABLE IF NOT EXISTS players (
     role          VARCHAR,
     batting_hand  VARCHAR,
     bowling_type  VARCHAR,
+    height_cm     INTEGER,
+    debut_year    INTEGER,
     key_cricinfo  VARCHAR,
     key_cricbuzz  VARCHAR,
     key_bcci      VARCHAR,
     key_opta      VARCHAR,
     key_nvplay    VARCHAR,
     key_pulse     VARCHAR,
+    key_wikidata  VARCHAR,
     profile_url   VARCHAR,
     enriched_at   TIMESTAMP
 );

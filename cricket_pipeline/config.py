@@ -73,6 +73,9 @@ NEWS_FEEDS = {
     "cricbuzz":       "https://www.cricbuzz.com/rss/cricket-news.rss",
     "icc":            "https://www.icc-cricket.com/rss/news",
     "wisden":         "https://wisden.com/feed",
+    "reddit_cricket": "https://www.reddit.com/r/Cricket/.rss",
+    "the_guardian":   "https://www.theguardian.com/sport/cricket/rss",
+    "the_hindu":      "https://www.thehindu.com/sport/cricket/feeder/default.rss",
 }
 
 WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
@@ -89,6 +92,10 @@ CRICBUZZ_LIVE_LIST = "https://www.cricbuzz.com/api/html/cricket-schedule/live"
 
 NEWSAPI_KEY = os.environ.get("NEWSAPI_KEY", "")
 NEWSAPI_BASE = "https://newsapi.org/v2"
+
+GDELT_DOC_API = "https://api.gdeltproject.org/api/v2/doc/doc"
+
+WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 
 for d in (DATA_DIR, CACHE_DIR):
     d.mkdir(parents=True, exist_ok=True)

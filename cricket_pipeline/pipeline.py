@@ -22,6 +22,7 @@ from .ingest import (
     cricinfo_profiles,
     cricsheet,
     fixtures,
+    gdelt,
     news,
     newsapi,
     openweather,
@@ -32,6 +33,7 @@ from .ingest import (
     umpires,
     venues,
     weather,
+    wikidata,
     wikipedia,
 )
 
@@ -135,6 +137,16 @@ def cmd_cricbuzz(args):
 def cmd_newsapi(args):
     n = newsapi.fetch(query=args.query, days=args.days)
     print(f"stored {n} NewsAPI articles")
+
+
+def cmd_gdelt(args):
+    n = gdelt.fetch(query=args.query, hours=args.hours, maxrecords=args.max)
+    print(f"stored {n} GDELT articles")
+
+
+def cmd_wikidata(args):
+    n = wikidata.merge()
+    print(f"matched {n} Wikidata cricketer records onto players")
 
 
 def cmd_stats(args):
@@ -247,6 +259,15 @@ def main():
     na.add_argument("--query", default="cricket")
     na.add_argument("--days", type=int, default=7)
     na.set_defaults(func=cmd_newsapi)
+
+    gd = sub.add_parser("gdelt", help="Pull global cricket news via GDELT 2.0 (no key)")
+    gd.add_argument("--query", default="cricket")
+    gd.add_argument("--hours", type=int, default=72)
+    gd.add_argument("--max", type=int, default=100)
+    gd.set_defaults(func=cmd_gdelt)
+
+    wd = sub.add_parser("wikidata", help="Enrich players from Wikidata SPARQL")
+    wd.set_defaults(func=cmd_wikidata)
 
     st = sub.add_parser("stats", help="Show row counts")
     st.set_defaults(func=cmd_stats)

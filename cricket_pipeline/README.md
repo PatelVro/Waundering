@@ -26,6 +26,8 @@ cricket_pipeline/
 │   ├── openweather.py          # OpenWeatherMap current + 5-day forecast
 │   ├── news.py                 # multi-source RSS + sentiment + entity tags
 │   ├── newsapi.py              # NewsAPI (broader news, 100 req/day free)
+│   ├── gdelt.py                # GDELT 2.0 global news event database (no key)
+│   ├── wikidata.py             # SPARQL: dob, height, debut year, country
 │   ├── umpires.py              # derives umpires from matches.umpires
 │   ├── fixtures.py             # CricAPI upcoming/live matches
 │   ├── partnerships.py         # derived partnerships from ball-by-ball
@@ -112,7 +114,13 @@ python -m cricket_pipeline.pipeline newsapi --query cricket --days 7
 # 18. Live match snapshots from Cricbuzz (unofficial, brittle)
 python -m cricket_pipeline.pipeline cricbuzz <CricbuzzMatchId> [<MatchId2> ...]
 
-# 19. Row counts + sample queries
+# 19. GDELT — global cricket news (no key required)
+python -m cricket_pipeline.pipeline gdelt --hours 72
+
+# 20. Wikidata player enrichment (height, debut year, etc.)
+python -m cricket_pipeline.pipeline wikidata
+
+# 21. Row counts + sample queries
 python -m cricket_pipeline.pipeline stats
 python -m cricket_pipeline.examples.basic_query
 ```
@@ -145,6 +153,10 @@ Run `python -m cricket_pipeline.pipeline datasets` for the URL list.
 | `v_batter_form`      | rolling 10-innings runs, SR, average per batter                |
 | `v_bowler_workload`  | overs bowled in last 7 / 30 / 90 days per bowler               |
 | `v_top_partnerships` | partnership leaderboard sortable by runs                       |
+| `v_bowler_spells`    | per-spell stats (start/end over, runs, wickets, economy)       |
+| `v_fielding_profile` | catches, run-outs, stumpings, c&b per fielder                  |
+| `v_pitch_deterioration` | run rate / wicket% / boundary% by innings number per venue  |
+| `v_time_metrics`     | run rate + wicket% by year × month × format                    |
 
 ## Available CricSheet datasets
 

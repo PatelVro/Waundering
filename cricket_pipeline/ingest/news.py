@@ -53,7 +53,12 @@ def _vocab() -> set[str]:
 
 
 def fetch_feed(name: str, url: str, vocab: set[str]) -> list[dict]:
-    parsed = feedparser.parse(url)
+    import os as _os
+    contact = _os.environ.get("STATSGURU_CONTACT", "research")
+    parsed = feedparser.parse(
+        url,
+        agent=f"cricket_pipeline/0.1 (+{contact})",
+    )
     rows = []
     for e in parsed.entries:
         title = e.get("title", "")

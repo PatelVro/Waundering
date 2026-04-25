@@ -227,3 +227,96 @@ SELECT
 FROM partnerships p
 JOIN matches m USING (match_id)
 ORDER BY p.runs DESC;
+
+-- Bowler spells. A spell starts when a bowler bowls a fresh over after at
+-- least one over by another bowler. We tag each ball with a spell number.
+CREATE OR REPLACE VIEW v_bowler_spells AS
+WITH overs AS (
+    SELECT DISTINCT match_id, innings_no, over_no, bowler
+    FROM balls
+    WHERE bowler IS NOT NULL
+),
+flagged AS (
+    SELECT
+        *,
+        CASE WHEN bowler = LAG(bowler) OVER (
+            PARTITION BY match_id, innings_no
+            ORDER BY over_no
+        ) THEN 0 ELSE 1 END AS new_spell
+    FROM overs
+),
+numbered AS (
+    SELECT
+        *,
+        SUM(new_spell) OVER (
+            PARTITION BY match_id, innings_no, bowler
+            ORDER BY over_no
+        ) AS spell_no
+    FROM flagged
+)
+SELECT
+    n.match_id, n.innings_no, n.bowler, n.spell_no,
+    MIN(n.over_no)                        AS start_over,
+    MAX(n.over_no)                        AS end_over,
+    COUNT(*)                              AS overs,
+    SUM(b.runs_total)                     AS runs_conceded,
+    SUM(CASE WHEN b.is_wicket AND b.wicket_kind NOT IN ('run out','retired hurt')
+             THEN 1 ELSE 0 END)            AS wickets,
+    ROUND(6.0 * SUM(b.runs_total) / NULLIF(COUNT(*) * 6, 0), 2) AS economy
+FROM numbered n
+JOIN balls b ON b.match_id = n.match_id
+            AND b.innings_no = n.innings_no
+            AND b.over_no = n.over_no
+            AND b.bowler = n.bowler
+GROUP BY n.match_id, n.innings_no, n.bowler, n.spell_no;
+
+-- Fielding profile — catches, run-out involvement, stumpings per fielder.
+CREATE OR REPLACE VIEW v_fielding_profile AS
+WITH per_ball AS (
+    SELECT
+        TRIM(unnest(string_split(fielders, ','))) AS fielder,
+        wicket_kind,
+        match_id
+    FROM balls
+    WHERE fielders IS NOT NULL AND fielders != ''
+)
+SELECT
+    fielder,
+    COUNT(DISTINCT match_id)                                    AS matches,
+    SUM(CASE WHEN wicket_kind = 'caught'   THEN 1 ELSE 0 END)   AS catches,
+    SUM(CASE WHEN wicket_kind = 'run out'  THEN 1 ELSE 0 END)   AS run_outs,
+    SUM(CASE WHEN wicket_kind = 'stumped'  THEN 1 ELSE 0 END)   AS stumpings,
+    SUM(CASE WHEN wicket_kind = 'caught and bowled' THEN 1 ELSE 0 END) AS c_and_b
+FROM per_ball
+WHERE fielder != ''
+GROUP BY fielder;
+
+-- Pitch deterioration — does scoring rate drop / wicket rate climb later in
+-- the match? Test cricket flag: avg per innings number, by venue.
+CREATE OR REPLACE VIEW v_pitch_deterioration AS
+SELECT
+    m.venue,
+    m.format,
+    b.innings_no,
+    COUNT(*)                                                              AS balls,
+    ROUND(6.0 * SUM(b.runs_total) / COUNT(*), 2)                          AS run_rate,
+    ROUND(100.0 * SUM(CASE WHEN b.is_wicket THEN 1 ELSE 0 END) / COUNT(*), 3) AS wicket_pct,
+    ROUND(100.0 * SUM(CASE WHEN b.runs_batter IN (4, 6) THEN 1 ELSE 0 END) / COUNT(*), 2) AS boundary_pct
+FROM balls b
+JOIN matches m USING (match_id)
+GROUP BY m.venue, m.format, b.innings_no;
+
+-- Time / season features — month + year breakdown of run rate (proxy for
+-- conditions and the evolution of T20 strike rates over years)
+CREATE OR REPLACE VIEW v_time_metrics AS
+SELECT
+    m.format,
+    EXTRACT(year  FROM m.start_date) AS year,
+    EXTRACT(month FROM m.start_date) AS month,
+    COUNT(DISTINCT m.match_id)                                         AS matches,
+    ROUND(6.0 * SUM(b.runs_total) / COUNT(*), 2)                        AS run_rate,
+    ROUND(100.0 * SUM(CASE WHEN b.is_wicket THEN 1 ELSE 0 END) / COUNT(*), 3) AS wicket_pct
+FROM balls b
+JOIN matches m USING (match_id)
+WHERE m.start_date IS NOT NULL
+GROUP BY m.format, year, month;
