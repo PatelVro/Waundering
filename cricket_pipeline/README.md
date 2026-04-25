@@ -198,6 +198,77 @@ Run `python -m cricket_pipeline.pipeline datasets` for the URL list.
 - **Biometrics:** add a `player_state_daily` table keyed on `(player_id, date)`.
 - **News/sentiment:** add a `news` table keyed on `(match_id, source, published_at)`.
 
+## Live-match operations — predicting tomorrow's game
+
+The pipeline is built so the same machine that ingests data also runs the
+forecast. Here's the operational flow for an upcoming IPL match:
+
+### Day before / morning of (cron)
+
+```bash
+# Re-pull CricSheet + reinstall views + retrain match model. ~15s on T20+IT20.
+python -m cricket_pipeline.pipeline daily-refresh --datasets ipl_json --fmt T20,IT20
+```
+
+A reasonable cron: `0 5 * * *  python -m cricket_pipeline.pipeline daily-refresh --datasets ipl_json`.
+
+### ~1 hour before toss (poll for XI + toss)
+
+Find the Cricbuzz match-squads URL for the fixture (linked off the match
+preview page) and run:
+
+```bash
+python -m cricket_pipeline.pipeline prematch \
+  --url "https://www.cricbuzz.com/cricket-match-squads/<id>/<slug>" \
+  --max-wait-seconds 3600 \
+  --poll-seconds 120 \
+  --out cricket_pipeline/data/cache/prematch_<id>.json
+```
+
+This polls every 2 minutes for up to an hour. As soon as both XIs and the
+toss line appear, it writes the JSON to disk and exits.
+
+### Right before the match (forecast)
+
+```bash
+python -m cricket_pipeline.pipeline match-forecast \
+  --home "Lucknow Super Giants" \
+  --away "Kolkata Knight Riders" \
+  --venue "Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow" \
+  --home-xi "MR Marsh,AT Markram,RR Pant,N Pooran,..." \
+  --away-xi "AM Rahane,FH Allen,C Green,..." \
+  --toss-winner "Lucknow Super Giants" \
+  --toss-decision bat
+```
+
+Outputs the full forecast in human-readable form. Add `--json` for
+machine-readable output. All XI / toss inputs are optional — the model uses
+fallback heuristics where they're missing.
+
+### What each piece of real-time info shifts
+
+| Input | When announced | Effect on prediction |
+|---|---|---|
+| Daily form refresh | Morning of match | Catches up on overnight matches |
+| Playing XIs | ~30 min before toss | Player-level top scorer / wicket picks become accurate |
+| Toss winner + decision | ~30 min before toss | Removes the toss-marginalisation; ±5-8 pp swing |
+| Pitch report | Hour before / first 5 overs | Manual review — feed into venue prior |
+| Dew | Second-innings only | Manual: re-run forecast with `--toss-decision field` weight |
+
+### When the scrapers fail
+
+Cricbuzz aggressively blocks cloud-IP user agents (returns 403). This is
+expected from CI / cloud / corporate-VPN environments. From a residential
+IP it works fine. Workarounds:
+
+1. Run from a local machine or a residential VPS
+2. Pass `--home-xi` and `--away-xi` manually from any other source (IPLT20.com,
+   ESPNCricinfo, official team Twitter)
+3. Pass `--toss-winner` and `--toss-decision` manually after toss
+
+The pipeline's "last mile" is human-in-the-loop on purpose — chasing
+real-time scraping reliability across providers is a losing game.
+
 ## Modelling — ball-outcome predictor
 
 After data is loaded and views installed, you can train the prototype model:

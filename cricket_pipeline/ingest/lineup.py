@@ -71,9 +71,28 @@ def _clean(name: str) -> str:
     return name
 
 
+def parse_toss(html: str) -> dict:
+    """Pull toss-winner + decision from the page text. Returns
+    {'toss_winner': 'Team Name', 'toss_decision': 'bat'|'field', None if absent}."""
+    text = BeautifulSoup(html, "lxml").get_text(" ", strip=True)
+    # Cricbuzz copy: "Team Name won the toss & opt to bowl/bat"
+    m = re.search(r"([A-Z][A-Za-z' \.\-]+?)\s+won the toss\s*(?:&|and)\s*opt(?:ed)?\s+to\s+(bat|bowl|field)",
+                  text, re.IGNORECASE)
+    if not m:
+        m = re.search(r"([A-Z][A-Za-z' \.\-]+?)\s+won the toss\s*(?:&|and)\s*chose\s+to\s+(bat|bowl|field)",
+                      text, re.IGNORECASE)
+    if not m:
+        return {"toss_winner": None, "toss_decision": None}
+    decision = m.group(2).lower()
+    if decision == "bowl":
+        decision = "field"
+    return {"toss_winner": m.group(1).strip(), "toss_decision": decision}
+
+
 def parse_squads(html: str) -> dict:
     """Returns {'team_a': str, 'team_b': str, 'xi_a': [...], 'xi_b': [...],
-                'bench_a': [...], 'bench_b': [...], 'announced': bool}."""
+                'bench_a': [...], 'bench_b': [...], 'announced': bool,
+                'toss_winner': str | None, 'toss_decision': 'bat'|'field' | None}."""
     soup = BeautifulSoup(html, "lxml")
 
     teams = []
@@ -115,6 +134,7 @@ def parse_squads(html: str) -> dict:
         if len(names) >= 22:
             xis = [names[:11], names[11:22]]
 
+    toss = parse_toss(html)
     return {
         "team_a":   teams[0] if len(teams) > 0 else None,
         "team_b":   teams[1] if len(teams) > 1 else None,
@@ -123,6 +143,7 @@ def parse_squads(html: str) -> dict:
         "bench_a":  bench[0],
         "bench_b":  bench[1],
         "announced": (len(xis[0]) >= 11 and len(xis[1]) >= 11),
+        **toss,
     }
 
 

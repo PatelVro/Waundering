@@ -190,6 +190,56 @@ def cmd_lineup(args):
     print(_json.dumps(out, indent=2, default=str))
 
 
+def cmd_match_forecast(args):
+    """End-to-end forecast — winner, scores, top players, key matchups."""
+    from . import forecast as F
+    home_xi = [n.strip() for n in args.home_xi.split(",")] if args.home_xi else None
+    away_xi = [n.strip() for n in args.away_xi.split(",")] if args.away_xi else None
+    fc = F.forecast(
+        home=args.home, away=args.away, venue=args.venue,
+        home_xi=home_xi, away_xi=away_xi,
+        toss_winner=args.toss_winner,
+        toss_decision=args.toss_decision,
+        ref_date=args.ref_date,
+        n_sim=args.n_sim,
+    )
+    if args.json:
+        import dataclasses, json as _json
+        print(_json.dumps(dataclasses.asdict(fc), indent=2, default=str))
+    else:
+        print(F.render(fc))
+
+
+def cmd_prematch(args):
+    """Poll a Cricbuzz match page for XIs + toss until both are present, then
+    write the result to data/cache/prematch_<match_id>.json so a subsequent
+    `match-forecast` can pick them up. Cron-friendly."""
+    import json as _json
+    import time as _time
+    from pathlib import Path
+    deadline = _time.time() + args.max_wait_seconds
+    last = None
+    while _time.time() < deadline:
+        try:
+            data = lineup.fetch(args.url)
+        except Exception as e:
+            print(f"  fetch error: {e}")
+            data = None
+        if data:
+            last = data
+            ann = data.get("announced")
+            toss = data.get("toss_winner")
+            print(f"  XIs={'yes' if ann else 'no'}  toss={toss or 'no'}")
+            if ann and toss:
+                break
+        _time.sleep(args.poll_seconds)
+    out = Path(args.out) if args.out else None
+    if out and last:
+        out.write_text(_json.dumps(last, indent=2))
+        print(f"  wrote {out}")
+    print(_json.dumps(last, indent=2, default=str))
+
+
 def cmd_daily_refresh(args):
     """Re-pull data, rebuild views, retrain match model. Cron-friendly."""
     from .ingest import cricsheet
@@ -386,6 +436,36 @@ def main():
     ln.add_argument("--match-id", default=None,
                     help="Cricbuzz match id (alt to --url)")
     ln.set_defaults(func=cmd_lineup)
+
+    mf = sub.add_parser("match-forecast",
+                        help="End-to-end forecast: winner, scores, top players, matchups")
+    mf.add_argument("--home",   required=True)
+    mf.add_argument("--away",   required=True)
+    mf.add_argument("--venue",  required=True)
+    mf.add_argument("--home-xi", default=None,
+                    help="Comma-separated playing XI for home team")
+    mf.add_argument("--away-xi", default=None,
+                    help="Comma-separated playing XI for away team")
+    mf.add_argument("--toss-winner",   default=None)
+    mf.add_argument("--toss-decision", default=None, choices=[None, "bat", "field"])
+    mf.add_argument("--ref-date", default=None,
+                    help="As-of date for form lookups. YYYY-MM-DD")
+    mf.add_argument("--n-sim", type=int, default=2000)
+    mf.add_argument("--json",  action="store_true",
+                    help="Emit JSON instead of formatted text")
+    mf.set_defaults(func=cmd_match_forecast)
+
+    pm = sub.add_parser("prematch",
+                        help="Poll Cricbuzz for XIs + toss; write to a cache file")
+    pm.add_argument("--url", required=True,
+                    help="Cricbuzz match-squads URL")
+    pm.add_argument("--max-wait-seconds", type=int, default=3600,
+                    help="Stop polling after this many seconds (default 1h)")
+    pm.add_argument("--poll-seconds", type=int, default=120,
+                    help="Sleep between polls")
+    pm.add_argument("--out", default=None,
+                    help="Write last successful response to this path")
+    pm.set_defaults(func=cmd_prematch)
 
     dr = sub.add_parser("daily-refresh",
                         help="Re-ingest, reinstall views, retrain match model (cron-friendly)")
