@@ -41,5 +41,18 @@ ICC_SLEEP_SECONDS = float(os.environ.get("ICC_SLEEP", "2.0"))
 OPENWEATHER_KEY = os.environ.get("OPENWEATHER_KEY", "")
 OPENWEATHER_BASE = "https://api.openweathermap.org/data/2.5"
 
+NEWS_FEEDS = {
+    "espncricinfo":   "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
+    "cricbuzz":       "https://www.cricbuzz.com/rss/cricket-news.rss",
+    "icc":            "https://www.icc-cricket.com/rss/news",
+    "wisden":         "https://wisden.com/feed",
+}
+
+WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
+WIKIPEDIA_REST = "https://en.wikipedia.org/api/rest_v1"
+
+CRICAPI_KEY = os.environ.get("CRICAPI_KEY", "")
+CRICAPI_BASE = "https://api.cricapi.com/v1"
+
 for d in (DATA_DIR, CACHE_DIR):
     d.mkdir(parents=True, exist_ok=True)

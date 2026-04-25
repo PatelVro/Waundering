@@ -19,8 +19,12 @@ cricket_pipeline/
 │   ├── statsguru.py       # leaderboards + groupby splits (year / opposition / ground)
 │   ├── rankings.py        # ICC men's player + team rankings
 │   ├── venues.py          # geocode venues via Nominatim
+│   ├── wikipedia.py       # venue infobox enrichment (capacity, ends, established)
 │   ├── weather.py         # Visual Crossing historical weather
-│   └── openweather.py     # OpenWeatherMap current + 5-day forecast
+│   ├── openweather.py     # OpenWeatherMap current + 5-day forecast
+│   ├── news.py            # multi-source RSS + VADER sentiment + entity tags
+│   ├── umpires.py         # derives umpires table from matches.umpires
+│   └── fixtures.py        # CricAPI upcoming/live match list
 ├── examples/
 │   └── basic_query.py     # sample analytics queries
 └── data/                  # created on first run: DuckDB file + cache/
@@ -36,9 +40,10 @@ pip install -r cricket_pipeline/requirements.txt
 ## One-time env
 
 ```bash
-export STATSGURU_CONTACT="you@example.com"        # identifies your scrapers (Statsguru, Nominatim)
+export STATSGURU_CONTACT="you@example.com"        # identifies your scrapers (Statsguru, Nominatim, Wikipedia)
 export VISUAL_CROSSING_KEY="your_key_here"        # free tier at visualcrossing.com
 export OPENWEATHER_KEY="your_key_here"            # free tier at openweathermap.org
+export CRICAPI_KEY="your_key_here"                # free tier at cricapi.com (fixtures only)
 ```
 
 ## Quick start
@@ -71,7 +76,19 @@ python -m cricket_pipeline.pipeline weather --limit 20
 # 8. Weather — current + 5-day forecast (OpenWeatherMap) for geocoded venues
 python -m cricket_pipeline.pipeline owm --limit 50
 
-# 9. Row counts + sample queries
+# 9. News + sentiment (Cricinfo / Cricbuzz / ICC / Wisden RSS)
+python -m cricket_pipeline.pipeline news
+
+# 10. Wikipedia venue enrichment (capacity, ends, established year)
+python -m cricket_pipeline.pipeline wiki --limit 100
+
+# 11. Umpires table (derived purely from already-loaded matches)
+python -m cricket_pipeline.pipeline umpires
+
+# 12. Upcoming + live fixtures (needs CRICAPI_KEY)
+python -m cricket_pipeline.pipeline fixtures
+
+# 13. Row counts + sample queries
 python -m cricket_pipeline.pipeline stats
 python -m cricket_pipeline.examples.basic_query
 ```
@@ -84,17 +101,19 @@ python -m cricket_pipeline.examples.basic_query
 
 ## What's in the DB after ingestion
 
-| Table           | Grain                                          |
-|-----------------|------------------------------------------------|
-| `matches`       | one row per match                              |
-| `innings`       | one row per innings                            |
-| `balls`         | one row per delivery (source of truth)         |
-| `players`       | CricSheet identifier → Cricinfo/Cricbuzz/BCCI  |
-| `player_splits` | Statsguru leaderboard / split rows             |
-| `rankings`      | ICC men's rankings snapshot                    |
-| `venues`        | venue, city, country, **lat/lon**              |
-| `weather_daily` | one row per (venue, date) — historical + live  |
-| `news`          | reserved for RSS / news ingester               |
+| Table           | Grain                                                       |
+|-----------------|-------------------------------------------------------------|
+| `matches`       | one row per match                                           |
+| `innings`       | one row per innings                                         |
+| `balls`         | one row per delivery (source of truth)                      |
+| `players`       | CricSheet identifier → Cricinfo/Cricbuzz/BCCI               |
+| `player_splits` | Statsguru leaderboard / split rows                          |
+| `rankings`      | ICC men's rankings snapshot                                 |
+| `venues`        | venue, lat/lon, capacity, ends, established                 |
+| `weather_daily` | one row per (venue, date) — historical + live               |
+| `news`          | RSS items with sentiment + entity tags                      |
+| `fixtures`      | upcoming + live matches                                     |
+| `umpires`       | matches officiated, formats                                 |
 
 ## Extending
 

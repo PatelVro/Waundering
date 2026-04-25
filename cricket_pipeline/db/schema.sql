@@ -90,13 +90,16 @@ CREATE TABLE IF NOT EXISTS player_splits (
 );
 
 CREATE TABLE IF NOT EXISTS venues (
-    venue      VARCHAR PRIMARY KEY,
-    city       VARCHAR,
-    country    VARCHAR,
-    lat        DOUBLE,
-    lon        DOUBLE,
-    boundary_m DOUBLE,                         -- nominal straight boundary
-    notes      VARCHAR
+    venue       VARCHAR PRIMARY KEY,
+    city        VARCHAR,
+    country     VARCHAR,
+    lat         DOUBLE,
+    lon         DOUBLE,
+    boundary_m  DOUBLE,                        -- nominal straight boundary
+    capacity    INTEGER,
+    ends        VARCHAR,                       -- end names ("Pavilion End / Members End")
+    established INTEGER,
+    notes       VARCHAR
 );
 
 CREATE TABLE IF NOT EXISTS weather_daily (
@@ -125,13 +128,35 @@ CREATE TABLE IF NOT EXISTS rankings (
 );
 
 CREATE TABLE IF NOT EXISTS news (
-    url           VARCHAR PRIMARY KEY,
-    published_at  TIMESTAMP,
+    url            VARCHAR PRIMARY KEY,
+    published_at   TIMESTAMP,
+    source         VARCHAR,
+    title          VARCHAR,
+    summary        VARCHAR,
+    entities       VARCHAR,             -- JSON array of detected teams/players
+    sentiment      DOUBLE,              -- VADER compound score [-1, 1]
+    fetched_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS fixtures (
+    fixture_id    VARCHAR PRIMARY KEY,
+    format        VARCHAR,
+    competition   VARCHAR,
+    start_date    DATE,
+    venue         VARCHAR,
+    city          VARCHAR,
+    country       VARCHAR,
+    team_home     VARCHAR,
+    team_away     VARCHAR,
+    status        VARCHAR,              -- upcoming, live, completed
     source        VARCHAR,
-    title         VARCHAR,
-    summary       VARCHAR,
-    entities      VARCHAR,              -- JSON array of detected teams/players
     fetched_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS umpires (
+    name        VARCHAR PRIMARY KEY,
+    matches     INTEGER,                -- counted from matches table
+    formats     VARCHAR                  -- comma-joined formats officiated
 );
 
 -- Indexes to make the common filters cheap

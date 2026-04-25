@@ -19,12 +19,16 @@ import argparse
 from .db import connect
 from .ingest import (
     cricsheet,
+    fixtures,
+    news,
     openweather,
     people,
     rankings,
     statsguru,
+    umpires,
     venues,
     weather,
+    wikipedia,
 )
 
 
@@ -77,19 +81,42 @@ def cmd_owm(args):
     print(f"openweather: refreshed {n} venues")
 
 
+def cmd_news(args):
+    n = news.ingest(sources=args.sources)
+    print(f"stored {n} news items")
+
+
+def cmd_wiki(args):
+    n = wikipedia.enrich_all(limit=args.limit)
+    print(f"enriched {n} venues from Wikipedia")
+
+
+def cmd_umpires(args):
+    n = umpires.populate()
+    print(f"umpires table populated: {n} unique officials")
+
+
+def cmd_fixtures(args):
+    n = fixtures.fetch_scores()
+    print(f"stored {n} fixtures")
+
+
 def cmd_stats(args):
     con = connect()
     queries = [
-        ("matches",         "SELECT COUNT(*) FROM matches"),
-        ("balls",           "SELECT COUNT(*) FROM balls"),
-        ("innings",         "SELECT COUNT(*) FROM innings"),
-        ("players",         "SELECT COUNT(*) FROM players"),
-        ("player_splits",   "SELECT COUNT(*) FROM player_splits"),
-        ("rankings",        "SELECT COUNT(*) FROM rankings"),
-        ("venues_geocoded", "SELECT COUNT(*) FROM venues WHERE lat IS NOT NULL"),
-        ("weather_days",    "SELECT COUNT(*) FROM weather_daily"),
-        ("news",            "SELECT COUNT(*) FROM news"),
-        ("distinct_venues", "SELECT COUNT(DISTINCT venue) FROM matches"),
+        ("matches",          "SELECT COUNT(*) FROM matches"),
+        ("balls",            "SELECT COUNT(*) FROM balls"),
+        ("innings",          "SELECT COUNT(*) FROM innings"),
+        ("players",          "SELECT COUNT(*) FROM players"),
+        ("player_splits",    "SELECT COUNT(*) FROM player_splits"),
+        ("rankings",         "SELECT COUNT(*) FROM rankings"),
+        ("venues_geocoded",  "SELECT COUNT(*) FROM venues WHERE lat IS NOT NULL"),
+        ("venues_enriched",  "SELECT COUNT(*) FROM venues WHERE capacity IS NOT NULL"),
+        ("weather_days",     "SELECT COUNT(*) FROM weather_daily"),
+        ("news",             "SELECT COUNT(*) FROM news"),
+        ("fixtures",         "SELECT COUNT(*) FROM fixtures"),
+        ("umpires",          "SELECT COUNT(*) FROM umpires"),
+        ("distinct_venues",  "SELECT COUNT(DISTINCT venue) FROM matches"),
     ]
     for label, q in queries:
         n = con.execute(q).fetchone()[0]
@@ -139,6 +166,21 @@ def main():
     o.add_argument("--limit", type=int, default=50)
     o.add_argument("--current-only", action="store_true")
     o.set_defaults(func=cmd_owm)
+
+    n = sub.add_parser("news", help="Pull cricket news RSS with sentiment + entity tags")
+    n.add_argument("--sources", nargs="*", default=None,
+                   help="Subset of: espncricinfo cricbuzz icc wisden")
+    n.set_defaults(func=cmd_news)
+
+    wk = sub.add_parser("wiki", help="Enrich venues from Wikipedia (capacity, ends, established)")
+    wk.add_argument("--limit", type=int, default=None)
+    wk.set_defaults(func=cmd_wiki)
+
+    um = sub.add_parser("umpires", help="Populate umpires table from matches we already have")
+    um.set_defaults(func=cmd_umpires)
+
+    fx = sub.add_parser("fixtures", help="Fetch upcoming/live fixtures via CricAPI")
+    fx.set_defaults(func=cmd_fixtures)
 
     st = sub.add_parser("stats", help="Show row counts")
     st.set_defaults(func=cmd_stats)
