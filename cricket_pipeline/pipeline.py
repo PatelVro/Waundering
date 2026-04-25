@@ -149,6 +149,24 @@ def cmd_wikidata(args):
     print(f"matched {n} Wikidata cricketer records onto players")
 
 
+def cmd_model(args):
+    if args.action == "train":
+        from .model import train as M
+        M.train(format_filter=args.fmt, limit=args.limit)
+    elif args.action == "predict":
+        from .model.predict import predict_ball
+        import json as _json
+        state = _json.loads(args.state)
+        out = predict_ball(state)
+        print(_json.dumps(out, indent=2))
+    elif args.action == "simulate":
+        from .model.simulate import simulate_innings
+        import json as _json
+        state = _json.loads(args.state)
+        out = simulate_innings(state, n_sim=args.n_sim, seed=args.seed)
+        print(_json.dumps(out, indent=2))
+
+
 def cmd_stats(args):
     con = connect()
     queries = [
@@ -268,6 +286,17 @@ def main():
 
     wd = sub.add_parser("wikidata", help="Enrich players from Wikidata SPARQL")
     wd.set_defaults(func=cmd_wikidata)
+
+    md = sub.add_parser("model", help="Train / predict / simulate the ball-outcome model")
+    md.add_argument("action", choices=["train", "predict", "simulate"])
+    md.add_argument("--fmt", default="IT20",
+                    help="Format filter for training (e.g. IT20, T20, ODI)")
+    md.add_argument("--limit", type=int, default=None)
+    md.add_argument("--state", default="{}",
+                    help="JSON of ball state (predict + simulate)")
+    md.add_argument("--n-sim", type=int, default=5000)
+    md.add_argument("--seed", type=int, default=None)
+    md.set_defaults(func=cmd_model)
 
     st = sub.add_parser("stats", help="Show row counts")
     st.set_defaults(func=cmd_stats)

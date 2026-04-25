@@ -10,6 +10,11 @@ can query or feed into a model.
 cricket_pipeline/
 ├── config.py              # URLs, env vars, cache/data paths
 ├── pipeline.py            # CLI entry point
+├── model/
+│   ├── features.py        # join v_ball_state with aggregate views
+│   ├── train.py           # LightGBM runs + wicket models
+│   ├── predict.py         # single-ball / batch inference
+│   └── simulate.py        # Monte Carlo innings rollout
 ├── db/
 │   ├── schema.sql         # 12 tables — matches, innings, balls, players, ...
 │   ├── views.sql          # derived analytical views (venue profile, phase metrics, ...)
@@ -190,6 +195,51 @@ Run `python -m cricket_pipeline.pipeline datasets` for the URL list.
 - **Biometrics:** add a `player_state_daily` table keyed on `(player_id, date)`.
 - **News/sentiment:** add a `news` table keyed on `(match_id, source, published_at)`.
 
+## Modelling — ball-outcome predictor
+
+After data is loaded and views installed, you can train the prototype model:
+
+```bash
+# train on T20I balls (smaller, faster), then predict + simulate
+python -m cricket_pipeline.pipeline model train --fmt IT20 --limit 200000
+
+# predict one ball
+python -m cricket_pipeline.pipeline model predict \
+  --state '{"format":"IT20","venue":"Eden Gardens","phase":"death", \
+            "over_no":18,"ball_in_over":1,"runs_so_far":150,"wickets_so_far":4, \
+            "deliveries_so_far":108,"legal_balls_left":12, \
+            "current_run_rate":8.33,"required_run_rate":12.5}'
+
+# Monte Carlo a chase
+python -m cricket_pipeline.pipeline model simulate \
+  --n-sim 5000 --seed 0 \
+  --state '{"format":"IT20","target":180, ...}'
+
+# end-to-end worked example
+python -m cricket_pipeline.examples.model_demo
+```
+
+What's inside `model/`:
+
+| File         | Purpose                                                     |
+|--------------|-------------------------------------------------------------|
+| `features.py`| joins `v_ball_state` + player/venue/form/weather views      |
+| `train.py`   | LightGBM runs (multiclass) + wicket (binary) — saves to `data/models/` |
+| `predict.py` | scores one ball or a batch                                  |
+| `simulate.py`| vectorised Monte Carlo innings rollout                      |
+
+Outputs:
+- `runs_probs`: distribution over {0,1,2,3,4,5+,6}
+- `wicket_prob`: probability the ball ends in a non-runout dismissal
+- `expected_runs`: scalar
+- For simulations: mean / p10 / p50 / p90 / histogram / `win_prob` (if target set)
+
+Caveats (read these before using outputs in anger):
+1. **Temporal leakage** — career aggregates (`v_batter_profile` etc.) are computed across all data including future balls. The reported test metrics are therefore optimistic. Fix: bucket aggregates by year and join the year-aware aggregate.
+2. **Strike rotation** — the simulator approximates this; it doesn't swap the batter's *features* mid-innings.
+3. **No batting order queue** — when a wicket falls the simulator keeps the same striker label. Pass an explicit batting order list to extend.
+4. **Single ball-tracking layer is missing** — without Hawk-Eye, the model can't learn from pace, swing, seam, RPM. That's the next big jump if you can license it.
+
 ## Notes on scraping
 
 Statsguru has no public API. This scraper caches responses and sleeps between
@@ -197,9 +247,13 @@ requests (tune via `STATSGURU_SLEEP` env var). Use only for personal / research
 work and respect ESPNCricinfo's terms. For commercial use, license data from a
 paid provider (Opta, CricViz, Roanuz, SportMonks, Entity Sports).
 
-## Next steps toward a model
+## Roadmap
 
-1. Verify the DB has data — `python -m cricket_pipeline.pipeline stats`
-2. Export a ball-level feature table (joining balls + matches + weather)
-3. Train a baseline XGBoost to predict `runs_total` on the next ball
-4. Wrap it in a Monte Carlo rollout to simulate full matches
+The data foundation is broad enough; the next jumps are quality and breadth:
+
+- **Time-aware feature aggregates** to remove leakage in career stats
+- **Calibrate** the runs and wicket probabilities (Platt / isotonic on a holdout)
+- **Bayesian shrinkage** on bowler-vs-batter matchup priors
+- **Bigger architectures**: LSTM / Transformer over sequences of recent balls
+- **Hawk-Eye / TrackMan** ball-tracking features (pace, swing, seam, RPM)
+- **Player profile updates from CricSheet match files** to fill `country` / `batting_hand` / `bowling_type` directly from match metadata when Cricinfo can't be reached
