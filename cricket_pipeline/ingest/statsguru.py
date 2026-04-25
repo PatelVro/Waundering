@@ -107,6 +107,43 @@ def fetch_player_overall(
     return parse_table(html)
 
 
+# Statsguru opposition codes (subset — extend as needed).
+OPPOSITION_CODES = {
+    "India": 6, "Australia": 2, "England": 1, "South Africa": 3,
+    "West Indies": 4, "New Zealand": 5, "Pakistan": 7, "Sri Lanka": 8,
+    "Zimbabwe": 9, "Bangladesh": 25, "Afghanistan": 40, "Ireland": 29,
+}
+
+
+def fetch_split(
+    stat: Literal["batting", "bowling"],
+    fmt: Literal["test", "odi", "t20i", "ipl"],
+    groupby: Literal["year", "ground", "opposition", "season"] | None = None,
+    opposition: str | None = None,
+    ground_id: int | None = None,
+    year: int | None = None,
+) -> list[dict]:
+    """Fetch a Statsguru table grouped by the chosen dimension.
+
+    Example: fetch T20I batting grouped by year, for England only:
+        fetch_split("batting", "t20i", groupby="year", opposition="England")
+    """
+    filters: dict = {"orderby": "matches"}
+    if groupby:
+        filters["groupby"] = groupby
+    if opposition and opposition in OPPOSITION_CODES:
+        filters["opposition"] = OPPOSITION_CODES[opposition]
+    if ground_id:
+        filters["ground"] = ground_id
+    if year:
+        filters["spanmin1"] = f"01+Jan+{year}"
+        filters["spanmax1"] = f"31+Dec+{year}"
+        filters["spanval1"] = "span"
+    url = build_url(stat, fmt, filters=filters)
+    html = _fetch(url)
+    return parse_table(html)
+
+
 def store_splits(rows: list[dict], fmt: str, split_type: str = "overall", split_key: str = "all"):
     if not rows:
         return 0

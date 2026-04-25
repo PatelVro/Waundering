@@ -8,18 +8,22 @@ can query or feed into a model.
 
 ```
 cricket_pipeline/
-├── config.py            # URLs, env vars, cache/data paths
-├── pipeline.py          # CLI entry point
+├── config.py              # URLs, env vars, cache/data paths
+├── pipeline.py            # CLI entry point
 ├── db/
-│   ├── schema.sql       # matches, innings, balls, players, weather
-│   └── connection.py    # DuckDB connection factory
+│   ├── schema.sql         # matches, innings, balls, players, weather, rankings, news
+│   └── connection.py      # DuckDB connection factory
 ├── ingest/
-│   ├── cricsheet.py     # download + parse CricSheet zips
-│   ├── statsguru.py     # scraper (polite, cached) for Statsguru tables
-│   └── weather.py       # Visual Crossing historical weather
+│   ├── cricsheet.py       # ball-by-ball zips
+│   ├── people.py          # CricSheet people.csv → cross-provider IDs
+│   ├── statsguru.py       # leaderboards + groupby splits (year / opposition / ground)
+│   ├── rankings.py        # ICC men's player + team rankings
+│   ├── venues.py          # geocode venues via Nominatim
+│   ├── weather.py         # Visual Crossing historical weather
+│   └── openweather.py     # OpenWeatherMap current + 5-day forecast
 ├── examples/
-│   └── basic_query.py   # sample analytics queries
-└── data/                # created on first run: DuckDB file + cache/
+│   └── basic_query.py     # sample analytics queries
+└── data/                  # created on first run: DuckDB file + cache/
 ```
 
 ## Install
@@ -32,8 +36,9 @@ pip install -r cricket_pipeline/requirements.txt
 ## One-time env
 
 ```bash
-export STATSGURU_CONTACT="you@example.com"        # identifies your scraper
+export STATSGURU_CONTACT="you@example.com"        # identifies your scrapers (Statsguru, Nominatim)
 export VISUAL_CROSSING_KEY="your_key_here"        # free tier at visualcrossing.com
+export OPENWEATHER_KEY="your_key_here"            # free tier at openweathermap.org
 ```
 
 ## Quick start
@@ -44,13 +49,29 @@ From the repo root (`/home/user/Waundering`):
 # 1. Pull a small T20I sample from CricSheet
 python -m cricket_pipeline.pipeline cricsheet --dataset t20s_json --limit 100
 
-# 2. Fetch a Statsguru leaderboard (cached to disk; rate-limited)
+# 2. Load CricSheet people registry (Cricinfo / Cricbuzz / BCCI ids)
+python -m cricket_pipeline.pipeline people
+
+# 3. Geocode every venue seen in matches (lat/lon via Nominatim)
+python -m cricket_pipeline.pipeline venues --limit 200
+
+# 4. ICC rankings (Test/ODI/T20I, batting/bowling/allrounder, plus team)
+python -m cricket_pipeline.pipeline rankings
+
+# 5. Statsguru — overall leaderboard
 python -m cricket_pipeline.pipeline statsguru --stat batting --fmt t20i
 
-# 3. Backfill weather for the first 20 match/venue pairs
+# 6. Statsguru — by year / opposition / ground
+python -m cricket_pipeline.pipeline statsguru-split --stat batting --fmt t20i --groupby year
+python -m cricket_pipeline.pipeline statsguru-split --stat batting --fmt t20i --opposition India
+
+# 7. Weather — historical (Visual Crossing) for matches
 python -m cricket_pipeline.pipeline weather --limit 20
 
-# 4. Row counts + sample queries
+# 8. Weather — current + 5-day forecast (OpenWeatherMap) for geocoded venues
+python -m cricket_pipeline.pipeline owm --limit 50
+
+# 9. Row counts + sample queries
 python -m cricket_pipeline.pipeline stats
 python -m cricket_pipeline.examples.basic_query
 ```
@@ -63,14 +84,17 @@ python -m cricket_pipeline.examples.basic_query
 
 ## What's in the DB after ingestion
 
-| Table           | Grain                            |
-|-----------------|----------------------------------|
-| `matches`       | one row per match                |
-| `innings`       | one row per innings              |
-| `balls`         | one row per delivery (source of truth) |
-| `player_splits` | Statsguru leaderboard rows       |
-| `weather_daily` | one row per (venue, match date)  |
-| `venues`        | optional manual enrichment       |
+| Table           | Grain                                          |
+|-----------------|------------------------------------------------|
+| `matches`       | one row per match                              |
+| `innings`       | one row per innings                            |
+| `balls`         | one row per delivery (source of truth)         |
+| `players`       | CricSheet identifier → Cricinfo/Cricbuzz/BCCI  |
+| `player_splits` | Statsguru leaderboard / split rows             |
+| `rankings`      | ICC men's rankings snapshot                    |
+| `venues`        | venue, city, country, **lat/lon**              |
+| `weather_daily` | one row per (venue, date) — historical + live  |
+| `news`          | reserved for RSS / news ingester               |
 
 ## Extending
 

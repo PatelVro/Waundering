@@ -112,6 +112,28 @@ CREATE TABLE IF NOT EXISTS weather_daily (
     PRIMARY KEY (venue, date)
 );
 
+CREATE TABLE IF NOT EXISTS rankings (
+    snapshot_date DATE,
+    format        VARCHAR,              -- test / odi / t20i
+    category      VARCHAR,              -- batting / bowling / allrounder / team
+    rank          INTEGER,
+    name          VARCHAR,
+    country       VARCHAR,
+    rating        INTEGER,
+    source        VARCHAR DEFAULT 'icc',
+    PRIMARY KEY (snapshot_date, format, category, rank)
+);
+
+CREATE TABLE IF NOT EXISTS news (
+    url           VARCHAR PRIMARY KEY,
+    published_at  TIMESTAMP,
+    source        VARCHAR,
+    title         VARCHAR,
+    summary       VARCHAR,
+    entities      VARCHAR,              -- JSON array of detected teams/players
+    fetched_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes to make the common filters cheap
 CREATE INDEX IF NOT EXISTS idx_balls_match     ON balls(match_id);
 CREATE INDEX IF NOT EXISTS idx_balls_batter    ON balls(batter);

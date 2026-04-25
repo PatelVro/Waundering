@@ -29,5 +29,17 @@ VISUAL_CROSSING_BASE = (
     "rest/services/timeline"
 )
 
+CRICSHEET_PEOPLE_CSV = "https://cricsheet.org/register/people.csv"
+
+NOMINATIM_BASE = "https://nominatim.openstreetmap.org/search"
+NOMINATIM_SLEEP_SECONDS = float(os.environ.get("NOMINATIM_SLEEP", "1.1"))
+
+ICC_RANKINGS_BASE = "https://www.icc-cricket.com/rankings/mens/player-rankings"
+ICC_TEAM_RANKINGS_BASE = "https://www.icc-cricket.com/rankings/mens/team-rankings"
+ICC_SLEEP_SECONDS = float(os.environ.get("ICC_SLEEP", "2.0"))
+
+OPENWEATHER_KEY = os.environ.get("OPENWEATHER_KEY", "")
+OPENWEATHER_BASE = "https://api.openweathermap.org/data/2.5"
+
 for d in (DATA_DIR, CACHE_DIR):
     d.mkdir(parents=True, exist_ok=True)
