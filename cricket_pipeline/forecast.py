@@ -76,6 +76,20 @@ def _state(con, batter, bowler, venue, target=None) -> dict:
     }
 
 
+def _team_recent_xi(con, team: str, since: str, limit: int = 15) -> list[str]:
+    """Return the players most frequently in the team's recent XIs."""
+    rows = con.execute("""
+        SELECT mx.player
+        FROM match_xi mx
+        JOIN matches m USING (match_id)
+        WHERE mx.team = ? AND m.start_date >= ? AND m.format = 'T20'
+        GROUP BY mx.player
+        ORDER BY COUNT(*) DESC
+        LIMIT ?
+    """, [team, since, limit]).fetchall()
+    return [r[0] for r in rows]
+
+
 def _top_batters(con, squad: list[str], since: str, limit: int) -> list[tuple]:
     if not squad:
         return []
@@ -178,25 +192,29 @@ def forecast(
 
     con = connect()
 
+    # Resolve squads from DB when not explicitly provided
+    if not home_xi:
+        home_xi = _team_recent_xi(con, home, since)
+    if not away_xi:
+        away_xi = _team_recent_xi(con, away, since)
+
     # Pick openers / bowlers for the rollout: explicit > top batter/bowler in DB.
     if home_opener is None and home_xi:
         home_opener = home_xi[0]
     if away_opener is None and away_xi:
         away_opener = away_xi[0]
     if home_bowler is None and home_xi:
-        # Pick the squad's best bowler by economy (fall back to first item)
         bowlers = _top_bowlers(con, home_xi, since, 1)
         home_bowler = bowlers[0][0] if bowlers else home_xi[-1]
     if away_bowler is None and away_xi:
         bowlers = _top_bowlers(con, away_xi, since, 1)
         away_bowler = bowlers[0][0] if bowlers else away_xi[-1]
 
-    # Last-resort fallback: pick any opener/bowler the team has played
-    if home_opener is None or home_bowler is None or away_opener is None or away_bowler is None:
-        home_opener = home_opener or "MR Marsh"
-        home_bowler = home_bowler or "Mohammed Shami"
-        away_opener = away_opener or "AM Rahane"
-        away_bowler = away_bowler or "VG Arora"
+    # Hard fallback only if DB has no data at all for these teams
+    home_opener = home_opener or home
+    home_bowler = home_bowler or home
+    away_opener = away_opener or away
+    away_bowler = away_bowler or away
 
     # Score distributions (each side batting first)
     home_set = simulate_innings(_state(con, home_opener, away_bowler, venue),

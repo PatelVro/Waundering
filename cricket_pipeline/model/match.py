@@ -117,12 +117,27 @@ def train(format_filter: str | list | None = "T20,IT20",
     params = _params()
     if dev != "cpu":
         params = {**params, "device": dev}
-    booster = lgb.train(
-        params, train_set,
-        num_boost_round=600,
-        valid_sets=[valid_set],
-        callbacks=[lgb.early_stopping(40), lgb.log_evaluation(50)],
-    )
+    try:
+        booster = lgb.train(
+            params, train_set,
+            num_boost_round=600,
+            valid_sets=[valid_set],
+            callbacks=[lgb.early_stopping(40), lgb.log_evaluation(50)],
+        )
+    except lgb.basic.LightGBMError as e:
+        if dev != "cpu" and "cannot run on GPU" in str(e):
+            print(f"  GPU training failed ({e}), retrying on CPU …")
+            params = {k: v for k, v in params.items() if k != "device"}
+            train_set = lgb.Dataset(Xtr, label=ytr, categorical_feature=CATEGORICAL)
+            valid_set = lgb.Dataset(Xte, label=yte, categorical_feature=CATEGORICAL, reference=train_set)
+            booster = lgb.train(
+                params, train_set,
+                num_boost_round=600,
+                valid_sets=[valid_set],
+                callbacks=[lgb.early_stopping(40), lgb.log_evaluation(50)],
+            )
+        else:
+            raise
 
     raw_calib = booster.predict(Xca)
     iso = C.fit_binary(raw_calib, yca.to_numpy())
@@ -290,6 +305,9 @@ def predict_match(
     df = pd.DataFrame([{k: state.get(k) for k in feats}])
     for col in CATEGORICAL:
         df[col] = df[col].astype("category")
+    for col in NUMERIC:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
     raw = float(booster.predict(df[feats])[0])
     cal = float(C.transform_binary(iso, np.array([raw]))[0]) if iso is not None else raw
