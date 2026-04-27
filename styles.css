@@ -454,3 +454,41 @@ h3 { margin-top: 0; }
 }
 .live-sim-label { color: var(--muted); font-size: 0.83rem; }
 .live-sim-value { font-family: var(--mono); font-size: 0.88rem; font-weight: 600; }
+
+/* ── Toss + Playing XI ────────────────────────────────────────────── */
+.live-toss {
+  margin: 8px 0 4px;
+  font-size: 0.83rem;
+  font-style: italic;
+}
+
+.live-xi-wrap {
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.live-xi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 600px) {
+  .live-xi-grid { grid-template-columns: 1fr; }
+}
+.live-xi-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.live-xi-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}

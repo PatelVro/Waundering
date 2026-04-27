@@ -39,6 +39,9 @@ _HEADERS = {
     "Referer": "https://www.cricbuzz.com/",
 }
 
+# Per-match XI cache: {match_id: {"home_xi": [...], "away_xi": [...], "toss_winner": ..., "toss_decision": ...}}
+_xi_cache: dict[str, dict] = {}
+
 ROOT = Path(__file__).resolve().parent.parent   # Waundering/
 DATA_JSON = ROOT / "data.json"
 
@@ -122,6 +125,82 @@ def fetch_live_state(match_id: str, slug: str | None = None) -> dict | None:
         return None
     r.raise_for_status()
     return _parse_live_html(r.text, match_id)
+
+
+def _fetch_scorecard_xi(match_id: str, slug: str) -> dict:
+    """Fetch playing XIs and toss from the Cricbuzz live scorecard page.
+
+    Returns a dict with keys: home_xi, away_xi, toss_winner, toss_decision.
+    Falls back to empty lists/None on any error (non-blocking).
+    """
+    url = (
+        f"https://www.cricbuzz.com/live-cricket-scorecard/{match_id}/{slug}"
+        if slug else
+        f"https://www.cricbuzz.com/live-cricket-scorecard/{match_id}"
+    )
+    try:
+        r = requests.get(url, headers=_HEADERS, timeout=20)
+        r.raise_for_status()
+        html = r.text
+    except Exception as e:
+        print(f"[live_tracker] XI fetch error: {e}")
+        return {}
+
+    # ── Toss ────────────────────────────────────────────────────────────────
+    toss_m = re.search(
+        r"([\w ']+?)\s+won the toss and opt(?:ed)? to (Bat|Bowl|bat|bowl)",
+        html,
+    )
+    toss_winner   = toss_m.group(1).strip() if toss_m else None
+    toss_decision = toss_m.group(2).lower() if toss_m else None
+    if toss_decision == "bowl":
+        toss_decision = "field"
+
+    # ── Playing XIs via profile links ───────────────────────────────────────
+    # Cricbuzz scorecard embeds player profile links in document order:
+    # batting-team XI first, then bowling-team XI in a later section.
+    # We split by finding the bowling team's name appearing as a section
+    # header before their player block.
+    profile_re = re.compile(r'title="View Profile Of ([^"]+)"')
+    all_hits = [(m.start(), m.group(1).strip()) for m in profile_re.finditer(html)]
+
+    def _first_n_unique(hits: list, n: int = 11) -> list[str]:
+        seen: set[str] = set()
+        result: list[str] = []
+        for _, name in hits:
+            key = re.sub(r"\s*\([^)]*\)", "", name).strip().lower()
+            if key not in seen:
+                seen.add(key)
+                result.append(name)
+            if len(result) >= n:
+                break
+        return result
+
+    batting_xi = _first_n_unique(all_hits, 11)
+
+    # Find where the bowling team's section starts (their team name appears
+    # as plain text just before their player profile block).
+    bowling_xi: list[str] = []
+    team_names_in_url = re.findall(r"([a-z-]+)-vs-([a-z-]+)", url)
+    if toss_winner and all_hits and batting_xi:
+        # The bowling team section begins after the last batting-team profile
+        last_bat_pos = next(
+            (pos for pos, name in reversed(all_hits)
+             if re.sub(r"\s*\([^)]*\)", "", name).strip().lower()
+             in {re.sub(r"\s*\([^)]*\)", "", n).strip().lower() for n in batting_xi}),
+            0,
+        )
+        remaining_hits = [(pos, name) for pos, name in all_hits if pos > last_bat_pos]
+        bowling_xi = _first_n_unique(remaining_hits, 11)
+
+    # Match XIs to home/away based on toss (toss winner decided to bat or field)
+    # We don't know home/away here, so return by batting order: first=batting team, second=bowling team
+    return {
+        "batting_team_xi": batting_xi,
+        "bowling_team_xi": bowling_xi,
+        "toss_winner":     toss_winner,
+        "toss_decision":   toss_decision,
+    }
 
 
 def _parse_live_html(html: str, match_id: str) -> dict:
@@ -233,6 +312,18 @@ def _parse_live_html(html: str, match_id: str) -> dict:
         needed = rem_runs if rem_runs is not None else max(0, target - runs)
         rrr = round(needed * 6 / balls_remaining, 2)
 
+    # ── Toss (from live-scores page HTML) ─────────────────────────────────
+    # Cricbuzz embeds: <span class="font-bold">Toss: </span>TEAM (Decision)
+    toss_winner_live: str | None = None
+    toss_decision_live: str | None = None
+    toss_span_m = re.search(
+        r'Toss:\s*</span>\s*([^<(]+?)\s*(?:<!--.*?-->)?\s*\(\s*(?:<!--.*?-->)?\s*(Batting|Bowling|Bat|Bowl)\s*(?:<!--.*?-->)?\s*\)',
+        html, re.DOTALL,
+    )
+    if toss_span_m:
+        toss_winner_live   = toss_span_m.group(1).strip()
+        toss_decision_live = "bat" if "bat" in toss_span_m.group(2).lower() else "field"
+
     return {
         "match_id":        match_id,
         "status":          status,
@@ -257,6 +348,8 @@ def _parse_live_html(html: str, match_id: str) -> dict:
         "bowler":          bowler,
         "last_overs":      last_overs,
         "last_wicket":     None,
+        "toss_winner":     toss_winner_live,
+        "toss_decision":   toss_decision_live,
         "fetched_at":      datetime.now(timezone.utc).isoformat(),
     }
 
@@ -508,6 +601,7 @@ def run(
 
     last_score = None
     consecutive_errors = 0
+    xi_fetched = False
 
     while True:
         try:
@@ -537,14 +631,41 @@ def run(
             _log_state(state)
             last_score = current_score
 
+        # ── Fetch playing XIs once per match (cache per match_id) ───────────
+        if not xi_fetched or match_id not in _xi_cache:
+            xi_info = _fetch_scorecard_xi(match_id, slug or "match")
+            if xi_info:
+                # Map batting/bowling team XIs to home/away
+                batting_team = state.get("batting_team", "")
+                home_is_batting = batting_team.lower() == home.lower()
+                _xi_cache[match_id] = {
+                    "home_xi":       xi_info["batting_team_xi"] if home_is_batting else xi_info["bowling_team_xi"],
+                    "away_xi":       xi_info["bowling_team_xi"] if home_is_batting else xi_info["batting_team_xi"],
+                    "toss_winner":   xi_info.get("toss_winner"),
+                    "toss_decision": xi_info.get("toss_decision"),
+                }
+                xi_fetched = True
+                print(f"[live_tracker] XI fetched — {home}: {len(_xi_cache[match_id]['home_xi'])} players, "
+                      f"{away}: {len(_xi_cache[match_id]['away_xi'])} players")
+
+        xi_data = _xi_cache.get(match_id, {})
+
         # Compute in-play win probability
         live_pred = compute_live_prediction(state, venue or "unknown", n_sim=n_sim)
 
+        # Use toss from live HTML if scorecard fetch missed it
+        toss_winner   = xi_data.get("toss_winner")   or state.get("toss_winner")
+        toss_decision = xi_data.get("toss_decision") or state.get("toss_decision")
+
         live_data = {
             **state,
-            "home":  home,
-            "away":  away,
-            "venue": venue or "unknown",
+            "home":          home,
+            "away":          away,
+            "venue":         venue or "unknown",
+            "home_xi":       xi_data.get("home_xi", []),
+            "away_xi":       xi_data.get("away_xi", []),
+            "toss_winner":   toss_winner,
+            "toss_decision": toss_decision,
             "live_prediction": live_pred,
         }
         update_data_json(live_data, out_path)
@@ -588,12 +709,26 @@ def auto_run(
 
     print(f"\n[live_tracker] Selected: {chosen['match_id']} — {chosen['title']}")
 
-    home, away, venue = _team_names_from_data_json(out_path, home_hint, away_hint)
+    # Extract actual team names from the live match state (more reliable than
+    # data.json which may have a stale latest_prediction from a different match)
+    slug = chosen.get("slug")
+    state_probe = None
+    try:
+        state_probe = fetch_live_state(chosen["match_id"], slug)
+    except Exception:
+        pass
+
+    if state_probe and state_probe.get("team1") and state_probe.get("team2"):
+        home  = state_probe["team1"]
+        away  = state_probe["team2"]
+        venue = _resolve_venue(home, away)
+    else:
+        home, away, venue = _team_names_from_data_json(out_path, home_hint, away_hint)
 
     run(
         match_id=chosen["match_id"],
         home=home, away=away, venue=venue,
-        slug=chosen.get("slug"),
+        slug=slug,
         interval=interval, n_sim=n_sim, out_path=out_path,
     )
 
