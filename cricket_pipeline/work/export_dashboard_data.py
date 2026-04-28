@@ -78,20 +78,39 @@ def _write_design_aliases(data_dict: dict, preds_list: list[dict]) -> None:
 
 
 def _load_predictions() -> dict:
+    """Load predictions, deduping multi-day forecasts of the same fixture.
+
+    The predictor saves one file per (fixture, date) pair. When a match
+    rolls over multiple days without playing, we end up with stale files
+    pointing at the same actual upcoming game (e.g. three BAN-vs-NZ files
+    for 26/27/28 APR when only one game is played). All three get tagged
+    with the same live result by `_attach_pred_result` because that
+    function matches by team-pair only — producing duplicate rows in the
+    track record. Keep only the prediction with the latest match.date per
+    fixture pair.
+    """
     out = {"all": [], "latest": None}
     if not PREDICTIONS_DIR.exists():
         return out
     files = sorted(PREDICTIONS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+    by_pair: dict[frozenset, dict] = {}
     for fp in files:
         try:
             data = json.loads(fp.read_text())
             m = data.get("match", {})
-            if F.is_blocked_match(m.get("home"), m.get("away")):
+            home, away = m.get("home"), m.get("away")
+            if F.is_blocked_match(home, away):
                 continue
             data["_file"] = fp.name
-            out["all"].append(data)
+            key = frozenset([_norm(home), _norm(away)])
+            existing = by_pair.get(key)
+            if existing is None or (m.get("date") or "") > (existing.get("match", {}).get("date") or ""):
+                by_pair[key] = data
         except Exception:
             continue
+    out["all"] = sorted(by_pair.values(),
+                        key=lambda p: (p.get("match", {}).get("date") or ""),
+                        reverse=True)
     if out["all"]:
         out["latest"] = out["all"][0]
     return out
@@ -373,6 +392,13 @@ def _parse_winner_from_status(status: str | None, home: str | None, away: str | 
     # Match the longer team name first to avoid 'India' matching 'India Women'
     for t in sorted([home, away], key=lambda x: -(len(x or ""))):
         if t and t.lower() in target:
+            return t
+    # Match by short team CODE — Cricbuzz uses codes inside super-over parens
+    # ("Match tied (KKR won the Super Over)") rather than full names.
+    import re as _re
+    for t in (home, away):
+        code = _short_id(t)
+        if code and _re.search(rf"\b{_re.escape(code)}\b", target):
             return t
     # Last resort: first word match
     for t in (home, away):

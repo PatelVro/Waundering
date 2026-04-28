@@ -179,14 +179,26 @@ class State:
 
     def matches_to_predict(self) -> list[tuple[str, dict]]:
         """Tracked matches that have a state with home/away, are not complete,
-        and don't yet have a saved prediction file."""
+        and don't yet have a prediction file dated today.
+
+        The `prediction_done` flag is per-match and never resets — once a
+        match is predicted on day N it stays "done" forever, blocking the
+        date-rolled prediction filename predict_match() expects on day
+        N+1. Bypass that flag whenever today's file is missing so the
+        loop self-heals across day boundaries.
+        """
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         with self.lock:
             out = []
             for mid, e in self.tracked.items():
-                if e.get("prediction_done"): continue
                 state = e.get("last_state") or {}
-                if not state.get("home") or not state.get("away"): continue
+                home, away = state.get("home"), state.get("away")
+                if not home or not away: continue
                 if state.get("is_complete"): continue
+                fname = f"{_safe_filename(home)}_vs_{_safe_filename(away)}_{today}.json"
+                todays_file = PREDICTIONS_DIR / fname
+                if todays_file.exists():
+                    continue
                 out.append((mid, {**state, "slug": e["slug"]}))
             return out
 
