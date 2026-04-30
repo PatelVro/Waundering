@@ -789,15 +789,23 @@ function TodaysCalls({ preds, selected, setTweak }) {
   }[v] || 'var(--ink)');
 
   // For settled fixtures the pre-match advisory (BET/SKIP/etc.) is irrelevant;
-  // overlay the actual outcome so the table reflects what happened. For live /
-  // abandoned / upcoming-but-undecided we keep the model's call.
+  // overlay the actual outcome so the table reflects what happened. Judge
+  // WON/LOST against the row's displayed Pick (the betting recommendation
+  // from model_vs_book), falling back to the model's overall favored when
+  // there was no recommendation (PASS/WAITING). This keeps Pick and Verdict
+  // self-consistent — e.g. LSG vs KKR with Pick=KKR and KKR-won-the-super-over
+  // shows WON, not LOST (which would be the case if we judged against the
+  // model's overall favored team LSG).
   const overrideForSettled = (p, sg) => {
     const r = p?.result || {};
     const status = r.status;
     if (status === "complete") {
-      if (r.correct === true)  return { ...sg, verdict: "WON",  headline: `Won — ${r.live_status || ''}`.trim() };
-      if (r.correct === false) return { ...sg, verdict: "LOST", headline: `Lost — ${r.live_status || ''}`.trim() };
-      return { ...sg, verdict: "RESULT", headline: r.live_status || "" };
+      const winner = r.winner;
+      const judged = sg.pick || p.prediction?.favored;
+      if (!winner || !judged) return { ...sg, verdict: "RESULT", headline: r.live_status || "" };
+      const won = winner === judged;
+      return { ...sg, verdict: won ? "WON" : "LOST",
+               headline: `${won ? "Won" : "Lost"} — ${r.live_status || ''}`.trim() };
     }
     if (status === "awaiting_result")
       return { ...sg, verdict: "SETTLING", headline: r.live_status || "Awaiting final scoreline" };
