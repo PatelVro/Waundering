@@ -312,15 +312,46 @@ def _matches_pair(pred_match: dict, live: dict) -> bool:
     return (ph == lh and pa == la) or (ph == la and pa == lh)
 
 
+def _pick_best_live(pred_match: dict, candidates: list) -> dict | None:
+    """When multiple live entries match the same team-pair (e.g. a series
+    where only one game has played), prefer the entry that gives us a
+    real, settled result — so an upcoming/abandoned game doesn't clobber
+    a previously-graded prediction. Priority:
+      1. is_complete=True with a parseable winner
+      2. is_complete=True (even if winner not parseable yet)
+      3. anything else (in-progress, upcoming, abandoned)
+    """
+    matched = [l for l in candidates if _matches_pair(pred_match, l)]
+    if not matched:
+        return None
+    def rank(l):
+        if not l.get("is_complete"): return 2
+        w = _parse_winner_from_status(l.get("status"), l.get("home"), l.get("away"))
+        return 0 if w else 1
+    matched.sort(key=rank)
+    return matched[0]
+
+
 def _attach_pred_result(pred: dict, live_pool) -> dict:
     """live_pool is either a single live dict or a list of live dicts. Find
-    the one that matches this prediction's home/away and decorate."""
+    the best matching one (preferring completed-with-winner) and decorate.
+
+    Sticky grading: once a prediction has been graded `complete` with a
+    winner, that result is persisted on the prediction object — a fresh
+    live tick that's a different match between the same teams (e.g. an
+    abandoned next-day fixture) cannot clobber it."""
     if not pred:
+        return pred
+    # Sticky: if the prediction already has a complete grade with a winner,
+    # don't re-derive it from current live state. The played match is over;
+    # later live ticks for the same team-pair are different fixtures.
+    existing = pred.get("result") or {}
+    if existing.get("status") == "complete" and existing.get("winner"):
         return pred
     candidates = live_pool if isinstance(live_pool, list) else ([live_pool] if live_pool else [])
     if not candidates:
         return pred
-    live = next((l for l in candidates if _matches_pair(pred["match"], l)), None)
+    live = _pick_best_live(pred["match"], candidates)
     if not live:
         return pred
     if not live.get("is_complete"):
@@ -433,6 +464,85 @@ def _winner_from_chase_state(live: dict) -> str | None:
     return None
 
 
+def _margin_from_status(status: str | None) -> str:
+    """Extract a 'by N runs' / 'by N wkts' phrase from a Cricbuzz status."""
+    if not status:
+        return ""
+    import re as _re
+    m = _re.search(r"won\s+(by\s+\d+\s+(?:runs?|wkts?|wickets?))", status, _re.I)
+    if m:
+        return m.group(1).lower().replace("wkts", "wickets")
+    if "super over" in status.lower():
+        return "tied · super over"
+    return ""
+
+
+def _merge_settled_into_recent(recent: list[dict], all_preds: list[dict],
+                                 max_total: int = 40) -> list[dict]:
+    """Inject settled predictions into recent_matches when CricSheet hasn't
+    yet ingested the match. Dedup by (date, sorted-team-pair). Keep newest
+    first. Truncates to max_total to match the original list shape."""
+    seen = set()
+    for r in recent:
+        date = str(r.get("date") or "")[:10]
+        pair = frozenset([_norm(r.get("home")), _norm(r.get("away"))])
+        seen.add((date, pair))
+    out = list(recent)
+    for p in all_preds:
+        res = p.get("result") or {}
+        if res.get("status") != "complete" or not res.get("winner"):
+            continue
+        m = p.get("match") or {}
+        date = str(m.get("date") or "")[:10]
+        pair = frozenset([_norm(m.get("home")), _norm(m.get("away"))])
+        key = (date, pair)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({
+            "match_id":    p.get("_file") or f"pred_{date}_{m.get('home')}_{m.get('away')}",
+            "format":      m.get("format"),
+            "competition": m.get("competition") or "",
+            "date":        date,
+            "venue":       m.get("venue"),
+            "home":        m.get("home"),
+            "away":        m.get("away"),
+            "winner":      res.get("winner"),
+            "margin":      _margin_from_status(res.get("live_status")),
+        })
+    out.sort(key=lambda r: str(r.get("date") or ""), reverse=True)
+    return out[:max_total]
+
+
+def _persist_result_if_complete(pred: dict) -> None:
+    """Write a newly-graded `result` block back to the source prediction
+    file on disk so subsequent runs treat the grade as sticky.
+
+    No-op unless `result.status == "complete"` AND the on-disk file is
+    missing the grade (or has a different one). Silent on failure — a
+    persistence error must not block the dashboard build."""
+    if not pred:
+        return
+    res = pred.get("result") or {}
+    if res.get("status") != "complete" or not res.get("winner"):
+        return
+    fname = pred.get("_file")
+    if not fname:
+        return
+    fp = PREDICTIONS_DIR / fname
+    if not fp.exists():
+        return
+    try:
+        on_disk = json.loads(fp.read_text())
+        existing = (on_disk.get("result") or {}) if isinstance(on_disk, dict) else {}
+        if existing.get("status") == "complete" and existing.get("winner") == res.get("winner"):
+            return  # already persisted
+        on_disk["result"] = res
+        fp.write_text(json.dumps(on_disk, indent=2, default=str))
+    except Exception:
+        pass
+
+
 def _winner_from_matches_table(home: str, away: str, date_iso: str) -> str | None:
     """Fall back to CricSheet-derived matches table for definitive results."""
     if not (home and away and date_iso):
@@ -472,10 +582,23 @@ def main():
     except Exception as e:
         comparison = {"n": 0, "msg": f"comparison failed: {e}"}
 
-    # Attach result info to predictions when we have live data for same fixture
+    # Attach result info to predictions when we have live data for same fixture.
+    # Persist newly-completed grades back to the source prediction file so a
+    # later live tick (different match, same team-pair) can't clobber them.
+    pool = live_multi or live
     if preds["latest"]:
-        preds["latest"] = _attach_pred_result(preds["latest"], live_multi or live)
-    preds["all"] = [_attach_pred_result(p, live_multi or live) for p in preds["all"]]
+        preds["latest"] = _attach_pred_result(preds["latest"], pool)
+        _persist_result_if_complete(preds["latest"])
+    new_all = []
+    for p in preds["all"]:
+        graded = _attach_pred_result(p, pool)
+        _persist_result_if_complete(graded)
+        new_all.append(graded)
+    preds["all"] = new_all
+
+    # Merge settled predictions into recent_matches so freshly-played matches
+    # appear in the recent-results panel even before CricSheet ingests them.
+    recent = _merge_settled_into_recent(recent, preds["all"], max_total=40)
 
     out = {
         "generated_at":     pd.Timestamp.now().isoformat(),
