@@ -235,10 +235,18 @@ def compute_next_phase(entry: dict, now: int | None = None) -> str:
 
 def due_actions(entry: dict, now: int | None = None) -> list[str]:
     """Return action keys that are due to fire RIGHT NOW for this match.
-    Idempotent — actions already in `entry["actions_fired"]` are skipped.
 
-    The returned list is in firing order (lighter actions first so a
-    failure in the heavier one doesn't block the lighter ones).
+    Time-driven (not phase-driven): once a time window opens, the action
+    fires on the next tick whenever the match is in a non-terminal phase,
+    regardless of which phase the machine has advanced to. This prevents
+    silent skips when phase transitions race past action windows — e.g.
+    SCHEDULED → PRE_START at exactly T-30m would otherwise leave
+    pre_match_v0 stranded; PRE_START → LIVE on early toss detection
+    would strand pre_start_v1.
+
+    Idempotent — actions already in `entry["actions_fired"]` are skipped.
+    Returned in firing order (lightest first so a failure in the heavier
+    one doesn't block the lighter ones).
     """
     now = now if now is not None else now_utc()
     fired = entry.get("actions_fired") or {}
@@ -246,25 +254,35 @@ def due_actions(entry: dict, now: int | None = None) -> list[str]:
     start_ts = entry.get("start_ts")
     out: list[str] = []
 
-    if phase == Phase.SCHEDULED.value and start_ts is not None:
-        if now >= start_ts - W_PRE_MATCH:
-            for k in (A_PITCH_WEATHER, A_PRE_MATCH_PRED):
-                if k not in fired:
-                    out.append(k)
+    # Terminal phases never fire pre-game actions.
+    if phase in (Phase.ABANDONED.value, Phase.REVIEWED.value):
+        # ABANDONED gets nothing; REVIEWED already wrote ledger
+        return out
 
-    elif phase == Phase.PRE_START.value:
-        if start_ts is not None and now >= start_ts - W_PRE_START:
-            if A_PRE_START_PRED not in fired:
-                out.append(A_PRE_START_PRED)
-        if entry.get("toss_seen_at") and A_TOSS_AWARE_PRED not in fired:
-            out.append(A_TOSS_AWARE_PRED)
+    pre_game_eligible = phase not in (
+        Phase.DISCOVERED.value, Phase.COMPLETE.value, Phase.REVIEWED.value, Phase.ABANDONED.value,
+    )
 
-    elif phase == Phase.LIVE.value:
-        # Toss may be detected during LIVE if we missed PRE_START
-        if entry.get("toss_seen_at") and A_TOSS_AWARE_PRED not in fired:
-            out.append(A_TOSS_AWARE_PRED)
+    # Pre-match snapshot opens at T-30m and fires once. If we miss the
+    # window because the phase raced past, fire on the next tick — late
+    # is better than never (the action handler strips XI/toss state so
+    # the snapshot still represents a "no extra info" prediction).
+    if pre_game_eligible and start_ts is not None and now >= start_ts - W_PRE_MATCH:
+        for k in (A_PITCH_WEATHER, A_PRE_MATCH_PRED):
+            if k not in fired:
+                out.append(k)
 
-    elif phase == Phase.COMPLETE.value:
+    # Pre-start prediction opens at T-5m. Same rule.
+    if pre_game_eligible and start_ts is not None and now >= start_ts - W_PRE_START:
+        if A_PRE_START_PRED not in fired:
+            out.append(A_PRE_START_PRED)
+
+    # Toss-aware fires once per match the moment toss is observed.
+    if pre_game_eligible and entry.get("toss_seen_at") and A_TOSS_AWARE_PRED not in fired:
+        out.append(A_TOSS_AWARE_PRED)
+
+    # Post-match
+    if phase == Phase.COMPLETE.value:
         if A_SETTLE not in fired:
             out.append(A_SETTLE)
         completed_at = entry.get("completed_at") or now

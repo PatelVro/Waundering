@@ -219,7 +219,7 @@ class State:
                 if e.get("start_ts") and any(k in (e.get("actions_fired") or {})
                                               for k in phase_owned):
                     continue
-                fname = f"{_safe_filename(home)}_vs_{_safe_filename(away)}_{today}.json"
+                fname = _canonical_fname(home, away, today)
                 todays_file = PREDICTIONS_DIR / fname
                 if todays_file.exists():
                     continue
@@ -277,9 +277,34 @@ def _safe_filename(s: str) -> str:
     return re.sub(r"[^\w\-]+", "_", s).strip("_")
 
 
+def _canonical_fname(home: str, away: str, date: str) -> str:
+    """Canonical prediction filename for a fixture. Sorts team names so the
+    same match always maps to the same file regardless of which side
+    Cricbuzz currently labels as home — Cricbuzz silently swaps home/away
+    on some pages mid-match, which would otherwise split the version
+    trajectory across two files (one per ordering)."""
+    a = _safe_filename(home or "")
+    b = _safe_filename(away or "")
+    lo, hi = sorted([a, b])
+    return f"{lo}_vs_{hi}_{date}.json"
+
+
+def _normalise_toss_decision(raw: str | None) -> str | None:
+    """Cricbuzz uses 'Bowling'/'Batting' (long form) or 'bowl'/'bat' (short).
+    predict_match.py CLI accepts only 'bat' or 'field'. Map appropriately —
+    in cricket, opting to bowl == fielding first."""
+    if not raw: return None
+    r = raw.strip().lower()
+    if r in ("bat", "batting"):                     return "bat"
+    if r in ("bowl", "bowling", "field", "fielding"): return "field"
+    return None
+
+
 def predict_match(state: dict, force: bool = False,
                    xi_home: list[str] | None = None,
-                   xi_away: list[str] | None = None) -> bool:
+                   xi_away: list[str] | None = None,
+                   toss_winner: str | None = None,
+                   toss_decision: str | None = None) -> bool:
     """Run predict_match.py as a subprocess. Returns True on success.
 
     Subprocess isolation matters: predict_match imports + trains a 5-model
@@ -287,22 +312,33 @@ def predict_match(state: dict, force: bool = False,
     subprocess sidesteps those concerns (and lets us cap memory if needed).
 
     `force=True` overwrites an existing saved prediction. `xi_home/xi_away`
-    pass announced playing XIs to override the proxy lookup.
+    pass announced playing XIs to override the proxy lookup. `toss_winner/
+    toss_decision` are forwarded as `--toss-winner/--toss-decision` so the
+    feature builder can use the actual toss state when known. None means
+    "model predicts without toss info" — used for pre-toss prediction
+    versions so retroactive firings don't accidentally bake in info the
+    model wouldn't have had at that point.
     """
     home  = state["home"]; away = state["away"]
     venue = state.get("venue") or "Unknown Venue"
     fmt   = state.get("match_format") or "T20"
     date  = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    toss_decision = _normalise_toss_decision(toss_decision)
 
-    fname = f"{_safe_filename(home)}_vs_{_safe_filename(away)}_{date}.json"
+    fname = _canonical_fname(home, away, date)
     out_path = PREDICTIONS_DIR / fname
     if out_path.exists() and not force:
         LOG.info(f"Prediction already exists for {home} vs {away} on {date}, skipping")
         return True
 
     tag = "RE-PREDICT" if (out_path.exists() and force) else "PREDICT"
+    extras = []
+    if xi_home or xi_away:
+        extras.append(f"xi: home={len(xi_home or [])}/away={len(xi_away or [])}")
+    if toss_winner:
+        extras.append(f"toss: {toss_winner} -> {toss_decision or '?'}")
     LOG.info(f"{tag}  {home} vs {away}  ({fmt} @ {venue}, {date})"
-             + (f"  [xi: home={len(xi_home or [])}/away={len(xi_away or [])} announced]" if (xi_home or xi_away) else ""))
+             + (f"  [{', '.join(extras)}]" if extras else ""))
     py = sys.executable
     cmd = [py, "-m", "cricket_pipeline.work.predict_match",
            "--home", home, "--away", away, "--venue", venue,
@@ -313,6 +349,8 @@ def predict_match(state: dict, force: bool = False,
         cmd.append("--force")
     if xi_home: cmd += ["--xi-home", ",".join(xi_home)]
     if xi_away: cmd += ["--xi-away", ",".join(xi_away)]
+    if toss_winner and toss_decision:
+        cmd += ["--toss-winner", toss_winner, "--toss-decision", toss_decision]
     t0 = time.time()
     try:
         proc = subprocess.run(
@@ -409,9 +447,18 @@ def live_loop():
                         LOG.info(f"bets: settled {res['settled']} pending bets from completed matches")
                 except Exception as e:
                     LOG.warning(f"bet settlement failed: {e}")
-                # featured = first in-progress, else most recent completed
-                in_prog = [s for s in states if not s.get("is_complete")]
-                featured = (in_prog or states or [None])[0]
+                # featured = actually-playing match preferred (toss done,
+                # score updating). Falls through to non-complete (covers
+                # SCHEDULED) and finally to anything. Avoids the case where
+                # an abandoned-no-toss fixture from yesterday outranks a
+                # truly live match in the dashboard's LiveStrip.
+                featured = (
+                    next((s for s in states if mp.is_in_play(s.get("status"))), None)
+                    or next((s for s in states if not s.get("is_complete")
+                             and not mp.is_abandoned(s.get("status"))), None)
+                    or next((s for s in states if not s.get("is_complete")), None)
+                    or (states[0] if states else None)
+                )
                 if featured:
                     (RUNS_DIR / "live_match.json").write_text(json.dumps(featured, indent=2, default=str))
                 LOG.info(f"live: {n_ok}/{len(tracked)} states OK ({time.time()-t0:.1f}s)")
@@ -660,13 +707,24 @@ def _resolve_start_ts(state: dict, entry: dict) -> int | None:
     return entry.get("start_ts")
 
 
-def _wrap_prediction_with_version(out_path: Path, version_tag: str) -> None:
-    """Re-write a `predictions/*.json` file so the prediction body lives in
-    a `versions[]` array with a `current` pointer. Idempotent — calling
-    twice with the same tag is a no-op. Calling with a NEW tag appends.
+_VERSION_ORDER = {
+    "pre_match_v0":  0,
+    "pre_start_v1":  1,
+    "toss_aware_v2": 2,
+    "legacy":       -1,    # before phase machine
+}
 
-    Frontend reads `current` → `versions` to display the latest, with
-    older versions kept for retrospective analysis."""
+
+def _wrap_prediction_with_version(out_path: Path, version_tag: str,
+                                    prior_versions: list[dict] | None = None) -> None:
+    """Wrap a `predictions/*.json` file's prediction body in a `versions[]`
+    array. `predict_match.py` always overwrites the entire file when it
+    runs, so the caller must capture the prior `versions` array BEFORE
+    invoking predict_match and pass it here — otherwise each new version
+    silently destroys the trajectory.
+
+    Idempotent across same-tag re-fires (replaces in place). Sorts by
+    natural phase order so the dashboard always renders chronologically."""
     if not out_path.exists():
         return
     try:
@@ -680,17 +738,30 @@ def _wrap_prediction_with_version(out_path: Path, version_tag: str) -> None:
             "model_vs_book":  d.get("model_vs_book"),
             "xi":             d.get("xi"),
         }
-        if "versions" in d and "current" in d:
-            existing_tags = {v.get("tag") for v in d["versions"]}
-            if version_tag in existing_tags:
-                return        # already saved this version
-            d["versions"].append(snapshot)
-        else:
-            d["versions"] = [snapshot]
-        d["current"] = version_tag
+        # Build the merged versions list: prior history minus any same-tag
+        # entry (re-fires replace), plus the new snapshot.
+        merged = [v for v in (prior_versions or [])
+                   if v.get("tag") != version_tag]
+        merged.append(snapshot)
+        merged.sort(key=lambda v: _VERSION_ORDER.get(v.get("tag"), 99))
+        d["versions"] = merged
+        d["current"]  = version_tag
         out_path.write_text(json.dumps(d, indent=2, default=str))
     except Exception as e:
         LOG.warning(f"version-wrap failed for {out_path.name}: {e}")
+
+
+def _read_prior_versions(out_path: Path) -> list[dict]:
+    """Snapshot the existing `versions[]` array on disk, BEFORE predict_match
+    overwrites the file. Pass this into _wrap_prediction_with_version after
+    the predict call to preserve trajectory history."""
+    if not out_path.exists():
+        return []
+    try:
+        d = json.loads(out_path.read_text())
+        return list(d.get("versions") or [])
+    except Exception:
+        return []
 
 
 def _xi_for_state(mid: str, home: str) -> tuple[list[str] | None, list[str] | None]:
@@ -720,7 +791,7 @@ def _fire_phase_action(mid: str, entry: dict, action: str) -> bool:
     venue = state.get("venue") or "Unknown Venue"
     fmt   = state.get("match_format") or "T20"
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    fname = f"{_safe_filename(home or '')}_vs_{_safe_filename(away or '')}_{today}.json"
+    fname = _canonical_fname(home or "", away or "", today)
     out_path = PREDICTIONS_DIR / fname
 
     # Pitch + weather snapshot — best-effort, lineup_loop also does this
@@ -739,28 +810,42 @@ def _fire_phase_action(mid: str, entry: dict, action: str) -> bool:
             LOG.debug(f"weather action {mid}: {e}")
         return True
 
-    # Versioned predictions — pre_match (no XI), pre_start (proxy XI ok),
-    # toss_aware (XI + toss state from live status)
+    # Versioned predictions — pre_match (no XI, no toss), pre_start (XI ok,
+    # no toss), toss_aware (XI + toss). Each version represents the model's
+    # call given the info available at that phase, so we explicitly WITHHOLD
+    # downstream info from upstream versions even when firing late — keeps
+    # the trajectory honest if the orchestrator catches up after a window.
     if action in (mp.A_PRE_MATCH_PRED, mp.A_PRE_START_PRED, mp.A_TOSS_AWARE_PRED):
         version_tag = {
             mp.A_PRE_MATCH_PRED:  "pre_match_v0",
             mp.A_PRE_START_PRED:  "pre_start_v1",
             mp.A_TOSS_AWARE_PRED: "toss_aware_v2",
         }[action]
-        # Pre-match runs without an XI (forces the proxy lookup); pre-start
-        # and toss-aware use the announced XI when available.
         xi_home = xi_away = None
         if action != mp.A_PRE_MATCH_PRED:
             xi_home, xi_away = _xi_for_state(mid, home)
+        toss_w = toss_d = None
+        if action == mp.A_TOSS_AWARE_PRED:
+            toss_w = entry.get("toss_winner") or state.get("toss_winner")
+            toss_d = entry.get("toss_decision") or state.get("toss_decision")
         synthetic_state = {
             **state,
             "home": home, "away": away,
             "venue": venue, "match_format": fmt,
         }
+        # Strip toss from the state dict for non-toss-aware versions so the
+        # snapshot represents "model without toss info"
+        if action != mp.A_TOSS_AWARE_PRED:
+            synthetic_state.pop("toss_winner", None)
+            synthetic_state.pop("toss_decision", None)
+        # Capture trajectory BEFORE predict_match overwrites the file
+        prior_versions = _read_prior_versions(out_path)
         ok = predict_match(synthetic_state, force=True,
-                            xi_home=xi_home, xi_away=xi_away)
+                            xi_home=xi_home, xi_away=xi_away,
+                            toss_winner=toss_w, toss_decision=toss_d)
         if ok:
-            _wrap_prediction_with_version(out_path, version_tag)
+            _wrap_prediction_with_version(out_path, version_tag,
+                                           prior_versions=prior_versions)
             STATE.mark_predicted(mid)
         return ok
 

@@ -236,6 +236,60 @@ class RescheduleTests(unittest.TestCase):
         self.assertEqual(set(entry["actions_fired"].keys()), {mp.A_PRE_MATCH_PRED})
 
 
+class RaceCondsRetroFireTests(unittest.TestCase):
+    """Regression tests for transitions racing past action windows.
+
+    Real-world case (GT vs RCB, 2026-04-30): the phase machine transitioned
+    SCHEDULED → PRE_START at exactly T-30m and PRE_START → LIVE 2 min later
+    when toss was detected — both transitions happened before pre_match_v0
+    or pre_start_v1 could fire under the OLD phase-gated logic, silently
+    skipping them. With time-driven due_actions, late firings catch up.
+    """
+
+    def test_pre_match_fires_in_pre_start_phase_if_unfired(self):
+        # Already in PRE_START (transition raced past T-30m), neither
+        # pre_match_v0 nor pitch_weather have fired yet.
+        e = make_entry(phase=mp.Phase.PRE_START.value, actions_fired={})
+        due = mp.due_actions(e, now=T0 - 25 * 60)   # T-25m, well past T-30
+        self.assertIn(mp.A_PRE_MATCH_PRED, due)
+        self.assertIn(mp.A_PITCH_WEATHER, due)
+
+    def test_pre_match_fires_even_in_live_phase_if_unfired(self):
+        # Phase already advanced to LIVE because toss was detected early.
+        # By T-3m (after both T-30 and T-5 windows have opened), every
+        # pre-game version is due since none fired during the race past.
+        e = make_entry(phase=mp.Phase.LIVE.value, actions_fired={},
+                        toss_seen_at=T0 - 28 * 60)
+        due = mp.due_actions(e, now=T0 - 3 * 60)
+        self.assertIn(mp.A_PRE_MATCH_PRED, due)
+        self.assertIn(mp.A_PRE_START_PRED, due)
+        self.assertIn(mp.A_TOSS_AWARE_PRED, due)
+
+    def test_pre_start_doesnt_fire_until_t_minus_5(self):
+        # Even with phase=LIVE due to early toss, pre_start_v1 still
+        # respects its time window — won't fire at T-15m.
+        e = make_entry(phase=mp.Phase.LIVE.value, actions_fired={},
+                        toss_seen_at=T0 - 25 * 60)
+        due = mp.due_actions(e, now=T0 - 15 * 60)
+        self.assertIn(mp.A_PRE_MATCH_PRED, due)        # T-30 window open
+        self.assertNotIn(mp.A_PRE_START_PRED, due)     # T-5 window NOT open yet
+        self.assertIn(mp.A_TOSS_AWARE_PRED, due)       # toss seen, fires immediately
+
+    def test_no_actions_in_abandoned_phase(self):
+        e = make_entry(phase=mp.Phase.ABANDONED.value, actions_fired={})
+        self.assertEqual(mp.due_actions(e, now=T0), [])
+
+    def test_no_pre_game_actions_in_complete_phase(self):
+        e = make_entry(phase=mp.Phase.COMPLETE.value, actions_fired={},
+                        completed_at=T0 + 4 * 3600)
+        due = mp.due_actions(e, now=T0 + 4 * 3600 + 60)
+        # Only post-match actions, never pre-game retro-fires
+        self.assertNotIn(mp.A_PRE_MATCH_PRED, due)
+        self.assertNotIn(mp.A_PRE_START_PRED, due)
+        self.assertNotIn(mp.A_TOSS_AWARE_PRED, due)
+        self.assertIn(mp.A_SETTLE, due)
+
+
 class FullProgressionScenarioTest(unittest.TestCase):
     """Walk one match through every phase to verify the action firing order."""
 
