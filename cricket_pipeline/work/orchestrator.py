@@ -66,6 +66,12 @@ from ..ingest import pitch as PITCH
 from ..ingest import open_meteo as METEO
 
 
+# Suppress the brief CMD/console window flash when subprocess.run() spawns
+# predict_match / cricsheet ingest on Windows. Harmless 0 on POSIX so the
+# same flag works cross-platform.
+_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+
+
 # ---------- paths + constants ----------
 
 ROOT             = Path(__file__).resolve().parents[2]
@@ -294,6 +300,7 @@ def predict_match(state: dict, force: bool = False,
         proc = subprocess.run(
             cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=1800,
             env={**__import__("os").environ, "PYTHONIOENCODING": "utf-8"},
+            creationflags=_NO_WINDOW,
         )
         dt = time.time() - t0
         if proc.returncode != 0:
@@ -536,6 +543,7 @@ def ingest_loop():
                      "--dataset", ds],
                     cwd=str(ROOT), capture_output=True, text=True, timeout=900,
                     env={**__import__("os").environ, "PYTHONIOENCODING": "utf-8"},
+                    creationflags=_NO_WINDOW,
                 )
                 last = (proc.stdout or "").splitlines()[-1] if proc.stdout else ""
                 LOG.info(f"ingest: {ds:<22} {last[:80]}  ({time.time()-t0:.0f}s)")

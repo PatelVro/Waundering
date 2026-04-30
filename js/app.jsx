@@ -15,9 +15,10 @@ const PRED_FILES = [
 // =====================================================================
 // MAIN APP
 // =====================================================================
-// Auto-refresh cadence (ms). Browser pulls fresh data every minute so the
-// dashboard tracks the orchestrator's 30s/3min/5min loops without F5.
-const REFRESH_INTERVAL_MS = 60_000;
+// Auto-refresh cadence (ms). Browser pulls fresh data every 30s so the
+// dashboard tracks the orchestrator's 30s live_loop without F5. Cheap —
+// data.json is a static file served from the orchestrator's HTTP loop.
+const REFRESH_INTERVAL_MS = 30_000;
 
 function App() {
   const [data, setData] = useState(null);
