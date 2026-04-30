@@ -251,6 +251,28 @@ function App() {
         </div>
       </div>
 
+      {/* PREDICTION-VERSION HISTORY for the selected fixture (model's call
+         evolution as new info — XI, toss — becomes available) */}
+      <div className="grid cols-12">
+        <div className="col-7">
+          <VersionHistory pred={pred} />
+        </div>
+        <div className="col-5">
+          <EdgeTrajectory pred={pred} />
+        </div>
+      </div>
+
+      {/* PHASE TIMELINE + LEARNINGS — orchestrator activity feed +
+         per-version error attribution from completed matches */}
+      <div className="grid cols-12">
+        <div className="col-7">
+          <MatchTimeline events={data.match_timeline || []} />
+        </div>
+        <div className="col-5">
+          <Learnings entries={data.learnings || []} />
+        </div>
+      </div>
+
       {/* RECENT + BET LEDGER */}
       <div className="grid cols-12">
         <div className="col-7">
@@ -1298,6 +1320,328 @@ function TrackRecord({ allPredictions }) {
           )}
         </>
       )}
+    </Card>
+  );
+}
+
+
+// =====================================================================
+// VERSION HISTORY — model's call evolution as new info lands
+// =====================================================================
+// The phase machine emits versioned predictions:
+//   pre_match_v0 (T-30m, no XI) → pre_start_v1 (T-5m, announced XI) →
+//   toss_aware_v2 (after toss). Each is saved as a snapshot in the
+//   prediction file's `versions[]` array. This component renders the
+//   trajectory so the user can see how each new information drop moved
+//   the model's call.
+const VERSION_LABELS = {
+  pre_match_v0:  { name: "Pre-match",   sub: "T-30m · proxy XI",         color: "var(--ink-3)" },
+  pre_start_v1:  { name: "Pre-start",   sub: "T-5m · announced XI",      color: "var(--accent-2)" },
+  toss_aware_v2: { name: "Post-toss",   sub: "after toss · final pre-game", color: "var(--accent)" },
+  legacy:        { name: "Pre-match",   sub: "single-version snapshot",  color: "var(--ink-3)" },
+};
+
+function VersionHistory({ pred }) {
+  if (!pred?.versions?.length) return null;
+  const versions = pred.versions;
+  const m = pred.match || {};
+
+  return (
+    <Card title="Prediction trajectory"
+           right={`${versions.length} version${versions.length === 1 ? '' : 's'} · ${pred.current || 'legacy'}`}>
+      <table className="t" style={{ tableLayout: 'fixed' }}>
+        <thead>
+          <tr>
+            <th style={{ width: 130 }}>VERSION</th>
+            <th>WHEN</th>
+            <th className="num">P({teamCode(m.home)})</th>
+            <th className="num">P({teamCode(m.away)})</th>
+            <th>FAVOURED</th>
+            <th className="num">EDGE</th>
+            <th>Δ vs prev</th>
+          </tr>
+        </thead>
+        <tbody>
+          {versions.map((v, i) => {
+            const meta = VERSION_LABELS[v.tag] || { name: v.tag, sub: '', color: 'var(--ink)' };
+            const p = v.prediction || {};
+            const ph = p.p_home_wins;
+            const pa = p.p_away_wins;
+            const fav = p.favored;
+            const mvb = v.model_vs_book || {};
+            const edge = mvb.best_side_edge_pp;
+            const prev = i > 0 ? (versions[i - 1].prediction?.p_home_wins) : null;
+            const delta = (ph != null && prev != null) ? (ph - prev) * 100 : null;
+            const isCurrent = pred.current === v.tag;
+            return (
+              <tr key={v.tag + i} style={{ background: isCurrent ? 'var(--bg-3)' : 'transparent' }}>
+                <td>
+                  <span style={{ color: meta.color, fontWeight: 600 }}>{meta.name}</span>
+                  <div className="dim small">{meta.sub}</div>
+                </td>
+                <td className="dim small">{v.at ? new Date(v.at).toLocaleString(undefined, { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                <td className="num">{ph != null ? (ph * 100).toFixed(1) + '%' : '—'}</td>
+                <td className="num">{pa != null ? (pa * 100).toFixed(1) + '%' : '—'}</td>
+                <td>{fav ? teamCode(fav) : '—'}</td>
+                <td className="num" style={{ color: edge != null ? (edge >= 5 ? 'var(--green)' : edge < 0 ? 'var(--red)' : 'var(--ink)') : 'var(--ink-3)' }}>
+                  {edge != null ? (edge >= 0 ? '+' : '') + edge.toFixed(1) + 'pp' : '—'}
+                </td>
+                <td className="num" style={{ color: delta == null ? 'var(--ink-3)' : Math.abs(delta) < 1 ? 'var(--ink-3)' : (delta > 0 ? 'var(--accent-2)' : 'var(--accent)') }}>
+                  {delta == null ? '—' : (delta >= 0 ? '+' : '') + delta.toFixed(1) + 'pp'}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {versions.length === 1 && versions[0].tag === 'legacy' && (
+        <div className="small dim" style={{ marginTop: 10 }}>
+          This prediction was saved before the phase-versioning rework.
+          Future fixtures will show the full pre-match → pre-start → post-toss
+          trajectory as the orchestrator fires each phase action.
+        </div>
+      )}
+    </Card>
+  );
+}
+
+
+// =====================================================================
+// EDGE TRAJECTORY — sparkline of model-vs-book edge across versions
+// =====================================================================
+// Visual companion to the table above. Plots the favoured-side edge
+// (in pp vs market consensus) at each prediction version, with the
+// final dot highlighted. A flat line means no information moved the
+// model's view; a steep climb means each new piece (XI, toss) helped
+// the model find more value than the books had.
+function EdgeTrajectory({ pred }) {
+  if (!pred?.versions?.length) return null;
+  const versions = pred.versions.filter(v => (v.model_vs_book?.best_side_edge_pp) != null);
+  if (!versions.length) {
+    return (
+      <Card title="Edge trajectory" right="model vs market">
+        <div className="small dim" style={{ padding: 8 }}>
+          No bookmaker odds attached to any version yet. Edge appears
+          once The Odds API has a quote for the fixture.
+        </div>
+      </Card>
+    );
+  }
+
+  const points = versions.map((v, i) => ({
+    tag:  v.tag,
+    edge: v.model_vs_book.best_side_edge_pp,
+    side: v.model_vs_book.best_side,
+  }));
+  const W = 360, H = 110, P = 18;
+  const minE = Math.min(0, ...points.map(p => p.edge));
+  const maxE = Math.max(0, ...points.map(p => p.edge), 5);
+  const yScale = (e) => P + (H - 2 * P) * (1 - (e - minE) / (maxE - minE || 1));
+  const xScale = (i) => points.length === 1 ? W / 2 : P + i * (W - 2 * P) / (points.length - 1);
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${xScale(i).toFixed(1)},${yScale(p.edge).toFixed(1)}`).join(' ');
+  const zeroY = yScale(0);
+  const last = points[points.length - 1];
+
+  return (
+    <Card title="Edge trajectory" right={`${last.side ? teamCode(last.side) : ''} ${last.edge >= 0 ? '+' : ''}${last.edge.toFixed(1)}pp`}>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
+        {/* zero-edge baseline */}
+        <line x1={P} x2={W - P} y1={zeroY} y2={zeroY}
+               stroke="var(--ink-4)" strokeDasharray="3 3" strokeWidth="1" />
+        <text x={P} y={zeroY - 4} className="mono" fontSize="9" fill="var(--ink-3)">edge = 0</text>
+        {/* trajectory */}
+        <path d={pathD} fill="none" stroke="var(--accent-2)" strokeWidth="2" />
+        {/* points */}
+        {points.map((p, i) => (
+          <g key={i}>
+            <circle cx={xScale(i)} cy={yScale(p.edge)} r={i === points.length - 1 ? 5 : 3.5}
+                     fill={i === points.length - 1 ? 'var(--accent)' : 'var(--accent-2)'} />
+            <text x={xScale(i)} y={yScale(p.edge) - 9}
+                   textAnchor="middle" className="mono" fontSize="10"
+                   fill={i === points.length - 1 ? 'var(--accent)' : 'var(--ink-2)'}>
+              {p.edge >= 0 ? '+' : ''}{p.edge.toFixed(1)}
+            </text>
+            <text x={xScale(i)} y={H - 4}
+                   textAnchor="middle" className="mono" fontSize="9" fill="var(--ink-3)">
+              {(VERSION_LABELS[p.tag]?.name || p.tag).split(' ')[0].toLowerCase()}
+            </text>
+          </g>
+        ))}
+      </svg>
+      <div className="small dim" style={{ marginTop: 4 }}>
+        Each point = a phase prediction. Climb means new info (XI, toss)
+        widened the gap vs market; descent means the books caught up.
+      </div>
+    </Card>
+  );
+}
+
+
+// =====================================================================
+// MATCH TIMELINE — orchestrator phase events feed
+// =====================================================================
+// Renders the last N phase transitions and timed-action firings across
+// all tracked fixtures. Mirrors what's in match_timeline.jsonl, with
+// home/away enriched server-side. Useful as a "what's the orchestrator
+// doing right now" pulse, especially around toss / kickoff.
+const PHASE_COLOR = {
+  DISCOVERED: 'var(--ink-3)',
+  SCHEDULED:  'var(--accent-2)',
+  PRE_START:  'var(--accent)',
+  LIVE:       'var(--green)',
+  COMPLETE:   'var(--ink-2)',
+  REVIEWED:   'var(--book)',
+  ABANDONED:  'var(--red)',
+};
+
+function MatchTimeline({ events }) {
+  if (!events?.length) {
+    return (
+      <Card title="Phase timeline" right="orchestrator activity">
+        <div className="small dim">
+          No events yet — the timeline populates once the phase machine fires
+          its first transition.
+        </div>
+      </Card>
+    );
+  }
+
+  // Newest first
+  const ordered = [...events].reverse().slice(0, 40);
+
+  return (
+    <Card title="Phase timeline"
+           right={`${events.length} events · newest first`}>
+      <table className="t" style={{ tableLayout: 'fixed' }}>
+        <thead>
+          <tr>
+            <th style={{ width: 90 }}>WHEN</th>
+            <th>FIXTURE</th>
+            <th>EVENT</th>
+            <th>DETAIL</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ordered.map((e, i) => {
+            const when = e.at ? new Date(e.at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
+            const home = e.home ? teamCode(e.home) : '—';
+            const away = e.away ? teamCode(e.away) : '—';
+            let label = '', detail = '', color = 'var(--ink)';
+            if (e.event === 'transition') {
+              label = `${e.from || 'NEW'} → ${e.to}`;
+              color = PHASE_COLOR[e.to] || 'var(--ink)';
+              detail = '';
+            } else if (e.event === 'action') {
+              label = e.action;
+              color = e.ok ? 'var(--green)' : 'var(--red)';
+              detail = e.ok ? 'fired' : 'failed';
+            } else if (e.event === 'toss') {
+              label = 'TOSS';
+              color = 'var(--accent)';
+              detail = `${teamCode(e.toss_winner)} chose to ${e.toss_decision}`;
+            } else if (e.event === 'rescheduled') {
+              label = 'RESCHEDULED';
+              color = 'var(--accent)';
+              const oldS = e.old_ts ? new Date(e.old_ts * 1000).toLocaleString() : '—';
+              const newS = e.new_ts ? new Date(e.new_ts * 1000).toLocaleString() : '—';
+              detail = `${oldS} → ${newS}`;
+            }
+            return (
+              <tr key={i}>
+                <td className="dim small mono">{when}</td>
+                <td><strong>{home}</strong><span className="dim"> vs </span><strong>{away}</strong></td>
+                <td><span style={{ color, fontWeight: 600 }}>{label}</span></td>
+                <td className="dim small">{detail}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </Card>
+  );
+}
+
+
+// =====================================================================
+// LEARNINGS — per-version error attribution from completed matches
+// =====================================================================
+// Sources `learnings/post_match_log.jsonl` (written by
+// post_match_review.review_one() when phase_loop fires COMPLETE.review).
+// Each entry shows what each phase prediction added (or didn't) and the
+// primary error factor when the final call missed.
+function Learnings({ entries }) {
+  if (!entries?.length) {
+    return (
+      <Card title="Recent learnings" right="post-match attribution">
+        <div className="small dim">
+          The learning ledger populates as the phase machine fires
+          <code style={{ padding: '0 4px' }}>COMPLETE.review</code> actions
+          on settled matches. Each entry is a per-version error breakdown.
+        </div>
+      </Card>
+    );
+  }
+  return (
+    <Card title="Recent learnings" right={`${entries.length} recent · newest first`}>
+      <div className="stack" style={{ gap: 10 }}>
+        {entries.slice(0, 6).map((e, i) => {
+          const m = e.match || {};
+          const a = e.attribution || {};
+          const final_correct = a.final_correct;
+          const verdict = final_correct ? 'WON' : 'LOST';
+          const verdictColor = final_correct ? 'var(--green)' : 'var(--red)';
+          const winner = (e.actual || {}).winner || '—';
+          return (
+            <div key={i} style={{
+              borderTop: i === 0 ? 'none' : '1px dashed var(--line)',
+              paddingTop: i === 0 ? 0 : 8,
+            }}>
+              <div className="spread" style={{ alignItems: 'baseline' }}>
+                <div>
+                  <strong>{teamCode(m.home)}</strong>
+                  <span className="dim"> vs </span>
+                  <strong>{teamCode(m.away)}</strong>
+                  <span className="dim small" style={{ marginLeft: 8 }}>
+                    {fmt.date(m.date)} · {m.format}
+                  </span>
+                </div>
+                <span className="chip" style={{ color: verdictColor, borderColor: `color-mix(in oklch, ${verdictColor} 50%, var(--line))` }}>
+                  {verdict}
+                </span>
+              </div>
+              <div className="small dim" style={{ marginTop: 2 }}>
+                Actual: <strong style={{ color: 'var(--ink-2)' }}>{teamCode(winner)}</strong>
+                {(e.actual || {}).live_status ? ` · ${(e.actual || {}).live_status}` : ''}
+              </div>
+              {/* Per-version line: which phase predictions got it right? */}
+              {(e.versions || []).length > 1 && (
+                <div className="small" style={{ marginTop: 6, color: 'var(--ink-2)' }}>
+                  {(e.versions || []).map((v, j) => (
+                    <span key={j} style={{ marginRight: 12 }}>
+                      <span className="dim">{(VERSION_LABELS[v.tag]?.name || v.tag).split(' ')[0]}:</span>{' '}
+                      <span style={{ color: v.correct ? 'var(--green)' : 'var(--red)' }}>
+                        {teamCode(v.predicted_winner)}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {/* Attribution headline */}
+              {a.primary_error_factor && !final_correct && (
+                <div className="small" style={{ marginTop: 4, color: 'var(--accent)' }}>
+                  Primary error: <strong>{a.primary_error_factor}</strong>
+                  {a.luck_signal && ' · narrow margin (some luck)'}
+                </div>
+              )}
+              {a.correct_versions?.length > 0 && !final_correct && (
+                <div className="small" style={{ marginTop: 2, color: 'var(--ink-3)' }}>
+                  Earlier versions got it right: {a.correct_versions.join(', ')} — info added later moved the call wrong.
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </Card>
   );
 }

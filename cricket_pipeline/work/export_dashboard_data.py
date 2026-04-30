@@ -543,6 +543,123 @@ def _persist_result_if_complete(pred: dict) -> None:
         pass
 
 
+def _load_timeline_events(limit: int = 80) -> list[dict]:
+    """Load the last `limit` events from match_timeline.jsonl. Append-only file
+    written by orchestrator's phase_loop; cheap to tail-read each export."""
+    fp = RUNS_DIR / "match_timeline.jsonl"
+    if not fp.exists():
+        return []
+    try:
+        # Read tail efficiently — events are usually <300B each, so just read
+        # the whole file (typically <1MB) and slice. If it ever grows large
+        # we can swap in a reverse-line iterator.
+        lines = fp.read_text(encoding="utf-8", errors="replace").splitlines()
+        events = []
+        for ln in lines[-limit:]:
+            ln = ln.strip()
+            if not ln: continue
+            try:
+                events.append(json.loads(ln))
+            except Exception:
+                continue
+        return events
+    except Exception:
+        return []
+
+
+def _enrich_timeline_with_match_meta(events: list[dict],
+                                       state_by_mid: dict) -> list[dict]:
+    """Decorate events with home/away team names so the dashboard doesn't
+    have to cross-reference. `state_by_mid` is the map of match_id -> its
+    last_state (taken from orchestrator_state.json)."""
+    out = []
+    for e in events:
+        mid = e.get("mid")
+        meta = state_by_mid.get(mid) or {}
+        out.append({
+            **e,
+            "home": meta.get("home"),
+            "away": meta.get("away"),
+        })
+    return out
+
+
+def _load_recent_learnings(limit: int = 10) -> list[dict]:
+    """Tail-read the post-match learning ledger for the most recent
+    structured attributions. Each entry is a per-version error breakdown
+    written by post_match_review.review_one()."""
+    fp = ROOT / "learnings" / "post_match_log.jsonl"
+    if not fp.exists():
+        return []
+    try:
+        lines = fp.read_text(encoding="utf-8", errors="replace").splitlines()
+        out = []
+        for ln in lines[-limit:]:
+            ln = ln.strip()
+            if not ln: continue
+            try:
+                e = json.loads(ln)
+                # Compact version: trim full version analyses to just the
+                # fields the dashboard needs (the full record stays on disk).
+                vers = [{
+                    "tag":              v.get("tag"),
+                    "predicted_winner": v.get("predicted_winner"),
+                    "p_home":           v.get("p_home_wins"),
+                    "edge_pct":         v.get("edge_pct"),
+                    "correct":          v.get("correct"),
+                } for v in (e.get("versions") or [])]
+                out.append({
+                    "match":       e.get("match"),
+                    "actual":      e.get("actual"),
+                    "versions":    vers,
+                    "deltas":      e.get("deltas"),
+                    "attribution": e.get("attribution"),
+                    "reviewed_at": e.get("reviewed_at"),
+                })
+            except Exception:
+                continue
+        return list(reversed(out))   # newest first
+    except Exception:
+        return []
+
+
+def _load_state_meta() -> dict[str, dict]:
+    """Read orchestrator_state.json and produce {match_id: {home, away}} so
+    timeline events can be enriched without a Cricbuzz round-trip."""
+    fp = RUNS_DIR / "orchestrator_state.json"
+    if not fp.exists():
+        return {}
+    try:
+        data = json.loads(fp.read_text())
+        out = {}
+        for mid, e in (data.get("tracked") or {}).items():
+            ls = e.get("last_state") or {}
+            out[mid] = {"home": ls.get("home"), "away": ls.get("away")}
+        return out
+    except Exception:
+        return {}
+
+
+def _ensure_versions_shape(pred: dict) -> dict:
+    """Backwards-compat: predictions written before the phase machine fired
+    don't have versions[] / current. Synthesize a single 'legacy' version
+    so the frontend has a consistent shape to render against."""
+    if not pred:
+        return pred
+    if pred.get("versions") and pred.get("current"):
+        return pred
+    legacy = {
+        "tag": "legacy",
+        "at": None,
+        "prediction":    pred.get("prediction"),
+        "base_learners": pred.get("base_learners"),
+        "features":      pred.get("features"),
+        "model_vs_book": pred.get("model_vs_book"),
+        "xi":            pred.get("xi"),
+    }
+    return {**pred, "versions": [legacy], "current": "legacy"}
+
+
 def _winner_from_matches_table(home: str, away: str, date_iso: str) -> str | None:
     """Fall back to CricSheet-derived matches table for definitive results."""
     if not (home and away and date_iso):
@@ -600,6 +717,20 @@ def main():
     # appear in the recent-results panel even before CricSheet ingests them.
     recent = _merge_settled_into_recent(recent, preds["all"], max_total=40)
 
+    # Backwards-compat: ensure every prediction has a versions[] / current shape
+    # so the frontend can render uniformly across phase-machine-versioned and
+    # legacy predictions.
+    preds["all"] = [_ensure_versions_shape(p) for p in preds["all"]]
+    if preds["latest"]:
+        preds["latest"] = _ensure_versions_shape(preds["latest"])
+
+    # Phase-machine timeline (last 80 events, enriched with match meta)
+    state_meta = _load_state_meta()
+    timeline = _enrich_timeline_with_match_meta(
+        _load_timeline_events(limit=80), state_meta
+    )
+    learnings = _load_recent_learnings(limit=10)
+
     out = {
         "generated_at":     pd.Timestamp.now().isoformat(),
         "latest_prediction": preds["latest"],
@@ -612,6 +743,8 @@ def main():
         "live_match":        live,
         "bets":              bets,
         "model_vs_book":     comparison,
+        "match_timeline":    timeline,
+        "learnings":         learnings,
     }
     OUT_PATH.write_text(json.dumps(out, indent=2, default=str))
     print(f"  wrote {OUT_PATH}  ({OUT_PATH.stat().st_size:,} bytes)")

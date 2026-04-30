@@ -770,12 +770,23 @@ def _fire_phase_action(mid: str, entry: dict, action: str) -> bool:
     if action == mp.A_SETTLE:
         return True
     if action == mp.A_REVIEW:
-        # Best-effort: invoke the existing post-match review module if it
-        # has a per-match entry point. Otherwise just mark fired.
+        # Phase-aware per-match review writes a structured ledger line
+        # to learnings/post_match_log.jsonl with per-version attribution.
+        # Use the match's start date (not today's UTC) so we look up the
+        # correct prediction file when reviewing fixtures completed earlier.
         try:
             from .. import post_match_review as pmr
+            match_date = today
+            if entry.get("start_ts"):
+                match_date = datetime.fromtimestamp(
+                    int(entry["start_ts"]), tz=timezone.utc
+                ).strftime("%Y-%m-%d")
             if hasattr(pmr, "review_one"):
-                pmr.review_one(home=home, away=away, date=today)
+                res = pmr.review_one(home=home, away=away, date=match_date)
+                if res:
+                    LOG.info(f"review: ledger entry for {home} vs {away} "
+                             f"({match_date}) — final_correct="
+                             f"{res.get('attribution',{}).get('final_correct')}")
             elif hasattr(pmr, "main"):
                 pmr.main()
         except Exception as e:
