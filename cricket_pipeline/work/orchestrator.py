@@ -60,6 +60,7 @@ from . import live_match as lm
 from . import export_dashboard_data as edd
 from . import filters as F
 from . import bet_engine as BET
+from . import match_phase as mp
 from ..ingest import odds as ODDS
 from ..ingest import lineup as LINEUP
 from ..ingest import pitch as PITCH
@@ -91,6 +92,7 @@ PREDICT_INTERVAL_SEC   = 300
 ODDS_INTERVAL_SEC      = 1800      # 30 min — keep within The Odds API free quota
 LINEUP_INTERVAL_SEC    = 120       # poll cricbuzz match-squads pages
 INGEST_INTERVAL_SEC    = 86400     # 24h — re-pull CricSheet to capture newly-finished matches
+PHASE_INTERVAL_SEC     = 30        # match-phase machine: drive transitions + fire timed actions
 HTTP_PORT              = 4173
 
 # CricSheet datasets to refresh daily (small + relevant). Skip the full
@@ -184,16 +186,27 @@ class State:
             self._save()
 
     def matches_to_predict(self) -> list[tuple[str, dict]]:
-        """Tracked matches that have a state with home/away, are not complete,
-        and don't yet have a prediction file dated today.
+        """Tracked matches the legacy predict_loop should handle.
 
-        The `prediction_done` flag is per-match and never resets — once a
-        match is predicted on day N it stays "done" forever, blocking the
-        date-rolled prediction filename predict_match() expects on day
-        N+1. Bypass that flag whenever today's file is missing so the
-        loop self-heals across day boundaries.
+        The phase machine (phase_loop) now owns prediction firing for any
+        match with a known start_ts — it emits versioned predictions
+        (pre_match_v0 / pre_start_v1 / toss_aware_v2) at the right
+        moments. predict_loop falls back to handling matches where the
+        phase machine hasn't taken over yet (no start_ts, or start_ts
+        is in the past with no completion signal).
+
+        Returns matches that:
+          - have home/away
+          - are not complete
+          - don't have today's prediction file
+          - either have NO start_ts (phase machine can't act yet) OR
+            no phase-machine prediction has fired yet
         """
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        # Action keys phase_loop owns
+        phase_owned = {"SCHEDULED.pre_match_v0",
+                        "PRE_START.pre_start_v1",
+                        "PRE_START.toss_aware_v2"}
         with self.lock:
             out = []
             for mid, e in self.tracked.items():
@@ -201,6 +214,11 @@ class State:
                 home, away = state.get("home"), state.get("away")
                 if not home or not away: continue
                 if state.get("is_complete"): continue
+                # Phase machine has a clock for this match AND has fired (or is
+                # about to fire) — skip in predict_loop to avoid double work.
+                if e.get("start_ts") and any(k in (e.get("actions_fired") or {})
+                                              for k in phase_owned):
+                    continue
                 fname = f"{_safe_filename(home)}_vs_{_safe_filename(away)}_{today}.json"
                 todays_file = PREDICTIONS_DIR / fname
                 if todays_file.exists():
@@ -611,6 +629,267 @@ def lineup_loop():
         STATE.shutdown.wait(LINEUP_INTERVAL_SEC)
 
 
+# ---------------------------------------------------------------------------
+# Match-phase machine
+# ---------------------------------------------------------------------------
+
+PHASE_LOG = RUNS_DIR / "match_timeline.jsonl"
+
+
+def _phase_log(event: dict) -> None:
+    """Append-only event log of phase transitions and action firings."""
+    try:
+        event = {**event, "at": datetime.now(timezone.utc).isoformat()}
+        with PHASE_LOG.open("a", encoding="utf-8") as fp:
+            fp.write(json.dumps(event, default=str) + "\n")
+    except Exception:
+        pass    # observability is best-effort
+
+
+def _resolve_start_ts(state: dict, entry: dict) -> int | None:
+    """Find start_ts for a match, in order of authority:
+       1. live_match's matchStartTimestamp (most reliable)
+       2. parse Cricbuzz status text "Match starts at Apr 30, 14:00 GMT"
+       3. existing entry.start_ts (don't downgrade once set)"""
+    raw_ts = state.get("match_start_ts")
+    if isinstance(raw_ts, (int, float)) and raw_ts > 0:
+        return int(raw_ts)
+    parsed = mp.parse_start_ts_from_status(state.get("status"))
+    if parsed:
+        return parsed
+    return entry.get("start_ts")
+
+
+def _wrap_prediction_with_version(out_path: Path, version_tag: str) -> None:
+    """Re-write a `predictions/*.json` file so the prediction body lives in
+    a `versions[]` array with a `current` pointer. Idempotent — calling
+    twice with the same tag is a no-op. Calling with a NEW tag appends.
+
+    Frontend reads `current` → `versions` to display the latest, with
+    older versions kept for retrospective analysis."""
+    if not out_path.exists():
+        return
+    try:
+        d = json.loads(out_path.read_text())
+        snapshot = {
+            "tag":            version_tag,
+            "at":             datetime.now(timezone.utc).isoformat(),
+            "prediction":     d.get("prediction"),
+            "base_learners":  d.get("base_learners"),
+            "features":       d.get("features"),
+            "model_vs_book":  d.get("model_vs_book"),
+            "xi":             d.get("xi"),
+        }
+        if "versions" in d and "current" in d:
+            existing_tags = {v.get("tag") for v in d["versions"]}
+            if version_tag in existing_tags:
+                return        # already saved this version
+            d["versions"].append(snapshot)
+        else:
+            d["versions"] = [snapshot]
+        d["current"] = version_tag
+        out_path.write_text(json.dumps(d, indent=2, default=str))
+    except Exception as e:
+        LOG.warning(f"version-wrap failed for {out_path.name}: {e}")
+
+
+def _xi_for_state(mid: str, home: str) -> tuple[list[str] | None, list[str] | None]:
+    """Look up the announced XI from STATE and align team_a/team_b to home/away."""
+    xi = STATE.announced_xi(mid)
+    if not (xi and xi.get("xi_a") and xi.get("xi_b")):
+        return None, None
+    ta, tb = xi["team_a"], xi["team_b"]
+    if (ta or "").lower() == (home or "").lower():
+        return xi["xi_a"], xi["xi_b"]
+    if (tb or "").lower() == (home or "").lower():
+        return xi["xi_b"], xi["xi_a"]
+    return None, None       # team-name mismatch — fall back to proxy
+
+
+def _fire_phase_action(mid: str, entry: dict, action: str) -> bool:
+    """Execute a phase action. Returns True iff caller should record firing.
+
+    Pre-match / pre-start / toss-aware actions all run predict_match with
+    different feature inputs, then post-process the output file into a
+    versions[] array tagged with the version. Settle and review are
+    boundary markers — actual settling happens in live_loop's bet
+    settlement; review happens via the existing post-match-review module.
+    """
+    state = entry.get("last_state") or {}
+    home, away = state.get("home"), state.get("away")
+    venue = state.get("venue") or "Unknown Venue"
+    fmt   = state.get("match_format") or "T20"
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    fname = f"{_safe_filename(home or '')}_vs_{_safe_filename(away or '')}_{today}.json"
+    out_path = PREDICTIONS_DIR / fname
+
+    # Pitch + weather snapshot — best-effort, lineup_loop also does this
+    # opportunistically; firing here makes it idempotent and timestamped.
+    if action == mp.A_PITCH_WEATHER:
+        try:
+            slug = entry.get("slug") or ""
+            if slug:
+                PITCH.store_for_match(mid, slug)
+        except Exception as e:
+            LOG.debug(f"pitch action {mid}: {e}")
+        try:
+            from datetime import date as _date
+            METEO.fetch_forecast(venue or "Unknown", _date.today())
+        except Exception as e:
+            LOG.debug(f"weather action {mid}: {e}")
+        return True
+
+    # Versioned predictions — pre_match (no XI), pre_start (proxy XI ok),
+    # toss_aware (XI + toss state from live status)
+    if action in (mp.A_PRE_MATCH_PRED, mp.A_PRE_START_PRED, mp.A_TOSS_AWARE_PRED):
+        version_tag = {
+            mp.A_PRE_MATCH_PRED:  "pre_match_v0",
+            mp.A_PRE_START_PRED:  "pre_start_v1",
+            mp.A_TOSS_AWARE_PRED: "toss_aware_v2",
+        }[action]
+        # Pre-match runs without an XI (forces the proxy lookup); pre-start
+        # and toss-aware use the announced XI when available.
+        xi_home = xi_away = None
+        if action != mp.A_PRE_MATCH_PRED:
+            xi_home, xi_away = _xi_for_state(mid, home)
+        synthetic_state = {
+            **state,
+            "home": home, "away": away,
+            "venue": venue, "match_format": fmt,
+        }
+        ok = predict_match(synthetic_state, force=True,
+                            xi_home=xi_home, xi_away=xi_away)
+        if ok:
+            _wrap_prediction_with_version(out_path, version_tag)
+            STATE.mark_predicted(mid)
+        return ok
+
+    # Boundary markers — return True so they're recorded as fired.
+    # Actual settling is done by live_loop's BET.settle_bets_against_results.
+    # Review is a future enhancement; for now we just mark the phase.
+    if action == mp.A_SETTLE:
+        return True
+    if action == mp.A_REVIEW:
+        # Best-effort: invoke the existing post-match review module if it
+        # has a per-match entry point. Otherwise just mark fired.
+        try:
+            from .. import post_match_review as pmr
+            if hasattr(pmr, "review_one"):
+                pmr.review_one(home=home, away=away, date=today)
+            elif hasattr(pmr, "main"):
+                pmr.main()
+        except Exception as e:
+            LOG.debug(f"post-match review {mid}: {e}")
+        return True
+
+    return False
+
+
+def _phase_tick(mid: str, entry: dict) -> None:
+    """One phase-machine step for one match. All STATE writes go through
+    STATE.lock; the read snapshot above runs lock-free for speed."""
+    state = entry.get("last_state") or {}
+
+    # 1) Resolve / refresh start_ts
+    fresh_ts = _resolve_start_ts(state, entry)
+    old_ts = entry.get("start_ts")
+    if fresh_ts and fresh_ts != old_ts:
+        with STATE.lock:
+            e = STATE.tracked.get(mid)
+            if e:
+                if mp.is_meaningful_reschedule(old_ts, fresh_ts):
+                    # Match was meaningfully rescheduled — rewind any phase
+                    # actions for the current phase and after (so they re-fire
+                    # against the new clock).
+                    cur_phase = e.get("phase") or mp.Phase.SCHEDULED.value
+                    mp.reset_actions_for_phase_and_after(e, cur_phase)
+                    _phase_log({"event": "rescheduled", "mid": mid,
+                                  "old_ts": old_ts, "new_ts": fresh_ts})
+                e["start_ts"] = fresh_ts
+                STATE._save()
+        entry = STATE.tracked.get(mid, entry)
+
+    # 2) Detect toss (from live status text) once we're in PRE_START / LIVE
+    if not entry.get("toss_seen_at"):
+        winner, decision = mp.detect_toss(state)
+        if winner:
+            with STATE.lock:
+                e = STATE.tracked.get(mid)
+                if e:
+                    e["toss_seen_at"] = mp.now_utc()
+                    e["toss_winner"] = winner
+                    e["toss_decision"] = decision
+                    STATE._save()
+            _phase_log({"event": "toss", "mid": mid,
+                          "toss_winner": winner, "toss_decision": decision})
+            entry = STATE.tracked.get(mid, entry)
+
+    # 3) Compute phase + transition if changed
+    new_phase = mp.compute_next_phase(entry)
+    if new_phase != entry.get("phase"):
+        old_phase = entry.get("phase")
+        with STATE.lock:
+            e = STATE.tracked.get(mid)
+            if e:
+                e["phase"] = new_phase
+                hist = e.setdefault("phase_history", [])
+                hist.append({"phase": new_phase,
+                              "at": datetime.now(timezone.utc).isoformat(),
+                              "from": old_phase})
+                if new_phase == mp.Phase.COMPLETE.value and not e.get("completed_at"):
+                    e["completed_at"] = mp.now_utc()
+                STATE._save()
+        LOG.info(f"phase: {mid} {old_phase or 'NEW'} -> {new_phase} "
+                 f"({state.get('home')} vs {state.get('away')})")
+        _phase_log({"event": "transition", "mid": mid,
+                      "from": old_phase, "to": new_phase})
+        entry = STATE.tracked.get(mid, entry)
+
+    # 4) Fire any due actions (idempotently)
+    due = mp.due_actions(entry)
+    for action in due:
+        if STATE.shutdown.is_set():
+            break
+        ok = False
+        try:
+            ok = _fire_phase_action(mid, entry, action)
+        except Exception as e:
+            LOG.warning(f"phase action {action} failed for {mid}: {e}")
+        _phase_log({"event": "action", "mid": mid,
+                      "action": action, "ok": ok})
+        if ok:
+            with STATE.lock:
+                ent = STATE.tracked.get(mid)
+                if ent:
+                    af = ent.setdefault("actions_fired", {})
+                    af[action] = datetime.now(timezone.utc).isoformat()
+                    STATE._save()
+
+
+def phase_loop():
+    """Drives the match-phase state machine. Lightweight — reads STATE.tracked
+    snapshot, computes phase transitions, fires due actions. Coexists with
+    predict_loop / lineup_loop: predict_loop continues to handle matches
+    that aren't yet phase-tracked (legacy path), while phase_loop owns the
+    versioned predictions for matches that have a `start_ts`."""
+    LOG.info(f"phase_loop started (every {PHASE_INTERVAL_SEC}s)")
+    STATE.shutdown.wait(15)
+    while not STATE.shutdown.is_set():
+        try:
+            with STATE.lock:
+                items = list(STATE.tracked.items())
+            for mid, entry in items:
+                if STATE.shutdown.is_set():
+                    break
+                try:
+                    _phase_tick(mid, entry)
+                except Exception as e:
+                    LOG.warning(f"phase tick {mid} failed: {e}\n{traceback.format_exc()}")
+        except Exception as e:
+            LOG.warning(f"phase_loop iteration failed: {e}")
+        STATE.shutdown.wait(PHASE_INTERVAL_SEC)
+
+
 def predict_loop():
     LOG.info(f"predict_loop started (every {PREDICT_INTERVAL_SEC}s)")
     STATE.shutdown.wait(20)
@@ -700,7 +979,7 @@ def main():
 
     threads = []
     for fn in (discover_loop, live_loop, export_loop, predict_loop, odds_loop,
-                lineup_loop, ingest_loop, http_loop):
+                lineup_loop, ingest_loop, phase_loop, http_loop):
         t = threading.Thread(target=fn, name=fn.__name__, daemon=True)
         t.start()
         threads.append(t)
