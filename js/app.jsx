@@ -4,8 +4,12 @@
 
 const { useState, useEffect, useMemo } = React;
 
+// Static fallback list — slugs use canonical (alphabetical) ordering to
+// match what the backend's _write_design_aliases writes. Most fixtures
+// are auto-discovered from data.all_predictions on each refresh, so this
+// list only matters before the first data.json fetch.
 const PRED_FILES = [
-  { id: 'lsg_vs_kkr', label: 'LSG · KKR', file: 'data/preds/lsg_vs_kkr.json' },
+  { id: 'kkr_vs_lsg', label: 'KKR · LSG', file: 'data/preds/kkr_vs_lsg.json' },
   { id: 'dc_vs_rcb',  label: 'DC · RCB',  file: 'data/preds/dc_vs_rcb.json' },
   { id: 'csk_vs_gt',  label: 'CSK · GT',  file: 'data/preds/csk_vs_gt.json' },
   { id: 'rr_vs_srh',  label: 'RR · SRH',  file: 'data/preds/rr_vs_srh.json' },
@@ -28,7 +32,7 @@ function App() {
   const [refreshing, setRefreshing] = useState(false);
 
   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-    "selected_match": "lsg_vs_kkr",
+    "selected_match": "kkr_vs_lsg",
     "theme": "dark",
     "format_filter": "T20"
   }/*EDITMODE-END*/;
@@ -48,18 +52,22 @@ function App() {
       const ts = Date.now();
       const d = await fetch(`data/data.json?_=${ts}`, { cache: "no-cache" }).then(r => r.json());
 
-      // Build prediction-file map from data.json (preferred) + the static fallback list
+      // Build prediction-file map from data.json (preferred) + the static fallback list.
+      // Use the canonical alphabetical-sort slug — same as the backend's
+      // _write_design_aliases — so a Cricbuzz home/away flip on the same
+      // match doesn't make the frontend ask for a slug the backend never wrote.
       const fileById = {};
       for (const p of PRED_FILES) fileById[p.id] = p.file;
       for (const p of (d.all_predictions || [])) {
         const id = p?._file?.replace(/\.json$/i, "")?.toLowerCase();
         if (!id) continue;
-        // canonical short id derived from team-codes
         const m = p.match || {};
         const home = (window.teamCode ? window.teamCode(m.home) : m.home || "").toLowerCase();
         const away = (window.teamCode ? window.teamCode(m.away) : m.away || "").toLowerCase();
-        const shortId = `${home}_vs_${away}`;
-        if (shortId && !fileById[shortId]) {
+        if (!home || !away) continue;
+        const [lo, hi] = [home, away].sort();
+        const shortId = `${lo}_vs_${hi}`;
+        if (!fileById[shortId]) {
           fileById[shortId] = `data/preds/${shortId}.json`;
         }
       }
@@ -101,7 +109,11 @@ function App() {
   if (loading) return <div className="frame"><div className="mono small">Loading prediction terminal…</div></div>;
   if (!data) return <div className="frame"><div className="mono small" style={{ color: 'var(--red)' }}>Failed to load data.</div></div>;
 
-  const pred = preds[tweaks.selected_match] || preds.lsg_vs_kkr;
+  // Fallback to the first available prediction if the selected one is
+  // missing — used to hardcode `preds.lsg_vs_kkr` but that breaks when
+  // canonical-sorted aliases reorder it to `kkr_vs_lsg`. Picking the
+  // first available is robust to slug renames + missing fixtures.
+  const pred = preds[tweaks.selected_match] || preds[Object.keys(preds)[0]];
   const live = data.live_match;
   const metrics = data.model_metrics;
   const topT20 = (data.top_teams_t20 || []).slice(0, 10);

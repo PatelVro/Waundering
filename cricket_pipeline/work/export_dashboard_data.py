@@ -57,8 +57,19 @@ def _short_id(team: str | None) -> str | None:
 def _write_design_aliases(data_dict: dict, preds_list: list[dict]) -> None:
     """Mirror the export into the layout the design's terminal expects:
        data/data.json
-       data/preds/<short_home>_vs_<short_away>.json
-    Newest match per fixture wins on collision."""
+       data/preds/<short_a>_vs_<short_b>.json    (sorted alphabetically)
+    Newest match per fixture wins on collision.
+
+    Canonical sorted slug: same fixture always maps to the same alias
+    file regardless of which side Cricbuzz currently labels as 'home'.
+    Without this, a Cricbuzz home/away flip mid-tournament leaves two
+    competing alias files (e.g. gt_vs_rcb.json from before the flip,
+    rcb_vs_gt.json from after) — the frontend's static fixture list
+    happens to ask for one of them and silently shows stale data.
+
+    Stale non-canonical aliases from earlier writes are pruned to
+    prevent the dashboard from reading them.
+    """
     DESIGN_DATA_DIR.mkdir(parents=True, exist_ok=True)
     DESIGN_PREDS_DIR.mkdir(parents=True, exist_ok=True)
     (DESIGN_DATA_DIR / "data.json").write_text(json.dumps(data_dict, indent=2, default=str))
@@ -66,15 +77,32 @@ def _write_design_aliases(data_dict: dict, preds_list: list[dict]) -> None:
     # newest first by date so first-seen wins
     sorted_preds = sorted(preds_list, key=lambda p: (p.get("match", {}).get("date") or ""),
                            reverse=True)
-    written = set()
+    canonical = set()
     for p in sorted_preds:
         m = p.get("match") or {}
         h, a = _short_id(m.get("home")), _short_id(m.get("away"))
         if not (h and a): continue
-        slug = f"{h}_vs_{a}"
-        if slug in written: continue
-        written.add(slug)
+        # Canonical: alphabetical so home/away swaps don't fork the alias
+        lo, hi = sorted([h, a])
+        slug = f"{lo}_vs_{hi}"
+        if slug in canonical: continue
+        canonical.add(slug)
         (DESIGN_PREDS_DIR / f"{slug}.json").write_text(json.dumps(p, indent=2, default=str))
+
+    # Prune stale non-canonical sibling aliases — for every alias file in
+    # the dir, if its canonical-sorted form differs from its actual filename
+    # AND the canonical form was just written, remove the stale one.
+    for fp in DESIGN_PREDS_DIR.glob("*.json"):
+        stem = fp.stem        # e.g. "rcb_vs_gt"
+        if "_vs_" not in stem: continue
+        a_, b_ = stem.split("_vs_", 1)
+        lo, hi = sorted([a_, b_])
+        canonical_stem = f"{lo}_vs_{hi}"
+        if stem != canonical_stem and canonical_stem in canonical:
+            try:
+                fp.unlink()
+            except OSError:
+                pass
 
 
 def _load_predictions() -> dict:

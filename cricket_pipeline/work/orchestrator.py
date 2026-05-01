@@ -73,6 +73,20 @@ from ..ingest import open_meteo as METEO
 _NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
+def _is_db_lock_error(exc: BaseException) -> bool:
+    """Recognise the Windows / cross-platform DuckDB file-lock error so the
+    callers can demote it to debug. Same predicate used in db.connection
+    but duplicated here to avoid pulling that helper into the hot path."""
+    msg = str(exc).lower()
+    return any(s in msg for s in (
+        "process cannot access",
+        "being used by another",
+        "could not set lock",
+        "could not obtain lock",
+        "lock could not be set",
+    ))
+
+
 # ---------- paths + constants ----------
 
 ROOT             = Path(__file__).resolve().parents[2]
@@ -361,6 +375,7 @@ def predict_match(state: dict, force: bool = False,
     if toss_winner and toss_decision:
         cmd += ["--toss-winner", toss_winner, "--toss-decision", toss_decision]
     t0 = time.time()
+    DB_BUSY.set()      # signal to bet_engine/export to defer
     try:
         proc = subprocess.run(
             cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=1800,
@@ -383,6 +398,8 @@ def predict_match(state: dict, force: bool = False,
     except Exception as e:
         LOG.error(f"predict_match failed: {e}\n{traceback.format_exc()}")
         return False
+    finally:
+        DB_BUSY.clear()
 
 
 # ---------- loops ----------
@@ -449,13 +466,27 @@ def live_loop():
                         n_ok += 1
                 states = STATE.all_states()
                 LIVE_MULTI_PATH.write_text(json.dumps(states, indent=2, default=str))
-                # Auto-settle any pending bets whose match just completed
-                try:
-                    res = BET.settle_bets_against_results(states)
-                    if res.get("settled"):
-                        LOG.info(f"bets: settled {res['settled']} pending bets from completed matches")
-                except Exception as e:
-                    LOG.warning(f"bet settlement failed: {e}")
+                # Auto-settle any pending bets whose match just completed.
+                # Skip while a long-running DB-writer subprocess (cricsheet
+                # ingest, predict_match) holds the file lock — the next live
+                # tick (30s) will retry, and ingest cycles run only once a
+                # day so the delay is bounded. This was previously emitting
+                # warning spam during the 17-min ingest window.
+                if DB_BUSY.is_set():
+                    LOG.debug("bets: skip settlement (DB writer subprocess active)")
+                else:
+                    try:
+                        res = BET.settle_bets_against_results(states)
+                        if res.get("settled"):
+                            LOG.info(f"bets: settled {res['settled']} pending bets from completed matches")
+                    except Exception as e:
+                        # Lock-contention errors from race conditions outside
+                        # our DB_BUSY window are demoted to debug — the next
+                        # tick will retry — but real errors stay as warnings.
+                        if _is_db_lock_error(e):
+                            LOG.debug(f"bets: settlement deferred (lock contention): {e}")
+                        else:
+                            LOG.warning(f"bet settlement failed: {e}")
                 # featured = actually-playing match preferred (toss done,
                 # score updating). Falls through to non-complete (covers
                 # SCHEDULED) and finally to anything. Avoids the case where
@@ -593,6 +624,14 @@ def _odds_sports_and_cadence(states: list[dict]) -> tuple[list[str], int]:
     return (sorted(sport_set), 4 * 3600)
 
 
+# Set while a long-running DB-writer subprocess is active (cricsheet ingest,
+# predict_match training). Other DB-touching loops in this process should
+# skip work rather than fight for the exclusive file lock — bet_engine and
+# export retry already handle short overlaps via connect()'s retry budget,
+# but a 100s ingest cycle exhausts that. Threading.Event for fast read.
+DB_BUSY = threading.Event()
+
+
 def ingest_loop():
     """Once a day, re-pull CricSheet datasets so newly-finished matches land
     in the `matches` / `innings` / `balls` tables. This:
@@ -602,7 +641,8 @@ def ingest_loop():
       2. Feeds future training cycles with fresh data automatically.
 
     First run sleeps 5 min after start so we don't compete with the initial
-    discover/live/export bursts."""
+    discover/live/export bursts. Sets DB_BUSY across each subprocess so
+    bet_engine / export defer rather than fail-and-warn."""
     LOG.info(f"ingest_loop started (every {INGEST_INTERVAL_SEC // 3600}h, "
              f"{len(INGEST_DATASETS)} datasets)")
     STATE.shutdown.wait(300)
@@ -611,6 +651,7 @@ def ingest_loop():
         for ds in INGEST_DATASETS:
             if STATE.shutdown.is_set(): break
             t0 = time.time()
+            DB_BUSY.set()
             try:
                 proc = subprocess.run(
                     [py, "-m", "cricket_pipeline.pipeline", "cricsheet",
@@ -625,6 +666,8 @@ def ingest_loop():
                 LOG.warning(f"ingest: {ds} timed out (15min)")
             except Exception as e:
                 LOG.warning(f"ingest: {ds} failed: {e}")
+            finally:
+                DB_BUSY.clear()
         STATE.shutdown.wait(INGEST_INTERVAL_SEC)
 
 
