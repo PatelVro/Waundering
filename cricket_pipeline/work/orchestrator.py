@@ -173,9 +173,18 @@ class State:
             self._save()
 
     def update_state(self, mid: str, state: dict):
+        """Replace last_state with a fresh fetch — but defensively preserve
+        a previously-known venue if the new fetch returned None/empty.
+        Cricbuzz strips matchHeader.matchVenue from past-match pages, so
+        a re-fetch of a completed fixture would otherwise wipe a venue
+        we'd correctly extracted while the match was live."""
         with self.lock:
             entry = self.tracked.get(mid)
             if not entry: return
+            old = entry.get("last_state") or {}
+            old_venue = old.get("venue")
+            if old_venue and not state.get("venue"):
+                state = {**state, "venue": old_venue}
             entry["last_state"] = state
             self._save()
 
@@ -788,6 +797,15 @@ def _fire_phase_action(mid: str, entry: dict, action: str) -> bool:
     """
     state = entry.get("last_state") or {}
     home, away = state.get("home"), state.get("away")
+    # Some tracked matches sit at the discovery edge with home/away
+    # unresolved (Cricbuzz hasn't loaded the teams panel, or it's a
+    # placeholder entry from the live-scores scan). predict_match would
+    # crash on a None argv element; bail early so the phase-tick loop
+    # retries on the next tick once team names land. Pitch/weather and
+    # bookkeeping actions can still proceed where possible.
+    if not home or not away:
+        if action in (mp.A_PRE_MATCH_PRED, mp.A_PRE_START_PRED, mp.A_TOSS_AWARE_PRED):
+            return False    # don't record as fired; retry next tick
     venue = state.get("venue") or "Unknown Venue"
     fmt   = state.get("match_format") or "T20"
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")

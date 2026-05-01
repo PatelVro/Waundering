@@ -116,6 +116,60 @@ def _team_name_from_short(short: str) -> str | None:
     return _SHORT_CODE_TO_NAME.get(short.upper())
 
 
+# Hardcoded home-venue map, keyed by short team code. Used as a last-ditch
+# fallback when Cricbuzz's matchHeader.matchVenue is None and no venueInfo
+# block can be matched to the requested match_id. Only covers leagues where
+# every franchise has a stable home ground — IPL (extend cautiously to BBL/
+# CPL/etc., where home grounds rotate, only after verification).
+_HOME_VENUES_BY_LEAGUE = {
+    "indian-premier-league": {
+        "csk":  "MA Chidambaram Stadium, Chennai",
+        "mi":   "Wankhede Stadium, Mumbai",
+        "rcb":  "M Chinnaswamy Stadium, Bengaluru",
+        "kkr":  "Eden Gardens, Kolkata",
+        "dc":   "Arun Jaitley Stadium, Delhi",
+        "rr":   "Sawai Mansingh Stadium, Jaipur",
+        "pbks": "Maharaja Yadavindra Singh International Cricket Stadium, "
+                "Mullanpur",
+        "srh":  "Rajiv Gandhi International Stadium, Hyderabad",
+        "gt":   "Narendra Modi Stadium, Ahmedabad",
+        "lsg":  "Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket "
+                "Stadium, Lucknow",
+    },
+}
+
+
+# Aliases per league: any of these substrings in the slug count as a hit.
+# IPL slugs sometimes use the long form, sometimes "ipl-2026", and the slug
+# ordering of the team tokens itself isn't always reliable (Cricbuzz can
+# flip home/away between scheduled and live state on the same match_id).
+_LEAGUE_ALIASES = {
+    "indian-premier-league": ("indian-premier-league", "ipl-"),
+}
+
+
+def _venue_from_slug(slug: str | None) -> str | None:
+    """Recover a likely venue from a Cricbuzz match slug for known leagues.
+
+    Slugs look like 'gt-vs-rcb-44th-match-indian-premier-league-2026' or
+    'csk-vs-mi-37th-match-ipl-2026'. The first team token is treated as
+    the home side; the league name is encoded near the end. Final
+    fallback after page-scraping has failed — reliable for IPL home
+    games, but Cricbuzz occasionally swaps the team order on the same
+    match_id, so a small fraction of fixtures will return the wrong
+    home team's ground (still better than 'Unknown Venue' for the
+    feature builder)."""
+    if not slug:
+        return None
+    s = slug.lower()
+    for league, venues in _HOME_VENUES_BY_LEAGUE.items():
+        if any(alias in s for alias in _LEAGUE_ALIASES.get(league, (league,))):
+            m = re.match(r"^([a-z0-9]+)-vs-[a-z0-9]+", s)
+            if m:
+                return venues.get(m.group(1))
+    return None
+
+
 def find_live_match_by_teams(home_keywords: list[str], away_keywords: list[str]) -> dict | None:
     """Scan Cricbuzz live-scores page for a match whose slug mentions both teams."""
     r = requests.get("https://www.cricbuzz.com/cricket-match/live-scores", headers=HEADERS, timeout=15)
@@ -228,6 +282,17 @@ def fetch_match_state(match_id: str, slug: str | None = None) -> dict:
         if not out.get("venue") and mh_slice:
             m = re.search(r'"matchVenue"\s*:\s*\{[^}]*?"name"\s*:\s*"([^"]+)"', mh_slice)
             if m: out["venue"] = m.group(1)
+        if not out.get("venue"):
+            # Last resort: hardcoded home-venue lookup keyed off the slug.
+            # Reliable for IPL (each franchise has a stable home ground);
+            # may be wrong for neutral venues or leagues with rotating
+            # grounds, but better than the alternative — we tried a "first
+            # venueInfo in page" fallback and it returned the live-NOW
+            # match's venue for every other match's page, since Cricbuzz
+            # shares miniscore widgets at the top of every match URL.
+            v = _venue_from_slug(slug)
+            if v:
+                out["venue"] = v
     if not out.get("toss_winner") and mh_slice:
         mw = _scoped(r'"tossWinnerName"\s*:\s*"([^"]+)"')
         md = _scoped(r'"decision"\s*:\s*"([^"]+)"')
