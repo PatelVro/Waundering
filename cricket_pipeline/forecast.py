@@ -176,7 +176,7 @@ def forecast(
     # Default the "since" cutoff to the recent IPL 2026 window if unset.
     if since is None:
         con = connect()
-        latest = con.execute("SELECT MAX(start_date) FROM matches").fetchone()[0]
+        latest = (con.execute("SELECT MAX(start_date) FROM matches").fetchone() or (None,))[0]
         con.close()
         if latest:
             from datetime import timedelta

@@ -8,7 +8,7 @@ ingester writes to (with sentiment + entity tags).
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -32,7 +32,7 @@ def _get(endpoint: str, params: dict) -> dict:
 
 
 def fetch(query: str = "cricket", days: int = 7, language: str = "en") -> int:
-    since = (datetime.utcnow() - timedelta(days=days)).date().isoformat()
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
     data = _get("everything", {
         "q": query,
         "from": since,

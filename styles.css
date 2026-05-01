@@ -453,3 +453,27 @@ table.t .dim { color: var(--ink-3); }
 .divider-v { width: 1px; align-self: stretch; background: var(--line); }
 .gap-tight { gap: 4px; }
 hr.dash { border: 0; border-top: 1px dashed var(--line); margin: 8px 0; }
+
+
+/* ---------- responsive (mobile / tablet) ---------- */
+/* The dashboard targets a 1480px desktop layout. These overrides keep it
+   usable when the operator pulls it up on a phone or tablet to triage
+   bets while away from the desk. We collapse multi-column grids, shrink
+   padding, and let tables scroll horizontally rather than overflow. */
+@media (max-width: 1024px) {
+  .grid, .cards, .cols-12, .cols-8, .cols-6, .cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+  .row.wrap { flex-direction: column; align-items: stretch; }
+  table.t { font-size: 11px; }
+  .footnote { flex-direction: column; gap: 6px; }
+}
+@media (max-width: 640px) {
+  body { font-size: 13px; }
+  .card, .panel { padding: 10px !important; }
+  table.t { display: block; overflow-x: auto; max-width: 100%; }
+  h1, h2 { font-size: 18px; }
+  /* Hide non-essential decorative columns on tiny screens */
+  .hide-mobile { display: none !important; }
+}
+

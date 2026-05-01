@@ -1,3 +1,4 @@
+import os
 import time
 from pathlib import Path
 import duckdb
@@ -41,7 +42,18 @@ def connect(db_path: Path | str | None = None,
     `retries=0` disables retry (fail-fast). `read_only=True` opens a
     read-only handle, which DuckDB allows alongside an exclusive writer.
     """
-    path = Path(db_path) if db_path else DEFAULT_DB_PATH
+    path = Path(db_path).resolve() if db_path else DEFAULT_DB_PATH
+    # Path-traversal guard: only allow connections inside this repo's data dir
+    # (or anywhere under the user's HOME). Resolving both sides catches symlink
+    # tricks that string-prefix matching alone would miss; appending os.sep to
+    # the root prevents a "/data2" prefix from passing a "/data" check.
+    allowed_roots = [DEFAULT_DB_PATH.parent.resolve(), Path.home().resolve()]
+    p_str = str(path)
+    if not any(p_str == str(root) or p_str.startswith(str(root) + os.sep) for root in allowed_roots):
+        raise ValueError(
+            f"Refusing to open DuckDB outside allowed roots: path={path}, "
+            f"allowed={allowed_roots}"
+        )
     path.parent.mkdir(parents=True, exist_ok=True)
 
     last_err = None
@@ -50,7 +62,8 @@ def connect(db_path: Path | str | None = None,
             con = duckdb.connect(str(path), read_only=read_only)
             # Skip schema setup on read-only handles (no DDL allowed)
             if not read_only:
-                con.execute(SCHEMA_PATH.read_text())
+                # Force UTF-8 read on Windows where default is cp1252
+                con.execute(SCHEMA_PATH.read_text(encoding="utf-8"))
             return con
         except (duckdb.IOException, OSError) as e:
             last_err = e
@@ -64,5 +77,7 @@ def connect(db_path: Path | str | None = None,
 def install_views(db_path: Path | str | None = None) -> None:
     """Create or refresh derived analytical views. Safe to call repeatedly."""
     con = connect(db_path)
-    con.execute(VIEWS_PATH.read_text())
-    con.close()
+    try:
+        con.execute(VIEWS_PATH.read_text(encoding="utf-8"))
+    finally:
+        con.close()

@@ -313,6 +313,13 @@ def cmd_model(args):
         print(_json.dumps(out, indent=2))
 
 
+def cmd_post_match_review(args):
+    """Compare saved predictions vs actual results; write learning docs."""
+    from .post_match_review import run_review
+    n = run_review(days_back=args.days_back)
+    print(f"\nReviewed {n} match(es). Learning docs in learnings/")
+
+
 def cmd_stats(args):
     con = connect()
     queries = [
@@ -558,6 +565,19 @@ def main():
     lt.add_argument("--out", default=None,
                     help="Path to data.json (default: auto-detected project root)")
     lt.set_defaults(func=cmd_live_track)
+
+    pmr = sub.add_parser(
+        "post-match-review",
+        help=(
+            "Compare saved predictions vs actual results; identify systematic "
+            "errors vs luck and write learning docs to learnings/."
+        ),
+    )
+    pmr.add_argument(
+        "--days-back", type=int, default=7,
+        help="How many days back to search for completed matches (default 7)",
+    )
+    pmr.set_defaults(func=cmd_post_match_review)
 
     st = sub.add_parser("stats", help="Show row counts")
     st.set_defaults(func=cmd_stats)

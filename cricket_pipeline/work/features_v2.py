@@ -168,15 +168,55 @@ def compute_venue_stats_asof(matches: pd.DataFrame, innings: pd.DataFrame) -> pd
         "venue_toss_winner_winpct":  (m["v_tosswon_sum"] / m["v_tosswon_cnt"]).values,
         "venue_bat_first_pct":       (m["v_batfirst_sum"] / m["v_batfirst_cnt"]).values,
     })
+    # NOTE: 24-month windowed venue stats (Cycle 9 experiment) tested but
+    # regressed both T20 (-0.13pp) and ODI (-0.90pp). Helper kept available
+    # for future use (e.g. totals_model) but NOT joined into the match model.
     return out
+
+
+def _windowed_venue_stats(m: pd.DataFrame, days: int = 720) -> pd.DataFrame:
+    """Per (venue, format), compute mean of various stats over the last
+    `days` days, ending strictly before each match's start_date."""
+    rows = []
+    for (_venue, _fmt), g in m.groupby(["venue", "format"], sort=False, dropna=False):
+        g = g.sort_values("start_date").copy()
+        # Drop rows with missing start_date (rare); time-rolling requires datetime index
+        g = g[g["start_date"].notna()]
+        if g.empty: continue
+        g = g.set_index(pd.DatetimeIndex(g["start_date"]))
+        win = g.rolling(f"{int(days)}D", closed="left")
+        sub = pd.DataFrame({
+            "match_id":                          g["match_id"].values,
+            "venue_n_prior_24mo":                win["first_innings"].count().values,
+            "venue_avg_first_24mo":              win["first_innings"].mean().values,
+            "venue_bat1_winrate_24mo":           win["bat1_won"].mean().values,
+            "venue_toss_winner_winpct_24mo":     win["toss_won_match"].mean().values,
+            "venue_bat_first_pct_24mo":          win["bat_first"].mean().values,
+        })
+        rows.append(sub)
+    if not rows:
+        return pd.DataFrame(columns=[
+            "match_id","venue_n_prior_24mo","venue_avg_first_24mo",
+            "venue_bat1_winrate_24mo","venue_toss_winner_winpct_24mo","venue_bat_first_pct_24mo"])
+    return pd.concat(rows, ignore_index=True)
 
 
 # ---------- per-team rolling form ----------
 
 def compute_team_form(matches: pd.DataFrame) -> pd.DataFrame:
-    """For each (team, match_id) compute pre-match form windows."""
-    # symmetric expansion — one row per (team, match)
-    a = matches[["match_id", "start_date", "format", "team_home", "team_away", "winner"]].copy()
+    """For each (team, match_id) compute pre-match form windows.
+
+    Includes:
+      - last3/5/10/20 win-pct
+      - last5/10 avg signed margin in runs (positive = won big, negative = lost big)
+      - last5/10 avg signed margin in wickets (positive = won, negative = lost)
+      - career_n, days_rest
+    """
+    margin_cols = []
+    for c in ("win_margin_runs", "win_margin_wickets"):
+        if c in matches.columns: margin_cols.append(c)
+    a = matches[["match_id", "start_date", "format", "team_home", "team_away", "winner"] + margin_cols].copy()
+
     rows = []
     rows.append(a.rename(columns={"team_home": "team", "team_away": "opp"}).assign(
         won=lambda x: (x["winner"] == x["team"]).astype(float).where(x["winner"].notna())
@@ -186,19 +226,42 @@ def compute_team_form(matches: pd.DataFrame) -> pd.DataFrame:
     ))
     sym = pd.concat(rows, ignore_index=True).sort_values(["team", "format", "start_date", "match_id"])
 
-    g = sym.groupby(["team", "format"], sort=False)["won"]
+    # Signed margins per row: + for win, − for loss. NaN if no result.
+    if "win_margin_runs" in sym.columns:
+        sym["margin_runs"] = np.where(
+            sym["won"] == 1, sym["win_margin_runs"],
+            np.where(sym["won"] == 0, -sym["win_margin_runs"], np.nan)).astype(float)
+    else:
+        sym["margin_runs"] = np.nan
+    if "win_margin_wickets" in sym.columns:
+        sym["margin_wkts"] = np.where(
+            sym["won"] == 1, sym["win_margin_wickets"],
+            np.where(sym["won"] == 0, -sym["win_margin_wickets"], np.nan)).astype(float)
+    else:
+        sym["margin_wkts"] = np.nan
+
+    g_won  = sym.groupby(["team", "format"], sort=False)["won"]
+    g_run  = sym.groupby(["team", "format"], sort=False)["margin_runs"]
+    g_wkt  = sym.groupby(["team", "format"], sort=False)["margin_wkts"]
+
     def _roll_mean(s, n):
         return s.shift(1).rolling(n, min_periods=1).mean()
 
-    sym["last3_winpct"]  = g.transform(lambda s: _roll_mean(s, 3))
-    sym["last5_winpct"]  = g.transform(lambda s: _roll_mean(s, 5))
-    sym["last10_winpct"] = g.transform(lambda s: _roll_mean(s, 10))
-    sym["last20_winpct"] = g.transform(lambda s: _roll_mean(s, 20))
+    sym["last3_winpct"]   = g_won.transform(lambda s: _roll_mean(s, 3))
+    sym["last5_winpct"]   = g_won.transform(lambda s: _roll_mean(s, 5))
+    sym["last10_winpct"]  = g_won.transform(lambda s: _roll_mean(s, 10))
+    sym["last20_winpct"]  = g_won.transform(lambda s: _roll_mean(s, 20))
+    sym["last5_margin_runs"]   = g_run.transform(lambda s: _roll_mean(s, 5))
+    sym["last10_margin_runs"]  = g_run.transform(lambda s: _roll_mean(s, 10))
+    sym["last5_margin_wkts"]   = g_wkt.transform(lambda s: _roll_mean(s, 5))
+    sym["last10_margin_wkts"]  = g_wkt.transform(lambda s: _roll_mean(s, 10))
     sym["career_n"]      = sym.groupby(["team", "format"]).cumcount()
     sym["days_rest"]     = sym.groupby(["team", "format"])["start_date"].diff().dt.days
 
     return sym[["match_id", "team",
                 "last3_winpct", "last5_winpct", "last10_winpct", "last20_winpct",
+                "last5_margin_runs", "last10_margin_runs",
+                "last5_margin_wkts", "last10_margin_wkts",
                 "career_n", "days_rest"]]
 
 
@@ -243,6 +306,15 @@ def compute_h2h(matches: pd.DataFrame) -> pd.DataFrame:
 # ---------- top-level builder ----------
 
 CATEGORICAL = ["format", "team_home", "team_away", "venue"]
+
+# Weather features (Cycle 12). A/B says: lifts T20 (+0.26pp full, +0.51pp weather-subset)
+# but regresses ODI (-0.68pp). Predict path adds these only when format is T20/IT20.
+WEATHER_NUMERIC = [
+    "weather_temp_c", "weather_humidity", "weather_dew_point",
+    "weather_wind_kmh", "weather_cloud_pct", "weather_precip_mm",
+    "weather_dew_risk", "weather_rain_risk", "weather_swing_friendly",
+]
+
 NUMERIC = [
     "toss_winner_is_t1", "toss_decision_is_bat",
     # form
@@ -276,6 +348,76 @@ def compute_team_venue_form(matches: pd.DataFrame) -> pd.DataFrame:
     sym["v_n"]    = sym.groupby(["team", "venue"]).cumcount()
     sym["v_wp"]   = g.transform(lambda s: s.shift(1).expanding(min_periods=1).mean())
     return sym[["match_id", "team", "v_n", "v_wp"]]
+
+
+def compute_weather_features(matches: pd.DataFrame) -> pd.DataFrame:
+    """Pull weather_daily by (venue, date) and derive cricket-relevant features.
+
+    Output columns (NaN if no weather row exists):
+        weather_temp_c, weather_humidity, weather_dew_point,
+        weather_wind_kmh, weather_cloud_pct, weather_precip_mm,
+        weather_dew_risk, weather_rain_risk, weather_swing_friendly
+    """
+    from ..db import connect
+    con = connect()
+    wx = con.execute("""
+        SELECT venue, date AS start_date,
+               temp_c, humidity, dew_point, wind_kmh, cloud_pct, precip_mm
+        FROM weather_daily
+    """).df()
+    con.close()
+    if wx.empty:
+        # No weather data yet — return all-NaN columns so feature shape is stable
+        cols = ["weather_temp_c","weather_humidity","weather_dew_point",
+                "weather_wind_kmh","weather_cloud_pct","weather_precip_mm",
+                "weather_dew_risk","weather_rain_risk","weather_swing_friendly"]
+        out = pd.DataFrame({"match_id": matches["match_id"].values})
+        for c in cols: out[c] = np.nan
+        return out
+    wx["start_date"] = pd.to_datetime(wx["start_date"])
+    df = matches[["match_id", "venue", "start_date"]].copy()
+    df["start_date"] = pd.to_datetime(df["start_date"])
+    df = df.merge(wx, on=["venue", "start_date"], how="left")
+    out = pd.DataFrame({
+        "match_id":           df["match_id"].values,
+        "weather_temp_c":     df["temp_c"].values,
+        "weather_humidity":   df["humidity"].values,
+        "weather_dew_point":  df["dew_point"].values,
+        "weather_wind_kmh":   df["wind_kmh"].values,
+        "weather_cloud_pct":  df["cloud_pct"].values,
+        "weather_precip_mm":  df["precip_mm"].values,
+    })
+    # Derived (NaN-safe)
+    out["weather_dew_risk"]        = ((df["humidity"] > 70) & (df["temp_c"] < 28)
+                                      & (df["wind_kmh"] < 12)).astype(float)
+    out.loc[df["humidity"].isna() | df["temp_c"].isna(), "weather_dew_risk"] = np.nan
+    out["weather_rain_risk"]       = (df["precip_mm"] > 0.5).astype(float)
+    out.loc[df["precip_mm"].isna(), "weather_rain_risk"] = np.nan
+    out["weather_swing_friendly"]  = ((df["humidity"] > 65) & (df["cloud_pct"] > 50)).astype(float)
+    out.loc[df["humidity"].isna() | df["cloud_pct"].isna(), "weather_swing_friendly"] = np.nan
+    return out
+
+
+def compute_pitch_features(matches: pd.DataFrame) -> pd.DataFrame:
+    """Pull pitch_reports by match_id. Returns NaN for matches with no report."""
+    from ..db import connect
+    con = connect()
+    try:
+        pr = con.execute("""
+            SELECT match_id, pitch_dry, pitch_green, pitch_pace, pitch_spin,
+                   pitch_flat, pitch_low, pitch_dew
+            FROM pitch_reports
+        """).df()
+    except Exception:
+        pr = pd.DataFrame()
+    con.close()
+    cols = ["pitch_dry","pitch_green","pitch_pace","pitch_spin","pitch_flat","pitch_low","pitch_dew"]
+    out = pd.DataFrame({"match_id": matches["match_id"].values})
+    if pr.empty:
+        for c in cols: out[c] = np.nan
+        return out
+    out = out.merge(pr, on="match_id", how="left")
+    return out
 
 
 def derive_team_country(matches: pd.DataFrame) -> dict[str, str]:
@@ -323,22 +465,30 @@ def build_features(format_filter: list[str] | None = None,
 
     # widen team_form into t1 / t2 form frames
     f1 = form.rename(columns={
-        "team":            "team_home",
-        "last3_winpct":    "t1_last3",
-        "last5_winpct":    "t1_last5",
-        "last10_winpct":   "t1_last10",
-        "last20_winpct":   "t1_last20",
-        "career_n":        "t1_career_n",
-        "days_rest":       "t1_days_rest",
+        "team":              "team_home",
+        "last3_winpct":      "t1_last3",
+        "last5_winpct":      "t1_last5",
+        "last10_winpct":     "t1_last10",
+        "last20_winpct":     "t1_last20",
+        "last5_margin_runs":  "t1_last5_margin_runs",
+        "last10_margin_runs": "t1_last10_margin_runs",
+        "last5_margin_wkts":  "t1_last5_margin_wkts",
+        "last10_margin_wkts": "t1_last10_margin_wkts",
+        "career_n":          "t1_career_n",
+        "days_rest":         "t1_days_rest",
     })
     f2 = form.rename(columns={
-        "team":            "team_away",
-        "last3_winpct":    "t2_last3",
-        "last5_winpct":    "t2_last5",
-        "last10_winpct":   "t2_last10",
-        "last20_winpct":   "t2_last20",
-        "career_n":        "t2_career_n",
-        "days_rest":       "t2_days_rest",
+        "team":              "team_away",
+        "last3_winpct":      "t2_last3",
+        "last5_winpct":      "t2_last5",
+        "last10_winpct":     "t2_last10",
+        "last20_winpct":     "t2_last20",
+        "last5_margin_runs":  "t2_last5_margin_runs",
+        "last10_margin_runs": "t2_last10_margin_runs",
+        "last5_margin_wkts":  "t2_last5_margin_wkts",
+        "last10_margin_wkts": "t2_last10_margin_wkts",
+        "career_n":          "t2_career_n",
+        "days_rest":         "t2_days_rest",
     })
 
     df = matches.copy()
@@ -347,6 +497,10 @@ def build_features(format_filter: list[str] | None = None,
     df = df.merge(f1,    on=["match_id", "team_home"], how="left")
     df = df.merge(f2,    on=["match_id", "team_away"], how="left")
     df = df.merge(h2h,   on="match_id", how="left")
+    # Weather + pitch (Cycle 12) — NaN for matches with no data; LightGBM
+    # handles missing values natively, sklearn variants get filled below.
+    df = df.merge(compute_weather_features(matches), on="match_id", how="left")
+    df = df.merge(compute_pitch_features(matches),   on="match_id", how="left")
 
     tv1 = tv_form.rename(columns={"team": "team_home", "v_n": "t1_venue_n", "v_wp": "t1_venue_winrate"})
     tv2 = tv_form.rename(columns={"team": "team_away", "v_n": "t2_venue_n", "v_wp": "t2_venue_winrate"})

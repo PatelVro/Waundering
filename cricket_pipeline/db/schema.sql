@@ -210,10 +210,66 @@ CREATE TABLE IF NOT EXISTS live_state (
     PRIMARY KEY (match_id, fetched_at)
 );
 
+-- Bookmaker odds snapshots (one row per (match, bookmaker, market, selection, snapshot_at))
+CREATE TABLE IF NOT EXISTS odds_snapshot (
+    snapshot_at     TIMESTAMP,
+    sport_key       VARCHAR,                -- 'cricket_ipl', 'cricket_t20i', ...
+    external_id     VARCHAR,                -- The Odds API event id
+    match_id        VARCHAR,                -- our matches.match_id when we can join (else NULL)
+    commence_time   TIMESTAMP,
+    home_team       VARCHAR,
+    away_team       VARCHAR,
+    bookmaker       VARCHAR,
+    market          VARCHAR,                -- 'h2h', 'totals', 'spreads', ...
+    selection       VARCHAR,                -- team name / 'Over' / 'Under' / player
+    decimal_odds    DOUBLE,
+    line            DOUBLE,                 -- for totals/spreads (NULL for h2h)
+    raw_json        VARCHAR,
+    PRIMARY KEY (snapshot_at, external_id, bookmaker, market, selection)
+);
+
+CREATE INDEX IF NOT EXISTS idx_odds_external   ON odds_snapshot(external_id);
+CREATE INDEX IF NOT EXISTS idx_odds_match      ON odds_snapshot(match_id);
+CREATE INDEX IF NOT EXISTS idx_odds_snapshot   ON odds_snapshot(snapshot_at);
+CREATE INDEX IF NOT EXISTS idx_odds_market     ON odds_snapshot(market);
+
+-- Bets we've placed (paper or live). Keep both in one table; mode flag distinguishes.
+CREATE TABLE IF NOT EXISTS bets (
+    bet_id          VARCHAR PRIMARY KEY,
+    placed_at       TIMESTAMP,
+    mode            VARCHAR,                -- 'paper' or 'live'
+    venue           VARCHAR,                -- 'betfair', 'paper', etc
+    external_id     VARCHAR,                -- odds API event id
+    match_id        VARCHAR,
+    market          VARCHAR,                -- 'h2h', 'totals', 'top_batsman', ...
+    selection       VARCHAR,
+    decimal_odds    DOUBLE,
+    stake           DOUBLE,
+    model_p         DOUBLE,                 -- our predicted probability at bet time
+    book_p          DOUBLE,                 -- bookmaker implied probability at bet time
+    edge_pct        DOUBLE,                 -- model_p - book_p (in pp)
+    kelly_fraction  DOUBLE,                 -- recommended kelly stake
+    status          VARCHAR,                -- 'pending', 'won', 'lost', 'void', 'cashed_out'
+    settled_at      TIMESTAMP,
+    pnl             DOUBLE,                 -- profit/loss in stake-currency units
+    notes           VARCHAR
+);
+
+CREATE INDEX IF NOT EXISTS idx_bets_status     ON bets(status);
+CREATE INDEX IF NOT EXISTS idx_bets_match      ON bets(match_id);
+CREATE INDEX IF NOT EXISTS idx_bets_placed_at  ON bets(placed_at);
+
 -- Indexes to make the common filters cheap
-CREATE INDEX IF NOT EXISTS idx_balls_match     ON balls(match_id);
-CREATE INDEX IF NOT EXISTS idx_balls_batter    ON balls(batter);
-CREATE INDEX IF NOT EXISTS idx_balls_bowler    ON balls(bowler);
-CREATE INDEX IF NOT EXISTS idx_matches_format  ON matches(format);
-CREATE INDEX IF NOT EXISTS idx_matches_venue   ON matches(venue);
-CREATE INDEX IF NOT EXISTS idx_matches_date    ON matches(start_date);
+CREATE INDEX IF NOT EXISTS idx_balls_match           ON balls(match_id);
+CREATE INDEX IF NOT EXISTS idx_balls_batter          ON balls(batter);
+CREATE INDEX IF NOT EXISTS idx_balls_bowler          ON balls(bowler);
+-- Composite indexes accelerate the (match_id, innings_no, over_no, ball_in_over)
+-- joins used by features_v2 and live tracking, and the (batter, match_id) /
+-- (bowler, match_id) lookups used by player-history views.
+CREATE INDEX IF NOT EXISTS idx_balls_match_innings   ON balls(match_id, innings_no);
+CREATE INDEX IF NOT EXISTS idx_balls_batter_match    ON balls(batter, match_id);
+CREATE INDEX IF NOT EXISTS idx_balls_bowler_match    ON balls(bowler, match_id);
+CREATE INDEX IF NOT EXISTS idx_matches_format        ON matches(format);
+CREATE INDEX IF NOT EXISTS idx_matches_venue         ON matches(venue);
+CREATE INDEX IF NOT EXISTS idx_matches_date          ON matches(start_date);
+CREATE INDEX IF NOT EXISTS idx_matches_format_date   ON matches(format, start_date);

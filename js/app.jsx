@@ -24,12 +24,40 @@ const PRED_FILES = [
 // data.json is a static file served from the orchestrator's HTTP loop.
 const REFRESH_INTERVAL_MS = 30_000;
 
+// Error boundary so a single bad prediction card can't blank the whole
+// dashboard. Catches render-time errors from any descendant; logs to console
+// and shows an inline fallback the operator can recover from with refresh.
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) { return { error }; }
+  componentDidCatch(error, info) {
+    // eslint-disable-next-line no-console
+    console.error("Dashboard render error:", error, info);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="card" style={{ padding: 16, color: 'var(--red, #d33)' }}>
+          <div className="mono small" style={{ marginBottom: 8 }}>UI ERROR — {String(this.state.error.message || this.state.error)}</div>
+          <div className="small">A card failed to render. The rest of the dashboard is still live. Refresh to retry.</div>
+          <button onClick={() => this.setState({ error: null })} style={{ marginTop: 8 }}>Retry</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   const [data, setData] = useState(null);
   const [preds, setPreds] = useState({});
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [lastError, setLastError] = useState(null);
 
   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
     "selected_match": "kkr_vs_lsg",
@@ -85,8 +113,10 @@ function App() {
       setData(d);
       setPreds(psObj);
       setLastUpdate(new Date());
+      setLastError(null);
     } catch (e) {
       console.error("refresh failed", e);
+      setLastError(e?.message || String(e));
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -107,7 +137,17 @@ function App() {
   }, []);
 
   if (loading) return <div className="frame"><div className="mono small">Loading prediction terminal…</div></div>;
-  if (!data) return <div className="frame"><div className="mono small" style={{ color: 'var(--red)' }}>Failed to load data.</div></div>;
+  if (!data) return (
+    <div className="frame">
+      <div className="mono small" style={{ color: 'var(--red)' }}>
+        Failed to load data{lastError ? ` — ${lastError}` : ''}.
+      </div>
+      <button onClick={() => refresh(false)} style={{ marginTop: 12 }}>Retry now</button>
+      <div className="small" style={{ marginTop: 8, opacity: 0.6 }}>
+        Auto-retry in {Math.round(REFRESH_INTERVAL_MS / 1000)}s.
+      </div>
+    </div>
+  );
 
   // Fallback to the first available prediction if the selected one is
   // missing — used to hardcode `preds.lsg_vs_kkr` but that breaks when
@@ -122,7 +162,15 @@ function App() {
   const bets = data.bets;
 
   return (
+    <ErrorBoundary>
     <div className="frame">
+      {lastError && (
+        <div className="card" style={{ padding: 8, marginBottom: 8, borderLeft: '3px solid var(--red, #d33)' }}>
+          <span className="mono small" style={{ color: 'var(--red, #d33)' }}>
+            Last refresh failed: {lastError} — showing cached data. Auto-retrying every {Math.round(REFRESH_INTERVAL_MS / 1000)}s.
+          </span>
+        </div>
+      )}
       <TopBar data={data} preds={preds} lastUpdate={lastUpdate} refreshing={refreshing}
               onRefresh={() => refresh(false)} />
       <Masthead data={data} />
@@ -333,6 +381,7 @@ function App() {
         </TweakSection>
       </TweaksPanel>
     </div>
+    </ErrorBoundary>
   );
 }
 

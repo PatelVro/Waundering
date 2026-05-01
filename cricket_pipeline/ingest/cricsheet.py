@@ -81,14 +81,25 @@ def _match_row(m: dict) -> dict:
 
 
 def _match_id_from(info: dict) -> str:
-    """Deterministic match id. CricSheet uses filename id; we re-derive."""
+    """Deterministic match id, stable across Python interpreter restarts.
+
+    Python's built-in `hash()` is randomised per-process via PYTHONHASHSEED,
+    so `abs(hash(raw))` returns different values on every fresh interpreter
+    invocation — meaning a re-run of cricsheet ingest would generate NEW
+    match_ids for the same matches and silently double-insert. We use
+    SHA-256 for collision-resistant, deterministic IDs that survive
+    restarts and cross-machine deployment.
+    """
+    import hashlib
     reg = info.get("registry", {}) or {}
     people = reg.get("people") or {}
     dates = info.get("dates") or [""]
     teams = info.get("teams") or []
+    # Sort teams so home/away order doesn't change the id
+    teams_sorted = sorted(str(t) for t in teams)
     venue = info.get("venue") or ""
-    raw = f"{dates[0]}|{'-'.join(teams)}|{venue}|{len(people)}"
-    return str(abs(hash(raw)))
+    raw = f"{dates[0]}|{'-'.join(teams_sorted)}|{venue}|{len(people)}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
 def _innings_rows(match_id: str, m: dict) -> list[dict]:

@@ -11,7 +11,7 @@ unfolded.
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -24,11 +24,18 @@ _HEADERS = {
     "Accept": "application/json",
 }
 
+# Module-level Session reuses TCP / TLS connections across the orchestrator's
+# 30-second live polling cycles. With 4-10 concurrent matches polled per tick,
+# a fresh-socket-per-call pattern adds ~50-200ms of handshake latency and
+# pressures the OS file-descriptor table; the pooled session collapses that.
+_SESSION = requests.Session()
+_SESSION.headers.update(_HEADERS)
+
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=2, max=20))
 def fetch_match_json(match_id: str) -> dict | None:
     url = f"{config.CRICBUZZ_MATCH_API}/{match_id}"
-    r = requests.get(url, headers=_HEADERS, timeout=20)
+    r = _SESSION.get(url, timeout=20)
     if r.status_code == 404:
         return None
     r.raise_for_status()
@@ -71,7 +78,7 @@ def snapshot(match_id: str) -> bool:
             bowler, last_ball, raw_json)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         [
-            match_id, datetime.utcnow(),
+            match_id, datetime.now(timezone.utc),
             extracted["status"], extracted["score"], extracted["overs"],
             extracted["striker"], extracted["striker_runs"], extracted["striker_balls"],
             extracted["non_striker"], extracted["bowler"], extracted["last_ball"],

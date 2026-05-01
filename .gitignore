@@ -1,9 +1,50 @@
+# Python
 .venv/
-.env
 __pycache__/
 *.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# cricket_pipeline
+# Secrets — keep .env.example tracked, never .env
+.env
+.env.local
+
+# Cricket pipeline data + cache + models (large, regenerable)
 cricket_pipeline/data/*.duckdb
+cricket_pipeline/data/*.duckdb.wal
+cricket_pipeline/data/*.duckdb-wal
 cricket_pipeline/data/cache/
 cricket_pipeline/data/models/
+
+# Runtime artifacts (regenerated each run, not source-of-truth)
+cricket_pipeline/work/runs/*.json
+cricket_pipeline/work/runs/*.csv
+cricket_pipeline/work/runs/*.md
+cricket_pipeline/work/runs/*.txt
+cricket_pipeline/work/runs/*.log
+cricket_pipeline/work/runs/*.pid
+cricket_pipeline/work/runs/calibrators/
+cricket_pipeline/work/runs/match_timeline.jsonl
+
+# Log files (rotated by RotatingFileHandler; never committed)
+*.log
+*.log.[0-9]*
+ball-train.log
+cloudflared*.log
+live-tracker.log
+match-train*.log
+tunnel.log
+
+# Predictions and live snapshots (per-run output, not source)
+predictions/
+data/data.json
+data/preds/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -26,8 +26,30 @@ from .features_v2 import (CATEGORICAL, NUMERIC, PLAYER_NUMERIC,
                            build_features_with_players)
 
 
-def _lgb_pred(train, calib, test, feat, cats, ytr, yca, seeds=(0, 7, 42)):
-    ds = lgb.Dataset(train[feat], label=ytr, categorical_feature=cats, free_raw_data=False)
+def recency_weights(dates: pd.Series, half_life_days: float | None = None,
+                     ref_date: pd.Timestamp | None = None) -> np.ndarray:
+    """Exponential decay sample weights. half_life_days=None → uniform 1.0.
+
+    Validated in cricket_pipeline/work/recency_experiment.py:
+       T20:  hl=720d  → +1.15pp acc (74.78% → 75.93%)
+       ODI:  hl=720d  → +2.70pp acc (66.44% → 69.14%) AND -1.6pp ECE
+    """
+    if not half_life_days or half_life_days <= 0:
+        return np.ones(len(dates), dtype=float)
+    d = pd.to_datetime(dates)
+    ref = ref_date if ref_date is not None else d.max()
+    delta = (ref - d).dt.days.astype(float).clip(lower=0).to_numpy()
+    return np.exp(-np.log(2.0) * delta / float(half_life_days))
+
+
+# Default production half-life — see Cycle 7 in progress_log.md
+DEFAULT_RECENCY_HL_DAYS = 720
+
+
+def _lgb_pred(train, calib, test, feat, cats, ytr, yca, seeds=(0, 7, 42),
+              weights: np.ndarray | None = None):
+    ds = lgb.Dataset(train[feat], label=ytr, weight=weights,
+                     categorical_feature=cats, free_raw_data=False)
     vs = lgb.Dataset(calib[feat], label=yca, categorical_feature=cats, reference=ds, free_raw_data=False)
     pca, pte = [], []
     for s in seeds:
@@ -39,7 +61,8 @@ def _lgb_pred(train, calib, test, feat, cats, ytr, yca, seeds=(0, 7, 42)):
     return np.mean(pca, axis=0), np.mean(pte, axis=0)
 
 
-def _xgb_pred(train, calib, test, feat_num, ytr, yca, seeds=(0, 7, 42)):
+def _xgb_pred(train, calib, test, feat_num, ytr, yca, seeds=(0, 7, 42),
+              weights: np.ndarray | None = None):
     import xgboost as xgb
     pca, pte = [], []
     for s in seeds:
@@ -50,13 +73,15 @@ def _xgb_pred(train, calib, test, feat_num, ytr, yca, seeds=(0, 7, 42)):
             early_stopping_rounds=60, random_state=s, tree_method="hist",
             n_jobs=-1, verbosity=0,
         )
-        m.fit(train[feat_num], ytr, eval_set=[(calib[feat_num], yca)], verbose=False)
+        m.fit(train[feat_num], ytr, sample_weight=weights,
+               eval_set=[(calib[feat_num], yca)], verbose=False)
         pca.append(m.predict_proba(calib[feat_num])[:, 1])
         pte.append(m.predict_proba(test[feat_num])[:, 1])
     return np.mean(pca, axis=0), np.mean(pte, axis=0)
 
 
-def _cat_pred(train, calib, test, feat_num, feat_cat, ytr, yca, seeds=(0, 7, 42)):
+def _cat_pred(train, calib, test, feat_num, feat_cat, ytr, yca, seeds=(0, 7, 42),
+              weights: np.ndarray | None = None):
     from catboost import CatBoostClassifier, Pool
     feat = feat_num + feat_cat
     pca, pte = [], []
@@ -67,7 +92,7 @@ def _cat_pred(train, calib, test, feat_num, feat_cat, ytr, yca, seeds=(0, 7, 42)
             early_stopping_rounds=80, random_seed=s, allow_writing_files=False,
             verbose=False,
         )
-        train_pool = Pool(train[feat], label=ytr, cat_features=feat_cat)
+        train_pool = Pool(train[feat], label=ytr, weight=weights, cat_features=feat_cat)
         calib_pool = Pool(calib[feat], label=yca, cat_features=feat_cat)
         m.fit(train_pool, eval_set=calib_pool, use_best_model=True)
         pca.append(m.predict_proba(calib[feat])[:, 1])
@@ -75,13 +100,18 @@ def _cat_pred(train, calib, test, feat_num, feat_cat, ytr, yca, seeds=(0, 7, 42)
     return np.mean(pca, axis=0), np.mean(pte, axis=0)
 
 
-def _lr_pred(train, calib, test, feat_num, ytr, yca):
+def _lr_pred(train, calib, test, feat_num, ytr, yca,
+             weights: np.ndarray | None = None):
     sc = StandardScaler()
-    Xtr = sc.fit_transform(train[feat_num].fillna(train[feat_num].median()))
-    Xca = sc.transform(calib[feat_num].fillna(train[feat_num].median()))
-    Xte = sc.transform(test[feat_num].fillna(train[feat_num].median()))
+    med = train[feat_num].median(numeric_only=True)
+    # Belt-and-braces: if a feature is entirely NaN in train, median is NaN too.
+    # Fill those columns with 0.0 so LR never sees NaN.
+    med = med.fillna(0.0)
+    Xtr = sc.fit_transform(train[feat_num].fillna(med).fillna(0.0))
+    Xca = sc.transform(calib[feat_num].fillna(med).fillna(0.0))
+    Xte = sc.transform(test[feat_num].fillna(med).fillna(0.0))
     lr = LogisticRegression(C=1.0, max_iter=1000)
-    lr.fit(Xtr, ytr)
+    lr.fit(Xtr, ytr, sample_weight=weights)
     return lr.predict_proba(Xca)[:, 1], lr.predict_proba(Xte)[:, 1]
 
 

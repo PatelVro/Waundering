@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -979,7 +979,7 @@ def review_one(home: str, away: str, date: str) -> Optional[dict]:
         "versions":     versions_analysis,
         "deltas":       deltas,
         "attribution":  attribution,
-        "reviewed_at":  datetime.utcnow().isoformat() + "Z",
+        "reviewed_at":  datetime.now(timezone.utc).isoformat(),
     }
 
     # Append to ledger (one line per match, JSONL)

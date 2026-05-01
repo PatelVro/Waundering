@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import signal
 import subprocess
@@ -144,7 +145,12 @@ SLUG_BLOCKLIST = re.compile(
 
 LOG = logging.getLogger("orchestrator")
 LOG.setLevel(logging.INFO)
-_handler_file = logging.FileHandler(LOG_PATH, encoding="utf-8")
+# Use a rotating file handler so orchestrator.log doesn't grow unbounded.
+# At ~2880 live-loop lines/day, even verbose runs stay under 50MB before rolling.
+from logging.handlers import RotatingFileHandler  # noqa: E402
+_handler_file = RotatingFileHandler(
+    LOG_PATH, maxBytes=50 * 1024 * 1024, backupCount=5, encoding="utf-8"
+)
 _handler_stream = logging.StreamHandler(sys.stdout)
 _fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
 _handler_file.setFormatter(_fmt); _handler_stream.setFormatter(_fmt)
@@ -162,19 +168,47 @@ class State:
         self._load()
 
     def _load(self):
-        if not STATE_PATH.exists(): return
-        try:
-            data = json.loads(STATE_PATH.read_text())
-            self.tracked = data.get("tracked", {})
-            LOG.info(f"Loaded state: tracking {len(self.tracked)} matches")
-        except Exception as e:
-            LOG.warning(f"State load failed: {e}")
+        # Try the main state file first; fall back to the .bak rolling backup
+        # if the primary is corrupted (e.g. truncated by a crash mid-write).
+        for candidate in (STATE_PATH, STATE_PATH.with_suffix(".json.bak")):
+            if not candidate.exists():
+                continue
+            try:
+                data = json.loads(candidate.read_text())
+                self.tracked = data.get("tracked", {})
+                LOG.info(f"Loaded state from {candidate.name}: tracking {len(self.tracked)} matches")
+                return
+            except (json.JSONDecodeError, OSError) as e:
+                LOG.warning(f"State load failed for {candidate.name}: {e}")
+        LOG.info("No usable state file; starting empty.")
 
     def _save(self):
+        # Atomic write pattern: serialize → write to a temp file in the same
+        # directory → rename onto the target. os.replace is atomic on POSIX
+        # and Windows (since Python 3.3), so a power loss between write and
+        # rename leaves the previous valid state intact rather than truncated.
+        # Also keep a rolling .bak from the prior good state for belt-and-braces
+        # recovery if both writes happen to fail.
+        tmp_path = STATE_PATH.with_suffix(".json.tmp")
+        bak_path = STATE_PATH.with_suffix(".json.bak")
         try:
-            STATE_PATH.write_text(json.dumps({"tracked": self.tracked}, indent=2, default=str))
+            payload = json.dumps({"tracked": self.tracked}, indent=2, default=str)
+            tmp_path.write_text(payload, encoding="utf-8")
+            if STATE_PATH.exists():
+                try:
+                    # Best-effort backup of the current good file before replacing
+                    bak_path.write_bytes(STATE_PATH.read_bytes())
+                except OSError as bak_err:
+                    LOG.debug(f"State backup write failed (non-fatal): {bak_err}")
+            os.replace(tmp_path, STATE_PATH)
         except Exception as e:
             LOG.warning(f"State save failed: {e}")
+            # Best-effort cleanup of the temp file so it doesn't accumulate
+            try:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+            except OSError:
+                pass
 
     def register(self, mid: str, slug: str):
         with self.lock:
@@ -1108,11 +1142,19 @@ class _SilentHandler(SimpleHTTPRequestHandler):
 
 
 def http_loop():
+    # allow_reuse_address: lets the orchestrator restart immediately after a
+    # crash without a TIME_WAIT delay (mostly POSIX-relevant; harmless on Win).
+    # Short timeout: lets us check the shutdown event between requests so the
+    # daemon thread doesn't hang on a stalled keep-alive socket at exit.
+    HTTPServer.allow_reuse_address = True
     server = HTTPServer(("127.0.0.1", HTTP_PORT), _SilentHandler)
+    server.timeout = 1.0
     LOG.info(f"http server listening on http://127.0.0.1:{HTTP_PORT}")
-    while not STATE.shutdown.is_set():
-        server.handle_request()
-    server.server_close()
+    try:
+        while not STATE.shutdown.is_set():
+            server.handle_request()
+    finally:
+        server.server_close()
 
 
 # ---------- main ----------
