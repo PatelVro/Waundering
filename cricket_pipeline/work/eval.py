@@ -169,6 +169,13 @@ def lgb_params() -> dict:
         "feature_fraction": 0.9,
         "bagging_fraction": 0.9,
         "bagging_freq":     5,
+        # Wave 1, Agent 46: deterministic mode disables thread-race
+        # accumulation so two runs with the same data + seed produce
+        # byte-identical predictions. ~10-15% slower but the
+        # reproducibility win outweighs the speed loss.
+        "deterministic":    True,
+        "force_col_wise":   True,
+        "num_threads":      1,
         "verbose":          -1,
     }
 

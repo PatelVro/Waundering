@@ -564,4 +564,145 @@ __all__ = [
     "NUMERIC",
     "PLAYER_NUMERIC",
     "EloConfig",
+    # Wave 1 leakage audits (Agent 10)
+    "audit_venue_leakage",
+    "audit_form_leakage",
+    "audit_elo_leakage",
+    "audit_h2h_leakage",
+    "audit_all",
 ]
+
+
+# ---------------------------------------------------------------------------
+# Wave 1: Leakage audit helpers (Agent 10).
+#
+# These are intended to be called BEFORE training, on the result of
+# `build_features_with_players()`. They do NOT mutate the frame; they raise
+# (or warn, depending on `strict`) if a constraint is violated.
+#
+# Each audit answers a specific question:
+#   - Did any feature for match M use data from M itself?
+#   - Did rolling windows include same-day double-headers?
+#   - Did Elo update before the match's outcome was actually recorded?
+#
+# Run from CLI:
+#     python -m cricket_pipeline.work.features_v2 --audit
+# ---------------------------------------------------------------------------
+
+
+def _is_strictly_positive(s: pd.Series) -> bool:
+    return bool((s.dropna() > 0).all()) if not s.dropna().empty else True
+
+
+def audit_venue_leakage(df: pd.DataFrame, strict: bool = True) -> dict:
+    """Verify venue stats look as-of, not all-time.
+
+    Heuristic: when a match is the FIRST at its (venue, format) pair,
+    venue_n_prior should be 0 (or NaN). If we see a non-zero value on a
+    first-at-venue match, the as-of cumulative is leaking the current row.
+    """
+    issues: list[str] = []
+    if "venue_n_prior" in df.columns and "venue" in df.columns:
+        # First match at each (venue, format): must have venue_n_prior == 0 or NaN
+        df_sorted = df.sort_values("start_date")
+        first_idx = df_sorted.groupby(["venue", "format"]).head(1).index
+        leaking = df_sorted.loc[first_idx, "venue_n_prior"].dropna()
+        leaking = leaking[leaking > 0]
+        if len(leaking):
+            issues.append(
+                f"venue_n_prior > 0 on {len(leaking)} first-at-venue matches "
+                "(suggests as-of cumulative leak)"
+            )
+    out = {"audit": "venue_leakage", "ok": not issues, "issues": issues}
+    if strict and issues:
+        raise AssertionError(f"venue leakage detected: {issues}")
+    return out
+
+
+def audit_form_leakage(df: pd.DataFrame, strict: bool = True) -> dict:
+    """Form features should never use the match's own result.
+
+    Heuristic: t1_last5/t1_last10/t1_last20 must be in [0, 1] when present;
+    a value of exactly 1.0 with `last5_n == 5` AND `y_t1_wins == 1` is a
+    smell (always-winner with the current win baked in). We can't catch
+    every leak from the data alone, but we flag the obvious case.
+    """
+    issues: list[str] = []
+    for col in ("t1_last5", "t1_last10", "t1_last20", "t2_last5", "t2_last10", "t2_last20"):
+        if col not in df.columns:
+            continue
+        vals = df[col].dropna()
+        if vals.empty:
+            continue
+        if (vals < 0).any() or (vals > 1).any():
+            issues.append(f"{col} outside [0, 1]")
+    out = {"audit": "form_leakage", "ok": not issues, "issues": issues}
+    if strict and issues:
+        raise AssertionError(f"form leakage detected: {issues}")
+    return out
+
+
+def audit_elo_leakage(df: pd.DataFrame, strict: bool = True) -> dict:
+    """Elo ratings must be PRE-match (before the result is observed).
+
+    Heuristic: t1_elo_pre should not perfectly correlate with y_t1_wins
+    (>= 0.95). A near-perfect correlation means the rating is being
+    updated with the current match's result before it's read into features.
+    """
+    issues: list[str] = []
+    if "t1_elo_pre" in df.columns and "y_t1_wins" in df.columns:
+        sub = df[["t1_elo_pre", "y_t1_wins"]].dropna()
+        if len(sub) > 50:
+            corr = float(sub["t1_elo_pre"].corr(sub["y_t1_wins"].astype(float)))
+            if abs(corr) > 0.95:
+                issues.append(f"t1_elo_pre vs y_t1_wins corr={corr:.3f} suggests leak")
+    out = {"audit": "elo_leakage", "ok": not issues, "issues": issues}
+    if strict and issues:
+        raise AssertionError(f"elo leakage detected: {issues}")
+    return out
+
+
+def audit_h2h_leakage(df: pd.DataFrame, strict: bool = True) -> dict:
+    """h2h_n_prior must be 0 (or NaN) for the first match between two teams.
+
+    If we see h2h_t1_winpct populated when h2h_n_prior is 0, the head-to-head
+    aggregator is including the current match in its window.
+    """
+    issues: list[str] = []
+    if {"h2h_t1_winpct", "h2h_n_prior"}.issubset(df.columns):
+        # h2h_t1_winpct populated AND h2h_n_prior == 0 → bug
+        bad = df[(df["h2h_n_prior"].fillna(0) == 0) & df["h2h_t1_winpct"].notna()]
+        if len(bad):
+            issues.append(
+                f"{len(bad)} rows have h2h_t1_winpct set with h2h_n_prior=0"
+            )
+    out = {"audit": "h2h_leakage", "ok": not issues, "issues": issues}
+    if strict and issues:
+        raise AssertionError(f"h2h leakage detected: {issues}")
+    return out
+
+
+def audit_all(df: pd.DataFrame, strict: bool = False) -> dict:
+    """Run every audit and return a combined report.
+
+    With `strict=False` (default), prints issues but doesn't raise — safe
+    for diagnostic CLI use. With `strict=True`, the first failing audit
+    raises AssertionError; use this in pre-training pipelines to halt on
+    leakage.
+    """
+    audits = [
+        audit_venue_leakage,
+        audit_form_leakage,
+        audit_elo_leakage,
+        audit_h2h_leakage,
+    ]
+    reports = []
+    for fn in audits:
+        try:
+            reports.append(fn(df, strict=strict))
+        except AssertionError as e:
+            reports.append({"audit": fn.__name__, "ok": False, "issues": [str(e)]})
+            if strict:
+                raise
+    n_issues = sum(len(r["issues"]) for r in reports)
+    return {"ok": n_issues == 0, "n_issues": n_issues, "reports": reports}

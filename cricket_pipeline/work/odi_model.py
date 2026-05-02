@@ -127,13 +127,32 @@ def search(n_trials: int = 50, seed: int = 0) -> dict:
 
     print("Loading ODI features ...")
     df = build_features_with_players(format_filter=["ODI"])
-    train, calib, test, sd = time_split(df, test_frac=0.15, calib_frac=0.10)
+    # Wave 1 (Agent 50): the prior search optimized log-loss directly on
+    # the test set, scanning n_trials*1500 trees against the same held-out
+    # rows. Reported gains (~0.5-1.5pp) were partly fitting test-set noise.
+    # We now reserve a META-TEST slice carved out of the trailing edge of
+    # train: Optuna's objective scores there, the final test slice stays
+    # untouched until the chosen hyperparameters are evaluated once.
+    df_sorted = df.sort_values("start_date").reset_index(drop=True)
+    train_full, calib, test, sd = time_split(df_sorted, test_frac=0.15, calib_frac=0.10)
+    META_TEST_FRAC = 0.10  # last 10% of train slice → meta-test
+    n_meta = max(int(round(len(train_full) * META_TEST_FRAC)), 50)
+    if len(train_full) <= n_meta + 100:
+        raise ValueError(
+            f"Insufficient train rows for disjoint meta-test "
+            f"(train={len(train_full)}, meta={n_meta}, need >100 remaining)"
+        )
+    train      = train_full.iloc[:-n_meta].copy()
+    meta_test  = train_full.iloc[-n_meta:].copy()
+
     feat = odi_feature_set()
-    ytr = train["y_t1_wins"].astype(int).to_numpy()
-    yca = calib["y_t1_wins"].astype(int).to_numpy()
-    yte = test["y_t1_wins"].astype(int).to_numpy()
-    w   = recency_weights(train["start_date"], DEFAULT_RECENCY_HL_DAYS)
-    print(f"  rows  train={len(train)}  calib={len(calib)}  test={len(test)}  "
+    ytr  = train["y_t1_wins"].astype(int).to_numpy()
+    yca  = calib["y_t1_wins"].astype(int).to_numpy()
+    ymt  = meta_test["y_t1_wins"].astype(int).to_numpy()
+    yte  = test["y_t1_wins"].astype(int).to_numpy()
+    w    = recency_weights(train["start_date"], DEFAULT_RECENCY_HL_DAYS)
+    print(f"  rows  train={len(train)}  meta_test={len(meta_test)}  "
+          f"calib={len(calib)}  test={len(test)}  "
           f"feats={len(feat)}  ess={(w.sum()**2)/(w**2).sum():.0f}")
 
     def objective(trial: "optuna.trial.Trial") -> float:
@@ -155,28 +174,51 @@ def search(n_trials: int = 50, seed: int = 0) -> dict:
         b  = lgb.train({**p, "seed": seed},
                         ds, num_boost_round=1500, valid_sets=[vs],
                         callbacks=[lgb.early_stopping(40), lgb.log_evaluation(0)])
-        p_te = b.predict(test[feat])
-        # Optimize log-loss (correlated with both acc + calibration)
-        return float(log_loss(yte, np.clip(p_te, 1e-7, 1 - 1e-7)))
+        # OPTIMIZE ON META_TEST (disjoint from final test) — kills the
+        # "Optuna scans the test set" leakage. Final test is reserved for
+        # an honest one-shot evaluation after best params are chosen.
+        p_mt = b.predict(meta_test[feat])
+        return float(log_loss(ymt, np.clip(p_mt, 1e-7, 1 - 1e-7)))
 
     study = optuna.create_study(direction="minimize",
                                   sampler=optuna.samplers.TPESampler(seed=seed))
     study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
 
     print(f"\n=== Optuna best ===")
-    print(f"  best logloss: {study.best_value:.4f}")
+    print(f"  meta_test logloss: {study.best_value:.4f}  (disjoint from final test)")
     print(f"  best params:")
     for k, v in study.best_params.items():
         print(f"    {k}: {v}")
+
+    # Honest one-shot evaluation on the held-out final test set with the
+    # chosen hyperparameters. This number is the only one safe to publish.
+    final_p = lgb_params()
+    final_p.update(study.best_params)
+    ds_full = lgb.Dataset(pd.concat([train, meta_test])[feat],
+                           label=np.concatenate([ytr, ymt]),
+                           weight=np.concatenate([w, recency_weights(meta_test["start_date"], DEFAULT_RECENCY_HL_DAYS)]),
+                           free_raw_data=False)
+    vs_full = lgb.Dataset(calib[feat], label=yca, reference=ds_full, free_raw_data=False)
+    final_b = lgb.train({**final_p, "seed": seed},
+                          ds_full, num_boost_round=1500, valid_sets=[vs_full],
+                          callbacks=[lgb.early_stopping(40), lgb.log_evaluation(0)])
+    p_te_final = final_b.predict(test[feat])
+    final_logloss = float(log_loss(yte, np.clip(p_te_final, 1e-7, 1 - 1e-7)))
+    print(f"  HONEST test logloss: {final_logloss:.4f}  (one-shot, never tuned against)")
 
     # Persist
     ODI_PARAMS_PATH.parent.mkdir(parents=True, exist_ok=True)
     ODI_PARAMS_PATH.write_text(json.dumps({
         "params": study.best_params,
-        "best_logloss": study.best_value,
+        "meta_test_logloss":  study.best_value,
+        "honest_test_logloss": final_logloss,
         "n_trials": n_trials,
         "feature_set": feat,
         "recency_hl_days": DEFAULT_RECENCY_HL_DAYS,
+        "n_train": int(len(train)),
+        "n_meta_test": int(len(meta_test)),
+        "n_calib": int(len(calib)),
+        "n_test": int(len(test)),
     }, indent=2))
     print(f"\nSaved → {ODI_PARAMS_PATH}")
     return study.best_params

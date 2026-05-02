@@ -295,16 +295,62 @@ def _train_predict(future_row: pd.Series, df: pd.DataFrame, fast: bool = False) 
     from sklearn.linear_model import LogisticRegression
     stk = LogisticRegression(C=10.0)
     stk.fit(Xst_ca, yca)
-    p_ens = float(stk.predict_proba(Xst_te)[0, 1])
+    p_ens_raw = float(stk.predict_proba(Xst_te)[0, 1])
+
+    # Per-tier isotonic calibration (Wave 1, Agent 31). When a saved tier
+    # calibrator exists for this format, apply it to the ensemble output.
+    # Tier-1 was under-confident in the 60-80% band by ~9pp; tier-2-main
+    # ECE was ~28%. Per-tier isotonic collapses both. Falls back to raw
+    # probability if no calibrator is found, so unknown formats still ship.
+    p_ens = _maybe_apply_tier_calibrator(p_ens_raw, future_row, fmt)
 
     return {
-        "lgbm_num": float(lgb_n_te[0]),
-        "lgbm_cat": float(lgb_c_te[0]),
-        "xgb":      float(xgb_te[0]),
-        "cat":      (None if fast else float(cat_te[0])),
-        "lr":       float(lr_te[0]),
-        "ensemble": p_ens,
+        "lgbm_num":      float(lgb_n_te[0]),
+        "lgbm_cat":      float(lgb_c_te[0]),
+        "xgb":           float(xgb_te[0]),
+        "cat":           (None if fast else float(cat_te[0])),
+        "lr":            float(lr_te[0]),
+        "ensemble_raw":  p_ens_raw,
+        "ensemble":      p_ens,
     }
+
+
+_TIER_CALIBRATOR_CACHE: dict[str, object] = {}
+
+
+def _maybe_apply_tier_calibrator(p: float, future_row: pd.Series, fmt: str) -> float:
+    """Look up a per-tier isotonic calibrator artifact and apply it.
+
+    Returns the calibrated probability, or `p` unchanged if the artifact
+    isn't present. Cached across calls — calibrator load is ~10 KB.
+    """
+    fmt_norm = (str(fmt) or "").upper()
+    tag = "t20" if fmt_norm in ("T20", "IT20") else ("odi" if fmt_norm == "ODI" else None)
+    if tag is None:
+        return p
+    cal_path = Path(__file__).resolve().parent / "runs" / "calibrators" / f"{tag}_per_tier_iso.joblib"
+    if not cal_path.exists():
+        return p
+    try:
+        if tag not in _TIER_CALIBRATOR_CACHE:
+            import joblib
+            _TIER_CALIBRATOR_CACHE[tag] = joblib.load(cal_path)
+        artifact = _TIER_CALIBRATOR_CACHE[tag]
+        # Lazy import to keep error_analysis_v2 out of cold-start path
+        from .error_analysis_v2 import classify_tier
+        tier = classify_tier(future_row.get("competition"),
+                              future_row.get("team_home"),
+                              future_row.get("team_away"))
+        calibrators = artifact.get("calibrators", {})
+        iso = calibrators.get(tier) or calibrators.get("_global")
+        if iso is None:
+            return p
+        return float(iso.transform([p])[0])
+    except Exception as e:
+        # Calibration is a quality lift, not a hard requirement. Log and
+        # fall back to raw probability rather than crashing the prediction.
+        print(f"  WARN: tier calibrator load/apply failed ({e}); using raw probability", file=sys.stderr)
+        return p
 
 
 def main():
