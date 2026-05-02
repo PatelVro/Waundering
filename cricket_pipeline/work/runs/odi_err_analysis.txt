@@ -1,0 +1,96 @@
+=== n_test ===
+444
+
+=== test_acc ===
+0.6261261261261262
+
+=== logloss ===
+0.618259791139686
+
+=== brier ===
+0.21536980294554453
+
+=== ece ===
+0.09723085863610717
+
+=== confusion_matrix ===
+pred      0    1  All
+actual               
+0       111  123  234
+1        43  167  210
+All     154  290  444
+
+=== reliability_table ===
+conf_bin   n      acc    avg_p
+   0-20% 118 0.466102 0.522855
+  20-40% 129 0.488372 0.663027
+  40-60% 137 0.795620 0.736648
+  60-80%  26 0.769231 0.803217
+ 80-100%  34 0.911765 0.953908
+
+=== high_conf_wrongs ===
+           match_id format                           competition start_date                team_home                team_away                                                            venue                   winner  pred_p_t1  elo_diff_pre  h2h_t1_winpct
+3030718978229870600    ODI               India tour of Sri Lanka 2024-08-07                Sri Lanka                    India                                     R Premadasa Stadium, Colombo                Sri Lanka   0.045455   -201.609474       0.276596
+8412863648778632017    ODI               India tour of Sri Lanka 2024-08-04                Sri Lanka                    India                                     R Premadasa Stadium, Colombo                Sri Lanka   0.045455   -258.720866       0.268817
+6485788567521595587    ODI       New Zealand Women tour of India 2024-10-27              New Zealand                    India                                 Narendra Modi Stadium, Ahmedabad              New Zealand   0.045455   -216.367388       0.442623
+6483353740425956378    ODI  ICC Men's Cricket World Cup League 2 2024-11-03     United Arab Emirates              Netherlands          Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1)     United Arab Emirates   0.200000   -239.041603            NaN
+2094875810074745792    ODI                 ICC Cricket World Cup 2023-10-17              Netherlands             South Africa         Himachal Pradesh Cricket Association Stadium, Dharamsala              Netherlands   0.200000   -535.501072       0.000000
+ 925334553421618201    ODI  South Africa Women tour of Australia 2024-02-07             South Africa                Australia                                        North Sydney Oval, Sydney             South Africa   0.200000   -157.702221       0.525424
+4940578355191367531    ODI  ICC Men's Cricket World Cup League 2 2025-09-02                  Namibia                   Canada                          Maple Leaf North-West Ground, King City                  Namibia   0.200000     69.223712       1.000000
+8874090846183068760    ODI        New Zealand tour of Bangladesh 2026-04-23               Bangladesh              New Zealand Bir Sreshtho Flight Lieutenant Matiur Rahman Stadium, Chattogram               Bangladesh   0.200000   -217.257029       0.261905
+1614944673748495264    ODI         Sri Lanka tour of New Zealand 2025-01-11                Sri Lanka              New Zealand                                              Eden Park, Auckland                Sri Lanka   0.200000     -9.200225       0.420000
+1738479898777603348    ODI   Pakistan Women tour of South Africa 2026-03-01                 Pakistan             South Africa                                                Kingsmead, Durban                 Pakistan   0.242711   -159.681949       0.383562
+  81633924292363982    ODI           Australia tour of Sri Lanka 2025-02-14                Sri Lanka                Australia                                     R Premadasa Stadium, Colombo                Sri Lanka   0.260870   -204.234998       0.344262
+ 824483955776162451    ODI              Ireland tour of Zimbabwe 2025-02-14                 Zimbabwe                  Ireland                                               Harare Sports Club                 Zimbabwe   0.260870   -109.534882       0.333333
+2568835460194477208    ODI           Australia tour of Sri Lanka 2025-02-12                Sri Lanka                Australia                                     R Premadasa Stadium, Colombo                Sri Lanka   0.260870   -268.803354       0.333333
+ 731749826781710190    ODI  ICC Men's Cricket World Cup League 2 2024-11-02 United States of America                    Nepal                                    Grand Prairie Stadium, Dallas United States of America   0.260870    -18.589650       0.200000
+4067603969852624053    ODI  ICC Men's Cricket World Cup League 2 2024-08-17              Netherlands                   Canada                                           Hazelaarweg, Rotterdam              Netherlands   0.260870    125.688527       1.000000
+1222141605975169931    ODI  ICC Men's Cricket World Cup League 2 2024-08-21              Netherlands United States of America                                           Hazelaarweg, Rotterdam              Netherlands   0.260870     97.782553       1.000000
+3703031467064400831    ODI  ICC Men's Cricket World Cup League 2 2024-08-13 United States of America                   Canada                                   Sportpark Westvliet, The Hague United States of America   0.260870      9.222319       0.000000
+5481588729614464496    ODI               Ireland vs South Africa 2024-10-07                  Ireland             South Africa                                 Zayed Cricket Stadium, Abu Dhabi                  Ireland   0.260870   -278.080806       0.117647
+1976264159304918984    ODI        West Indies tour of Bangladesh 2025-10-23               Bangladesh              West Indies                            Shere Bangla National Stadium, Mirpur               Bangladesh   0.260870     25.330817       0.500000
+4433118067129673674    ODI        West Indies tour of Bangladesh 2025-10-18               Bangladesh              West Indies                            Shere Bangla National Stadium, Mirpur               Bangladesh   0.260870    -11.950970       0.488889
+4926417772670626775    ODI          Pakistan tour of West Indies 2025-08-12              West Indies                 Pakistan                            Brian Lara Stadium, Tarouba, Trinidad              West Indies   0.260870   -110.596893       0.415094
+9109882523192703249    ODI  ICC Men's Cricket World Cup League 2 2026-04-08                     Oman                 Scotland                                 Namibia Cricket Ground, Windhoek                     Oman   0.260870   -108.085150       0.142857
+ 636121034058718882    ODI Bangladesh Women tour of South Africa 2023-12-16               Bangladesh             South Africa                                        Buffalo Park, East London               Bangladesh   0.260870   -316.661039       0.206897
+3673881276079142513    ODI          Bangladesh tour of Sri Lanka 2025-07-05               Bangladesh                Sri Lanka                                     R Premadasa Stadium, Colombo               Bangladesh   0.260870   -159.236655       0.266667
+7269011232376272214    ODI  ICC Men's Cricket World Cup League 2 2025-11-05                    Nepal     United Arab Emirates                                               ICC Academy, Dubai     United Arab Emirates   0.735294    103.225973       0.562500
+4496381794676030049    ODI           England tour of New Zealand 2025-10-29                  England              New Zealand                                            Seddon Park, Hamilton              New Zealand   0.735294     15.566483       0.587302
+1314729524280328710    ODI  ICC Men's Cricket World Cup League 2 2024-02-25                    Nepal              Netherlands      Tribhuvan University International Cricket Ground, Kirtipur              Netherlands   0.735294     67.485637       0.500000
+7420291060524377420    ODI           England tour of West Indies 2023-12-03                  England              West Indies                Sir Vivian Richards Stadium, North Sound, Antigua              West Indies   0.735294    250.307454       0.720930
+ 527821965111942822    ODI      Sri Lanka Women's ODI Tri-Series 2025-05-04                    India                Sri Lanka                                     R Premadasa Stadium, Colombo                Sri Lanka   0.735294    214.648441       0.718750
+1533426311631127207    ODI  ICC Men's Cricket World Cup League 2 2025-06-02                 Scotland                    Nepal                                                 Forthill, Dundee                    Nepal   0.735294    143.273958       0.428571
+
+=== by_competition ===
+                                        competition  n      acc  avg_conf
+               ICC Men's Cricket World Cup League 2 84 0.511905  0.333018
+                              ICC Cricket World Cup 39 0.717949  0.374458
+                              ICC Women's World Cup 25 0.760000  0.446402
+                    ICC Women's World Cup Qualifier 15 0.666667  0.110876
+                               ICC Champions Trophy 10 0.600000  0.328385
+                   Sri Lanka Women's ODI Tri-Series  7 0.714286  0.454564
+                      India Women tour of Australia  6 0.500000  0.290898
+                        England tour of West Indies  6 0.166667  0.250859
+                      Australia Women tour of India  6 0.666667  0.350047
+                 Netherlands Women's ODI Tri-Series  6 0.500000  0.272303
+                          Australia tour of England  5 0.400000  0.303430
+                           Ireland tour of Zimbabwe  5 0.600000  0.388323
+    United States of America Women tour of Zimbabwe  5 0.400000  0.261926
+United Arab Emirates Women tour of Papua New Guinea  4 0.500000  0.197213
+        United Arab Emirates Women tour of Zimbabwe  4 0.750000  0.281533
+                         Pakistan Tri-Nation Series  4 0.500000  0.388379
+                            India tour of Australia  3 0.666667  0.515891
+                 England Women tour of South Africa  3 0.666667  0.728012
+                  England Women tour of New Zealand  3 0.666667  0.526827
+                     Bangladesh tour of West Indies  3 0.666667  0.280055
+
+=== by_format ===
+format   n      acc
+   ODI 444 0.626126
+
+=== upset_share ===
+0.34234234234234234
+
+=== upset_catch_rate ===
+0.34210526315789475
+

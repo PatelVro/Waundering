@@ -1,96 +1,96 @@
 === n_test ===
-1385
+1562
 
 === test_acc ===
-0.740072202166065
+0.7432778489116517
 
 === logloss ===
-0.5656796183699003
+0.529514779341783
 
 === brier ===
-0.17336348719523567
+0.16694309538757102
 
 === ece ===
-0.06519788851085273
+0.022888094465445617
 
 === confusion_matrix ===
 pred      0    1   All
 actual                
-0       456  226   682
-1       134  569   703
-All     590  795  1385
+0       501  271   772
+1       130  660   790
+All     631  931  1562
 
 === reliability_table ===
 conf_bin   n      acc    avg_p
-   0-20% 335 0.510448 0.568700
-  20-40% 381 0.706037 0.635279
-  40-60% 242 0.834711 0.732307
-  60-80% 131 0.862595 0.852801
- 80-100% 296 0.912162 0.972166
+   0-20% 328 0.524390 0.532279
+  20-40% 374 0.660428 0.642554
+  40-60% 323 0.773994 0.770969
+  60-80% 153 0.830065 0.830569
+ 80-100% 384 0.950521 0.958715
 
 === high_conf_wrongs ===
-           match_id format                                                    competition start_date                   team_home          team_away                                         venue                      winner  pred_p_t1  elo_diff_pre  h2h_t1_winpct
-2310756494623555414    T20                                   Lotus Cup Women's Tri-Series 2026-01-20                    Malaysia             Bhutan          Gelephu International Cricket Ground                      Bhutan   1.000000    252.802728       1.000000
-1923840413807851438    T20                               Indonesia Tri-Nation T20I Series 2025-07-09                 South Korea        Philippines                        Udayana Cricket Ground                 South Korea   0.000000    -87.911879       0.000000
-6456259091853067271    T20                               Indonesia Tri-Nation T20I Series 2025-07-12                   Indonesia        South Korea                        Udayana Cricket Ground                 South Korea   1.000000    180.015441       1.000000
-1800957674428545308    T20                            Kwibuka Women's Twenty20 Tournament 2025-06-04                     Nigeria             Brazil Gahanga International Cricket Stadium, Rwanda                      Brazil   1.000000    185.353708       1.000000
-4319168892052585105    T20                  ICC Men's T20 World Cup Americas Region Final 2025-06-21                     Bermuda     Cayman Islands       Maple Leaf North-West Ground, King City              Cayman Islands   1.000000    211.385376       1.000000
-6295268707602369909    T20          ICC Women's T20 World Cup Europe Division 2 Qualifier 2025-05-25                      Sweden              Spain                    Simar Cricket Ground, Rome                      Sweden   0.039216   -166.718266       0.000000
-6047741862911524577    T20              BCA Kalahari Women's T20 International Tournament 2026-04-07                  Mozambique           Botswana Botswana Cricket Association Oval 2, Gaborone                  Mozambique   0.039216   -106.675712       0.000000
-1690067250359840328    T20                                        ICC Men's T20 World Cup 2026-02-22                South Africa              India              Narendra Modi Stadium, Ahmedabad                South Africa   0.039216   -211.355017       0.351852
-2995028514969640932    T20                            Kwibuka Women's Twenty20 Tournament 2025-06-05                    Cameroon       Sierra Leone                      Gahanga B Ground, Rwanda                    Cameroon   0.039216   -211.117064       0.000000
-3760088600531572969    T20                        Quadrangular Twenty20 Series (Malaysia) 2025-04-25                Saudi Arabia          Singapore                   Bayuemas Oval, Kuala Lumpur                Saudi Arabia   0.039216    305.892898            NaN
-4958487178825158736    T20                                           Major League Cricket 2025-07-13                 MI New York Washington Freedom                 Grand Prairie Stadium, Dallas                 MI New York   0.039216   -132.346331       0.333333
-7022372366481334661    T20                                  Canada Women tour of Tanzania 2025-11-05                      Canada           Tanzania           Gymkhana Club Ground, Dar-es-Salaam                      Canada   0.039216    -15.412224       0.000000
-4612737004476254451    T20          ICC Women's T20 World Cup East Asia Pacific Qualifier 2025-09-12                       Samoa   Papua New Guinea                           Albert Park 2, Suva                       Samoa   0.039216   -313.004134       0.000000
-2254136282033584922    T20                                                    Super Smash 2026-01-01                  Canterbury  Central Districts                     Hagley Oval, Christchurch                  Canterbury   0.047619     79.563858       0.500000
-4032369771334281271    T20                                      Bangladesh Premier League 2026-01-09            Noakhali Express     Rangpur Riders          Sylhet International Cricket Stadium            Noakhali Express   0.047619   -238.169542            NaN
-3776637778603080749    T20                            Kwibuka Women's Twenty20 Tournament 2025-06-11                     Nigeria             Uganda Gahanga International Cricket Stadium, Rwanda                     Nigeria   0.047619   -180.927143       0.071429
-3305106543562238778    T20                          Quadrangular Twenty20 Series (Malawi) 2025-07-10                      Malawi            Germany                            TCA Oval, Blantyre                      Malawi   0.047619   -226.454515       0.000000
-2243201204879782424    T20                      Women's T20 Pentangular Series (in Japan) 2025-06-08                       Japan          Hong Kong             Sano International Cricket Ground                       Japan   0.048262     40.517909       0.100000
-6544394699385389701    T20                  Women's T20 Quadrangular Series (in Bulgaria) 2025-07-07                      Turkey             Serbia  Vassil Levski National Sports Academy, Sofia                      Turkey   0.083333    -92.026680       0.000000
-3370434411846071329    T20                                         Women's Premier League 2026-01-16 Royal Challengers Bengaluru     Gujarat Giants       Dr DY Patil Sports Academy, Navi Mumbai Royal Challengers Bengaluru   0.083333    169.558092       0.500000
-2237438121055752425    T20                                  India Women tour of Australia 2026-02-21                       India          Australia                                 Adelaide Oval                       India   0.083333    140.829334       0.442623
- 540348344926847066    T20                                             West Africa Trophy 2025-12-04                     Nigeria             Zambia      Nigeria Cricket Federation Oval 1, Abuja                     Nigeria   0.083333     14.356487            NaN
-4983981044848637135    T20 ICC Women's T20 World Cup Africa Region Division One Qualifier 2025-08-31                    Tanzania             Uganda               High Performance Oval, Windhoek                    Tanzania   0.083333   -181.309215       0.263158
-7230900765428449887    T20                                                Continental Cup 2025-06-28                       Malta            Romania    Moara Vlasiei Cricket Ground, Ilfov County                       Malta   0.083333   -193.530172       0.400000
- 350576006500589797    T20                                                 Nordic T20 Cup 2025-06-14                     Denmark             Sweden                             Koge Cricket Club                     Denmark   0.083333     35.283423       0.200000
-8669981385439361467    T20                                    India Women tour of England 2025-07-04                     England              India                       Kennington Oval, London                     England   0.083333   -130.420288       0.532258
-2155581094308909909    T20                                Women's T20 World Cup Qualifier 2026-01-24                  Bangladesh            Ireland                        Mulpani Cricket Ground                  Bangladesh   0.107143    -46.303677       0.571429
-2545921674724684845    T20                                 Czech Republic tour of Romania 2025-08-21              Czech Republic            Romania    Moara Vlasiei Cricket Ground, Ilfov County              Czech Republic   0.107143   -226.050870       0.000000
- 474248351380856807    T20                                      Bangladesh Premier League 2026-01-18              Dhaka Capitals  Chattogram Royals         Shere Bangla National Stadium, Mirpur              Dhaka Capitals   0.107143   -140.338638       0.000000
-2957946994740922763    T20                                                 Nordic T20 Cup 2025-06-14                     Finland             Norway                Ishoj Cricket Club, Vejledalen                     Finland   0.107143   -115.679933       0.000000
+           match_id format                                           competition start_date                   team_home           team_away                                                      venue                      winner  pred_p_t1  elo_diff_pre  h2h_t1_winpct
+6295268707602369909    T20 ICC Women's T20 World Cup Europe Division 2 Qualifier 2025-05-25                      Sweden               Spain                                 Simar Cricket Ground, Rome                      Sweden   0.000000   -166.718266       0.000000
+1923840413807851438    T20                      Indonesia Tri-Nation T20I Series 2025-07-09                 South Korea         Philippines                                     Udayana Cricket Ground                 South Korea   0.000000    -87.911879       0.000000
+2995028514969640932    T20                   Kwibuka Women's Twenty20 Tournament 2025-06-05                    Cameroon        Sierra Leone                                   Gahanga B Ground, Rwanda                    Cameroon   0.000000   -211.117064       0.000000
+6544394699385389701    T20         Women's T20 Quadrangular Series (in Bulgaria) 2025-07-07                      Turkey              Serbia               Vassil Levski National Sports Academy, Sofia                      Turkey   0.000000    -92.026680       0.000000
+1800957674428545308    T20                   Kwibuka Women's Twenty20 Tournament 2025-06-04                     Nigeria              Brazil              Gahanga International Cricket Stadium, Rwanda                      Brazil   0.964286    185.353708       1.000000
+4319168892052585105    T20         ICC Men's T20 World Cup Americas Region Final 2025-06-21                     Bermuda      Cayman Islands                    Maple Leaf North-West Ground, King City              Cayman Islands   0.962963    211.385376       1.000000
+2310756494623555414    T20                          Lotus Cup Women's Tri-Series 2026-01-20                    Malaysia              Bhutan                       Gelephu International Cricket Ground                      Bhutan   0.962963    252.802728       1.000000
+4871016123335799808    T20                    Luxembourg Women's T20I Tri-Series 2025-09-14                     Austria          Luxembourg                               Pierre Werner Cricket Ground                  Luxembourg   0.962963    396.458311       0.833333
+5540897266339034027    T20                              Sweden tour of Indonesia 2026-04-13                      Sweden           Indonesia                                     Udayana Cricket Ground                      Sweden   0.055556     87.047909       0.857143
+4612737004476254451    T20 ICC Women's T20 World Cup East Asia Pacific Qualifier 2025-09-12                       Samoa    Papua New Guinea                                        Albert Park 2, Suva                       Samoa   0.055556   -313.004134       0.000000
+8336632147654522023    T20                Central American Cricket Championships 2025-04-20     Turks and Caicos Island          Costa Rica                                Clayton Panama, Panama City                  Costa Rica   0.928571     67.448300       1.000000
+7210537378967519110    T20       ICC Women's T20 World Cup Asia Region Qualifier 2025-05-16                      Kuwait              Bhutan                           Terdthai Cricket Ground, Bangkok                      Bhutan   0.928571    274.637978       0.666667
+7022372366481334661    T20                         Canada Women tour of Tanzania 2025-11-05                      Canada            Tanzania                        Gymkhana Club Ground, Dar-es-Salaam                      Canada   0.093023    -15.412224       0.000000
+3305106543562238778    T20                 Quadrangular Twenty20 Series (Malawi) 2025-07-10                      Malawi             Germany                                         TCA Oval, Blantyre                      Malawi   0.093023   -226.454515       0.000000
+ 540348344926847066    T20                                    West Africa Trophy 2025-12-04                     Nigeria              Zambia                   Nigeria Cricket Federation Oval 1, Abuja                     Nigeria   0.093023     14.356487            NaN
+2237438121055752425    T20                         India Women tour of Australia 2026-02-21                       India           Australia                                              Adelaide Oval                       India   0.093023    140.829334       0.442623
+8669981385439361467    T20                           India Women tour of England 2025-07-04                     England               India                                    Kennington Oval, London                     England   0.093023   -130.420288       0.532258
+6047741862911524577    T20     BCA Kalahari Women's T20 International Tournament 2026-04-07                  Mozambique            Botswana              Botswana Cricket Association Oval 2, Gaborone                  Mozambique   0.093023   -106.675712       0.000000
+ 350576006500589797    T20                                        Nordic T20 Cup 2025-06-14                     Denmark              Sweden                                          Koge Cricket Club                     Denmark   0.093023     35.283423       0.200000
+3370434411846071329    T20                                Women's Premier League 2026-01-16 Royal Challengers Bengaluru      Gujarat Giants                    Dr DY Patil Sports Academy, Navi Mumbai Royal Challengers Bengaluru   0.162791    229.859158       0.500000
+2155581094308909909    T20                       Women's T20 World Cup Qualifier 2026-01-24                  Bangladesh             Ireland                                     Mulpani Cricket Ground                  Bangladesh   0.162791    -46.303677       0.571429
+1065788787396836632    T20                                 Indian Premier League 2025-04-05              Delhi Capitals Chennai Super Kings                   MA Chidambaram Stadium, Chepauk, Chennai              Delhi Capitals   0.162791     59.841749       0.416667
+2071958866179145107    T20                                           Kartini Cup 2025-04-11                Cook Islands         Philippines                                     Udayana Cricket Ground                Cook Islands   0.162791     71.311573            NaN
+2254136282033584922    T20                                           Super Smash 2026-01-01                  Canterbury   Central Districts                                  Hagley Oval, Christchurch                  Canterbury   0.162791     79.563858       0.500000
+4032369771334281271    T20                             Bangladesh Premier League 2026-01-09            Noakhali Express      Rangpur Riders                       Sylhet International Cricket Stadium            Noakhali Express   0.162791   -238.169542            NaN
+7230900765428449887    T20                                       Continental Cup 2025-06-28                       Malta             Romania                 Moara Vlasiei Cricket Ground, Ilfov County                       Malta   0.162791   -193.530172       0.400000
+4958487178825158736    T20                                  Major League Cricket 2025-07-13                 MI New York  Washington Freedom                              Grand Prairie Stadium, Dallas                 MI New York   0.162791   -132.346331       0.333333
+3776637778603080749    T20                   Kwibuka Women's Twenty20 Tournament 2025-06-11                     Nigeria              Uganda              Gahanga International Cricket Stadium, Rwanda                     Nigeria   0.162791   -180.927143       0.071429
+ 642224229280003762    T20             Women's T20 Pentangular Series (in Japan) 2025-06-04                 Philippines               China                          Sano International Cricket Ground                       China   0.833333     34.334172            NaN
+7440689866662849077    T20                              Caribbean Premier League 2025-08-26      Guyana Amazon Warriors      St Lucia Kings Daren Sammy National Cricket Stadium, Gros Islet, St Lucia              St Lucia Kings   0.833232     50.952490       0.555556
 
 === by_competition ===
-                                                   competition  n      acc  avg_conf
-                                         Indian Premier League 62 0.741935  0.345296
-                                         Pakistan Super League 54 0.814815  0.332834
-                                       ICC Men's T20 World Cup 49 0.795918  0.443870
-                                               Big Bash League 43 0.604651  0.304819
-                                       Women's Big Bash League 39 0.743590  0.280416
-             BCA Kalahari Women's T20 International Tournament 37 0.918919  0.712752
-                                     Bangladesh Premier League 33 0.696970  0.388923
-                                          Major League Cricket 33 0.696970  0.333183
-                                      Caribbean Premier League 32 0.625000  0.359467
-                           Kwibuka Women's Twenty20 Tournament 29 0.758621  0.672504
-                               Women's T20 World Cup Qualifier 29 0.758621  0.399137
-                           ICC Women's Emerging Nations Trophy 28 0.714286  0.324583
-                                                   Super Smash 26 0.538462  0.301892
-                              Indonesia Tri-Nation T20I Series 24 0.833333  0.818661
-                                        Women's Premier League 22 0.681818  0.419443
-                  ICC Men's T20 World Cup Asia & EAP Qualifier 21 0.571429  0.376456
-ICC Women's T20 World Cup Africa Region Division Two Qualifier 20 0.950000  0.631973
-                   ICC Men's T20 World Cup Africa Region Final 20 0.750000  0.460255
-                                            West Africa Trophy 20 0.850000  0.465447
-ICC Women's T20 World Cup Africa Region Division One Qualifier 20 0.750000  0.449995
+                                                   competition   n      acc  avg_conf
+                                         Indian Premier League 186 0.827957  0.570878
+                                         Pakistan Super League  67 0.701493  0.387198
+                                       ICC Men's T20 World Cup  49 0.795918  0.471324
+                                               Big Bash League  43 0.651163  0.342380
+                                       Women's Big Bash League  39 0.743590  0.299281
+             BCA Kalahari Women's T20 International Tournament  37 0.945946  0.736324
+                                          Major League Cricket  33 0.575758  0.336210
+                                     Bangladesh Premier League  33 0.666667  0.353059
+                                      Caribbean Premier League  32 0.562500  0.394928
+                           Kwibuka Women's Twenty20 Tournament  29 0.758621  0.639972
+                               Women's T20 World Cup Qualifier  29 0.724138  0.398748
+                           ICC Women's Emerging Nations Trophy  28 0.750000  0.335197
+                                                   Super Smash  26 0.615385  0.314109
+                              Indonesia Tri-Nation T20I Series  24 0.833333  0.720355
+                                        Women's Premier League  22 0.681818  0.415891
+                  ICC Men's T20 World Cup Asia & EAP Qualifier  21 0.619048  0.457267
+                   ICC Men's T20 World Cup Africa Region Final  20 0.750000  0.420894
+ICC Women's T20 World Cup Africa Region Division Two Qualifier  20 0.950000  0.640067
+ICC Women's T20 World Cup Africa Region Division One Qualifier  20 0.650000  0.345075
+                                            West Africa Trophy  20 0.700000  0.484777
 
 === by_format ===
 format    n      acc
-   T20 1385 0.740072
+   T20 1562 0.743278
 
 === upset_share ===
-0.3436823104693141
+0.3405889884763124
 
 === upset_catch_rate ===
-0.5315126050420168
+0.5507518796992481
 
